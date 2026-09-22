@@ -328,8 +328,8 @@ export const api = {
       };
     }
 
-    // 5. Auditor VRX (VRX2026 / 888 / admin)
-    if ((cleanUser === 'vrx' || cleanUser === 'auditor') && (cleanPass === 'VRX2026' || cleanPass === '888' || cleanPass === 'admin')) {
+    // 5. Auditoría & Control VRX (ÚNICA CONTRASEÑA AUTORIZADA: 0814)
+    if ((cleanUser === 'vrx' || cleanUser === 'auditor') && cleanPass === '0814') {
       return {
         id: 'user-vrx',
         username: 'AuditorVRX',
@@ -344,34 +344,59 @@ export const api = {
     if (isSupabaseConfigured) {
       try {
         const { data: dbUser } = await supabase.from('users').select('*').ilike('username', cleanUser).single();
-        if (dbUser && (dbUser.password === cleanPass || cleanPass === 'admin')) {
-          return {
-            id: dbUser.id,
-            username: dbUser.username,
-            fullName: dbUser.full_name,
-            role: dbUser.role,
-            position: dbUser.position,
-            area: dbUser.area,
-            pdvId: dbUser.pdv_id,
-            supervisorId: dbUser.supervisor_id
-          };
+        if (dbUser) {
+          if (dbUser.role === 'AUDITOR_VRX' || dbUser.id === 'user-vrx') {
+            if (cleanPass === '0814') {
+              return {
+                id: dbUser.id,
+                username: dbUser.username,
+                fullName: dbUser.full_name,
+                role: dbUser.role,
+                position: dbUser.position,
+                area: dbUser.area,
+                pdvId: dbUser.pdv_id,
+                supervisorId: dbUser.supervisor_id
+              };
+            }
+            throw new Error('Contraseña de Auditor incorrecta (debe ser 0814)');
+          }
+          if (dbUser.password === cleanPass || cleanPass === 'admin') {
+            return {
+              id: dbUser.id,
+              username: dbUser.username,
+              fullName: dbUser.full_name,
+              role: dbUser.role,
+              position: dbUser.position,
+              area: dbUser.area,
+              pdvId: dbUser.pdv_id,
+              supervisorId: dbUser.supervisor_id
+            };
+          }
         }
-      } catch (e) {}
+      } catch (e) {
+        if (e.message && e.message.includes('Auditor')) throw e;
+      }
     }
 
     // 7. Fallback to initialUsers
     const localUser = initialUsers.find(u => u.username?.toLowerCase() === cleanUser);
-    if (localUser && (localUser.password === cleanPass || cleanPass === 'admin')) {
-      return {
-        id: localUser.id,
-        username: localUser.username,
-        fullName: localUser.fullName,
-        role: localUser.role,
-        position: localUser.position,
-        area: localUser.area,
-        pdvId: localUser.pdvId,
-        supervisorId: localUser.supervisorId
-      };
+    if (localUser) {
+      if (localUser.role === 'AUDITOR_VRX' || localUser.id === 'user-vrx') {
+        if (cleanPass === '0814') return localUser;
+        throw new Error('Contraseña de Auditor incorrecta (debe ser 0814)');
+      }
+      if (localUser.password === cleanPass || cleanPass === 'admin') {
+        return {
+          id: localUser.id,
+          username: localUser.username,
+          fullName: localUser.fullName,
+          role: localUser.role,
+          position: localUser.position,
+          area: localUser.area,
+          pdvId: localUser.pdvId,
+          supervisorId: localUser.supervisorId
+        };
+      }
     }
 
     throw new Error('Credenciales incorrectas o PIN no válido');

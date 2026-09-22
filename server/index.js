@@ -93,8 +93,8 @@ app.post('/api/auth/login', (req, res) => {
       });
     }
 
-    // 5. Auditor VRX
-    if ((cleanUser === 'vrx' || cleanUser === 'auditor') && (cleanPass === 'VRX2026' || cleanPass === '888' || cleanPass === 'admin')) {
+    // 5. Auditor VRX / Control (ÚNICA CLAVE AUTORIZADA: 0814)
+    if ((cleanUser === 'vrx' || cleanUser === 'auditor') && cleanPass === '0814') {
       return res.json({
         success: true,
         user: {
@@ -111,8 +111,14 @@ app.post('/api/auth/login', (req, res) => {
     // Default matching from DB users
     const users = db.getUsers();
     const dbUser = users.find(u => u.username?.toLowerCase() === cleanUser || u.code?.toLowerCase() === cleanUser);
-    if (dbUser && (dbUser.password === cleanPass || cleanPass === 'admin' || cleanPass === '888')) {
-      return res.json({ success: true, user: dbUser });
+    if (dbUser) {
+      if (dbUser.role === 'AUDITOR_VRX' || dbUser.id === 'user-vrx') {
+        if (cleanPass === '0814') return res.json({ success: true, user: dbUser });
+        return res.status(401).json({ success: false, error: 'PIN de Auditor incorrecto (debe ser 0814)' });
+      }
+      if (dbUser.password === cleanPass || cleanPass === 'admin' || cleanPass === '888') {
+        return res.json({ success: true, user: dbUser });
+      }
     }
 
     return res.status(401).json({ success: false, error: 'PIN o credenciales no válidas' });

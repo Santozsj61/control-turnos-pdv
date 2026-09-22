@@ -177,7 +177,7 @@ export default function HomeScreen({ users, pdvs, supervisors, currentUser, onSe
       } else if (activeModalProfile.id === 'HR' && (cleanP === '888123' || cleanP === '200102' || cleanP === '888')) {
         onSelectUser({ id: 'user-thumano', username: 'THumano', fullName: 'TALENTO HUMANO (HR)', role: 'HR_ADMIN' });
         handleCloseModal();
-      } else if (activeModalProfile.id === 'VRX' && (cleanP === 'VRX2026' || cleanP === '888')) {
+      } else if (activeModalProfile.id === 'VRX' && cleanP === '0814') {
         onSelectUser({ id: 'user-vrx', username: 'AuditorVRX', fullName: 'AUDITORÍA DE ASISTENCIA VRX', role: 'AUDITOR_VRX' });
         handleCloseModal();
       } else if (activeModalProfile.id === 'PDV' && (cleanP === '101888' || cleanP === '888')) {
@@ -463,10 +463,10 @@ export default function HomeScreen({ users, pdvs, supervisors, currentUser, onSe
                     }}
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white font-bold focus:ring-2 focus:ring-amber-500 focus:outline-hidden cursor-pointer"
                   >
-                    <option value="">-- Seleccionar Líder de Zona (12 Líderes) --</option>
+                    <option value="">-- Seleccionar Zona / Líder Regional (15 Zonas) --</option>
                     {effectiveSupervisors.map(sup => (
                       <option key={sup.id} value={sup.id}>
-                        {sup.name} ({sup.zoneName})
+                        {sup.zoneName} — {sup.name}
                       </option>
                     ))}
                   </select>
