@@ -5,15 +5,19 @@ import {
 } from 'lucide-react';
 
 import { api } from '../services/api.js';
+import { initialSupervisors, initialPDVs } from '../data/seedData.js';
 
 export default function HomeScreen({ users, pdvs, supervisors, currentUser, onSelectUser, onEnterPlatform }) {
+  const effectivePdvs = (pdvs && pdvs.length > 0) ? pdvs : initialPDVs;
+  const effectiveSupervisors = (supervisors && supervisors.length > 0) ? supervisors : initialSupervisors;
+
   const [activeModalProfile, setActiveModalProfile] = useState(null); // 'PDV' | 'ZONA' | 'HR' | 'VRX' | null
   
   // Login form state & ref for focus
   const passwordInputRef = useRef(null);
   const [loginUsername, setLoginUsername] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
-  const [selectedPdvId, setSelectedPdvId] = useState(pdvs[0]?.id || 'pdv-1');
+  const [selectedPdvId, setSelectedPdvId] = useState(effectivePdvs[0]?.id || 'pdv-1');
   const [pdvSearch, setPdvSearch] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -90,9 +94,9 @@ export default function HomeScreen({ users, pdvs, supervisors, currentUser, onSe
     setLoginPassword('');
     
     if (profile.id === 'PDV') {
-      if (pdvs && pdvs.length > 0) {
-        setSelectedPdvId(pdvs[0].id);
-        setLoginUsername(pdvs[0].name);
+      if (effectivePdvs && effectivePdvs.length > 0) {
+        setSelectedPdvId(effectivePdvs[0].id);
+        setLoginUsername(effectivePdvs[0].name);
       } else {
         setSelectedPdvId('');
         setLoginUsername('');
@@ -167,7 +171,7 @@ export default function HomeScreen({ users, pdvs, supervisors, currentUser, onSe
       const cleanP = loginPassword.trim();
 
       if (activeModalProfile.id === 'ZONA' && (cleanP === '200101' || cleanP === '888')) {
-        const defaultSup = supervisors[0] || { id: 'zone-1', name: 'LÍDER ZONA 2', zoneName: 'ZONA ANTIOQUIA Y CASANARE (LIDER 2)' };
+        const defaultSup = effectiveSupervisors[0] || { id: 'zone-1', name: 'Alexander Lopez', zoneName: 'ZONA VALLE CENTRO & TULUÁ' };
         onSelectUser({ id: `user-${defaultSup.id}`, username: 'Zona', fullName: defaultSup.name, role: 'SUPERVISOR', supervisorId: defaultSup.id });
         handleCloseModal();
       } else if (activeModalProfile.id === 'HR' && (cleanP === '888123' || cleanP === '200102' || cleanP === '888')) {
@@ -177,8 +181,15 @@ export default function HomeScreen({ users, pdvs, supervisors, currentUser, onSe
         onSelectUser({ id: 'user-vrx', username: 'AuditorVRX', fullName: 'AUDITORÍA DE ASISTENCIA VRX', role: 'AUDITOR_VRX' });
         handleCloseModal();
       } else if (activeModalProfile.id === 'PDV' && (cleanP === '101888' || cleanP === '888')) {
-        const pdv = pdvs.find(p => p.id === selectedPdvId) || pdvs[0];
-        onSelectUser({ id: `user-${pdv?.id || 'pdv-1'}`, username: pdv?.code || 'PDV', fullName: pdv?.name || 'PUNTO DE VENTA', role: 'PDV', pdvId: pdv?.id });
+        const pdv = effectivePdvs.find(p => p.id === selectedPdvId) || effectivePdvs[0];
+        onSelectUser({
+          id: `user-${pdv.id}`,
+          username: pdv.code,
+          fullName: pdv.name,
+          role: 'PDV',
+          pdvId: pdv.id,
+          supervisorId: pdv.supervisorId
+        });
         handleCloseModal();
       } else {
         triggerPasswordError();
@@ -413,7 +424,7 @@ export default function HomeScreen({ users, pdvs, supervisors, currentUser, onSe
                       onChange={(e) => {
                         const pId = e.target.value;
                         setSelectedPdvId(pId);
-                        const matched = pdvs.find(p => p.id === pId);
+                        const matched = effectivePdvs.find(p => p.id === pId);
                         if (matched) {
                           setLoginUsername(matched.name);
                         }
@@ -421,10 +432,10 @@ export default function HomeScreen({ users, pdvs, supervisors, currentUser, onSe
                       }}
                       className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white font-bold focus:ring-2 focus:ring-blue-500 focus:outline-hidden cursor-pointer"
                     >
-                      {pdvs.length === 0 ? (
+                      {effectivePdvs.length === 0 ? (
                         <option value="">-- No hay PDVs registrados (Digita tu PDV abajo) --</option>
                       ) : (
-                        pdvs.map(pdv => (
+                        effectivePdvs.map(pdv => (
                           <option key={pdv.id} value={pdv.id}>
                             {pdv.code} - {pdv.name} ({pdv.city})
                           </option>
@@ -439,23 +450,23 @@ export default function HomeScreen({ users, pdvs, supervisors, currentUser, onSe
               {activeModalProfile.id === 'ZONA' && (
                 <div className="space-y-1.5">
                   <label className="block font-bold text-slate-300">
-                    Zona Regional Asignada
+                    Zona Regional / Líder de Zona
                   </label>
                   <select
                     onChange={(e) => {
                       const supId = e.target.value;
                       if (!supId) return;
-                      const matched = supervisors.find(s => s.id === supId);
+                      const matched = effectiveSupervisors.find(s => s.id === supId);
                       if (matched) {
-                        setLoginUsername(matched.zoneName || matched.name);
+                        setLoginUsername(matched.name || matched.zoneName);
                       }
                     }}
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white font-bold focus:ring-2 focus:ring-amber-500 focus:outline-hidden cursor-pointer"
                   >
-                    <option value="">-- Seleccionar Zona (Opcional) --</option>
-                    {supervisors.map(sup => (
+                    <option value="">-- Seleccionar Líder de Zona (12 Líderes) --</option>
+                    {effectiveSupervisors.map(sup => (
                       <option key={sup.id} value={sup.id}>
-                        {sup.zoneName || sup.name}
+                        {sup.name} ({sup.zoneName})
                       </option>
                     ))}
                   </select>

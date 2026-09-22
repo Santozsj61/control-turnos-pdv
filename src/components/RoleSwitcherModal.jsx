@@ -3,9 +3,14 @@ import {
   X, User, Shield, Briefcase, Store, Check, Lock, Key, 
   ArrowRight, AlertCircle, Sparkles, Building2, Search, Eye, EyeOff
 } from 'lucide-react';
+import { initialSupervisors, initialPDVs, initialUsers } from '../data/seedData.js';
 
 export default function RoleSwitcherModal({ isOpen, onClose, users, pdvs, supervisors, currentUser, onSelectUser }) {
   if (!isOpen) return null;
+
+  const effectivePdvs = (pdvs && pdvs.length > 0) ? pdvs : initialPDVs;
+  const effectiveSupervisors = (supervisors && supervisors.length > 0) ? supervisors : initialSupervisors;
+  const effectiveUsers = (users && users.length > 0) ? users : initialUsers;
 
   const [activeSubTab, setActiveSubTab] = useState('credentials'); // 'credentials', 'zonas', 'pdvs', 'directory'
   const [username, setUsername] = useState('');
@@ -13,8 +18,8 @@ export default function RoleSwitcherModal({ isOpen, onClose, users, pdvs, superv
   const [showPassword, setShowPassword] = useState(false);
   const [pdvSearch, setPdvSearch] = useState('');
   const [zoneSearch, setZoneSearch] = useState('');
-  const [selectedPdvId, setSelectedPdvId] = useState(pdvs[0]?.id || 'pdv-1');
-  const [pdvPassword, setPdvPassword] = useState(pdvs[0]?.name ? pdvs[0].name.substring(0, 4) : '');
+  const [selectedPdvId, setSelectedPdvId] = useState(effectivePdvs[0]?.id || 'pdv-1');
+  const [pdvPassword, setPdvPassword] = useState(effectivePdvs[0]?.name ? effectivePdvs[0].name.substring(0, 4) : '');
   const [errorMsg, setErrorMsg] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -156,7 +161,7 @@ export default function RoleSwitcherModal({ isOpen, onClose, users, pdvs, superv
   }
 
   async function handlePdvLogin() {
-    const targetPdv = pdvs.find(p => p.id === selectedPdvId) || pdvs[0];
+    const targetPdv = effectivePdvs.find(p => p.id === selectedPdvId) || effectivePdvs[0];
     if (!targetPdv) return;
 
     setLoading(true);
@@ -198,14 +203,14 @@ export default function RoleSwitcherModal({ isOpen, onClose, users, pdvs, superv
     }
   }
 
-  const filteredPdvs = pdvs.filter(p => 
+  const filteredPdvs = effectivePdvs.filter(p => 
     p.name.toLowerCase().includes(pdvSearch.toLowerCase()) || 
     (p.city && p.city.toLowerCase().includes(pdvSearch.toLowerCase())) ||
     (p.code && p.code.toLowerCase().includes(pdvSearch.toLowerCase())) ||
     (p.zoneName && p.zoneName.toLowerCase().includes(pdvSearch.toLowerCase()))
   );
 
-  const filteredSupervisors = supervisors.filter(s => 
+  const filteredSupervisors = effectiveSupervisors.filter(s => 
     s.name.toLowerCase().includes(zoneSearch.toLowerCase()) || 
     (s.zoneName && s.zoneName.toLowerCase().includes(zoneSearch.toLowerCase())) ||
     (s.code && s.code.toLowerCase().includes(zoneSearch.toLowerCase()))

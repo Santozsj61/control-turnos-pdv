@@ -2,6 +2,7 @@ import { supabase, isSupabaseConfigured } from './supabaseClient.js';
 import { calculateShiftHours, calculateMonSatHours, countMonthlySundays, timeToMinutes } from '../utils/calculator.js';
 import { runReconciliation } from '../utils/reconciliation.js';
 import { parsePunchExcel } from '../utils/excelParser.js';
+import { initialSupervisors, initialPDVs, initialUsers } from '../data/seedData.js';
 
 // Fallback helper for local dev server if Supabase keys aren't set yet
 async function fetchLocal(url, options = {}) {
@@ -77,19 +78,29 @@ export const api = {
   // 2. Supervisors / Zonas
   // ----------------------------------------------------
   getSupervisors: async () => {
-    if (!isSupabaseConfigured) return fetchLocal('/api/supervisors');
-    const { data, error } = await supabase.from('supervisors').select('*').order('name');
-    if (error) throw new Error(error.message);
-    return (data || []).map(s => ({
-      id: s.id,
-      name: s.name,
-      zoneName: s.zone_name || s.name,
-      zoneCode: s.zone_code,
-      code: s.zone_code,
-      documentId: s.document_id,
-      phone: s.phone,
-      email: s.email
-    }));
+    if (!isSupabaseConfigured) {
+      try {
+        const local = await fetchLocal('/api/supervisors');
+        if (local && local.length > 0) return local;
+      } catch (e) {}
+      return initialSupervisors;
+    }
+    try {
+      const { data, error } = await supabase.from('supervisors').select('*').order('name');
+      if (error || !data || data.length === 0) return initialSupervisors;
+      return data.map(s => ({
+        id: s.id,
+        name: s.name,
+        zoneName: s.zone_name || s.name,
+        zoneCode: s.zone_code,
+        code: s.zone_code,
+        documentId: s.document_id,
+        phone: s.phone,
+        email: s.email
+      }));
+    } catch (e) {
+      return initialSupervisors;
+    }
   },
 
   createSupervisor: async (sup) => {
@@ -134,23 +145,33 @@ export const api = {
   // 3. PDVs (Puntos de Venta)
   // ----------------------------------------------------
   getPDVs: async () => {
-    if (!isSupabaseConfigured) return fetchLocal('/api/pdvs');
-    const { data, error } = await supabase.from('pdvs').select('*, supervisors(name, zone_code)').order('name');
-    if (error) throw new Error(error.message);
-    return (data || []).map(p => ({
-      id: p.id,
-      code: p.code,
-      name: p.name,
-      city: p.city,
-      zoneId: p.zone_id || p.supervisor_id,
-      zoneName: p.zone_name,
-      supervisorId: p.supervisor_id,
-      supervisorName: p.supervisors ? p.supervisors.name : (p.zone_name || 'Sin asignar'),
-      openingHour: p.opening_hour || '10:00',
-      closingHour: p.closing_hour || '20:30',
-      allowedShifts: p.allowed_shifts || ['10:00-20:30', '10:00-18:00', '11:00-19:00', '12:00-20:30', '13:00-20:30'],
-      habitualSchedule: p.habitual_schedule || {}
-    }));
+    if (!isSupabaseConfigured) {
+      try {
+        const local = await fetchLocal('/api/pdvs');
+        if (local && local.length > 0) return local;
+      } catch (e) {}
+      return initialPDVs;
+    }
+    try {
+      const { data, error } = await supabase.from('pdvs').select('*').order('name');
+      if (error || !data || data.length === 0) return initialPDVs;
+      return data.map(p => ({
+        id: p.id,
+        code: p.code,
+        name: p.name,
+        city: p.city,
+        zoneId: p.zone_id || p.supervisor_id,
+        zoneName: p.zone_name,
+        supervisorId: p.supervisor_id,
+        supervisorName: p.zone_name || 'Sin asignar',
+        openingHour: p.opening_hour || '10:00',
+        closingHour: p.closing_hour || '20:30',
+        allowedShifts: p.allowed_shifts || ['10:00-20:30', '10:00-18:00', '11:00-19:00', '12:00-20:30', '13:00-20:30'],
+        habitualSchedule: p.habitual_schedule || {}
+      }));
+    } catch (e) {
+      return initialPDVs;
+    }
   },
 
   createPDV: async (pdv) => {
@@ -219,15 +240,20 @@ export const api = {
   // ----------------------------------------------------
   login: async ({ username, password, pdvId, pin, supervisorId }) => {
     if (!isSupabaseConfigured) {
-      return fetchLocal('/api/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ username, password, pdvId, pin, supervisorId })
-      });
+      try {
+        const localRes = await fetchLocal('/api/auth/login', {
+          method: 'POST',
+          body: JSON.stringify({ username, password, pdvId, pin, supervisorId })
+        });
+        if (localRes) return localRes;
+      } catch (e) {
+        console.warn('Backend local no disponible, autenticando vía fallback frontend...');
+      }
     }
     const cleanUser = String(username || '').trim().toLowerCase();
     const cleanPass = String(password || pin || '').trim();
 
-    // 1. Admin General (888)
+    // 1. Admin General (888 / admin)
     if ((cleanUser === 'administrador' || cleanUser === 'admin') && (cleanPass === '888' || cleanPass === 'admin')) {
       return {
         id: 'user-admin',
@@ -239,14 +265,23 @@ export const api = {
       };
     }
 
-    // 2. Líder de Zona (200101)
+    // 2. Líder de Zona (200101 / admin)
     if (supervisorId) {
-      const { data: sup } = await supabase.from('supervisors').select('*').eq('id', supervisorId).single();
+      let sup = null;
+      if (isSupabaseConfigured) {
+        try {
+          const { data } = await supabase.from('supervisors').select('*').eq('id', supervisorId).single();
+          sup = data;
+        } catch (e) {}
+      }
+      if (!sup) {
+        sup = initialSupervisors.find(s => s.id === supervisorId || s.name === supervisorId);
+      }
       if (cleanPass === '200101' || cleanPass === 'admin') {
         return {
-          id: sup ? `user-${sup.id}` : 'user-sup',
-          username: sup ? sup.name : 'Líder de Zona',
-          fullName: sup ? sup.name : 'LÍDER DE ZONA',
+          id: sup ? `user-${sup.id}` : `user-${supervisorId}`,
+          username: sup ? (sup.name || sup.zoneName) : 'Líder de Zona',
+          fullName: sup ? (sup.name || sup.zoneName) : 'LÍDER DE ZONA',
           role: 'SUPERVISOR',
           supervisorId: sup ? sup.id : supervisorId,
           position: 'LÍDER DE ZONA REGIONAL',
@@ -255,9 +290,18 @@ export const api = {
       }
     }
 
-    // 3. Store PDV Access (101888)
+    // 3. Store PDV Access (101888 / admin)
     if (pdvId) {
-      const { data: pdv } = await supabase.from('pdvs').select('*').eq('id', pdvId).single();
+      let pdv = null;
+      if (isSupabaseConfigured) {
+        try {
+          const { data } = await supabase.from('pdvs').select('*').eq('id', pdvId).single();
+          pdv = data;
+        } catch (e) {}
+      }
+      if (!pdv) {
+        pdv = initialPDVs.find(p => p.id === pdvId || p.code === pdvId);
+      }
       if (cleanPass === '101888' || cleanPass === 'admin') {
         return {
           id: `user-${pdvId}`,
@@ -265,14 +309,14 @@ export const api = {
           fullName: pdv ? pdv.name : 'PUNTO DE VENTA',
           role: 'PDV',
           pdvId: pdvId,
-          supervisorId: pdv?.supervisor_id,
+          supervisorId: pdv?.supervisorId || pdv?.supervisor_id,
           position: 'ADMINISTRADOR DE TIENDA',
           area: 'VENTAS RETAIL'
         };
       }
     }
 
-    // 4. Talento Humano (888123)
+    // 4. Talento Humano (888123 / admin)
     if ((cleanUser === 'th' || cleanUser === 'talentohumano') && (cleanPass === '888123' || cleanPass === 'admin')) {
       return {
         id: 'user-th',
@@ -284,7 +328,7 @@ export const api = {
       };
     }
 
-    // 5. Auditor VRX (VRX2026 / 888)
+    // 5. Auditor VRX (VRX2026 / 888 / admin)
     if ((cleanUser === 'vrx' || cleanUser === 'auditor') && (cleanPass === 'VRX2026' || cleanPass === '888' || cleanPass === 'admin')) {
       return {
         id: 'user-vrx',
@@ -296,18 +340,37 @@ export const api = {
       };
     }
 
-    // 6. DB User verification
-    const { data: dbUser } = await supabase.from('users').select('*').ilike('username', cleanUser).single();
-    if (dbUser && (dbUser.password === cleanPass || cleanPass === 'admin')) {
+    // 6. DB User verification (if Supabase configured)
+    if (isSupabaseConfigured) {
+      try {
+        const { data: dbUser } = await supabase.from('users').select('*').ilike('username', cleanUser).single();
+        if (dbUser && (dbUser.password === cleanPass || cleanPass === 'admin')) {
+          return {
+            id: dbUser.id,
+            username: dbUser.username,
+            fullName: dbUser.full_name,
+            role: dbUser.role,
+            position: dbUser.position,
+            area: dbUser.area,
+            pdvId: dbUser.pdv_id,
+            supervisorId: dbUser.supervisor_id
+          };
+        }
+      } catch (e) {}
+    }
+
+    // 7. Fallback to initialUsers
+    const localUser = initialUsers.find(u => u.username?.toLowerCase() === cleanUser);
+    if (localUser && (localUser.password === cleanPass || cleanPass === 'admin')) {
       return {
-        id: dbUser.id,
-        username: dbUser.username,
-        fullName: dbUser.full_name,
-        role: dbUser.role,
-        position: dbUser.position,
-        area: dbUser.area,
-        pdvId: dbUser.pdv_id,
-        supervisorId: dbUser.supervisor_id
+        id: localUser.id,
+        username: localUser.username,
+        fullName: localUser.fullName,
+        role: localUser.role,
+        position: localUser.position,
+        area: localUser.area,
+        pdvId: localUser.pdvId,
+        supervisorId: localUser.supervisorId
       };
     }
 
@@ -316,29 +379,51 @@ export const api = {
 
   getUsers: async (filters = {}) => {
     if (!isSupabaseConfigured) {
-      const q = new URLSearchParams(filters).toString();
-      return fetchLocal(`/api/users${q ? '?' + q : ''}`);
+      try {
+        const q = new URLSearchParams(filters).toString();
+        const local = await fetchLocal(`/api/users${q ? '?' + q : ''}`);
+        if (local && local.length > 0) return local;
+      } catch (e) {}
+      let res = initialUsers;
+      if (filters.role) res = res.filter(u => u.role === filters.role);
+      if (filters.pdvId) res = res.filter(u => u.pdvId === filters.pdvId);
+      if (filters.supervisorId) res = res.filter(u => u.supervisorId === filters.supervisorId);
+      return res;
     }
-    let query = supabase.from('users').select('*').eq('is_active', true);
-    if (filters.role) query = query.eq('role', filters.role);
-    if (filters.pdvId) query = query.eq('pdv_id', filters.pdvId);
-    if (filters.supervisorId) query = query.eq('supervisor_id', filters.supervisorId);
-    const { data, error } = await query.order('full_name');
-    if (error) throw new Error(error.message);
-    return (data || []).map(u => ({
-      id: u.id,
-      username: u.username,
-      fullName: u.full_name,
-      documentId: u.document_id,
-      code: u.code,
-      role: u.role,
-      position: u.position,
-      area: u.area,
-      contractType: u.contract_type || 'FIJO',
-      pdvId: u.pdv_id,
-      supervisorId: u.supervisor_id,
-      weeklyMaxHours: u.weekly_max_hours || 42
-    }));
+    try {
+      let query = supabase.from('users').select('*').eq('is_active', true);
+      if (filters.role) query = query.eq('role', filters.role);
+      if (filters.pdvId) query = query.eq('pdv_id', filters.pdvId);
+      if (filters.supervisorId) query = query.eq('supervisor_id', filters.supervisorId);
+      const { data, error } = await query.order('full_name');
+      if (error || !data || data.length === 0) {
+        let res = initialUsers;
+        if (filters.role) res = res.filter(u => u.role === filters.role);
+        if (filters.pdvId) res = res.filter(u => u.pdvId === filters.pdvId);
+        if (filters.supervisorId) res = res.filter(u => u.supervisorId === filters.supervisorId);
+        return res;
+      }
+      return data.map(u => ({
+        id: u.id,
+        username: u.username,
+        fullName: u.full_name,
+        documentId: u.document_id,
+        code: u.code,
+        role: u.role,
+        position: u.position,
+        area: u.area,
+        contractType: u.contract_type || 'FIJO',
+        pdvId: u.pdv_id,
+        supervisorId: u.supervisor_id,
+        weeklyMaxHours: u.weekly_max_hours || 42
+      }));
+    } catch (e) {
+      let res = initialUsers;
+      if (filters.role) res = res.filter(u => u.role === filters.role);
+      if (filters.pdvId) res = res.filter(u => u.pdvId === filters.pdvId);
+      if (filters.supervisorId) res = res.filter(u => u.supervisorId === filters.supervisorId);
+      return res;
+    }
   },
 
   addPdvMember: async ({ pdvId, documentId, fullName, position, code, contractType }) => {

@@ -13,11 +13,12 @@ import ConfigView from './components/ConfigView.jsx';
 import HabitualSchedulesAuditView from './components/HabitualSchedulesAuditView.jsx';
 
 import { api } from './services/api.js';
+import { initialSupervisors, initialPDVs, initialUsers } from './data/seedData.js';
 
 export default function App() {
-  const [users, setUsers] = useState([]);
-  const [pdvs, setPdvs] = useState([]);
-  const [supervisors, setSupervisors] = useState([]);
+  const [users, setUsers] = useState(initialUsers);
+  const [pdvs, setPdvs] = useState(initialPDVs);
+  const [supervisors, setSupervisors] = useState(initialSupervisors);
   const [currentUser, setCurrentUser] = useState(null);
   const [showHomeScreen, setShowHomeScreen] = useState(false);
   const [activeTab, setActiveTab] = useState('schedule');
@@ -37,9 +38,13 @@ export default function App() {
         api.getSupervisors().catch(() => [])
       ]);
 
-      setUsers(loadedUsers || []);
-      setPdvs(loadedPdvs || []);
-      setSupervisors(loadedSups || []);
+      const finalUsers = (loadedUsers && loadedUsers.length > 0) ? loadedUsers : initialUsers;
+      const finalPdvs = (loadedPdvs && loadedPdvs.length > 0) ? loadedPdvs : initialPDVs;
+      const finalSups = (loadedSups && loadedSups.length > 0) ? loadedSups : initialSupervisors;
+
+      setUsers(finalUsers);
+      setPdvs(finalPdvs);
+      setSupervisors(finalSups);
 
       // Check localStorage for saved session
       const savedUserStr = localStorage.getItem('control_turnos_user');
