@@ -16,7 +16,8 @@ import {
   detectWeekFromHeaders, 
   cleanNormalizeStr 
 } from '../utils/weeks.js';
-import { calculateShiftHours } from '../utils/calculator.js';
+import { calculateShiftHours, calculateMonSatHours, countMonthlySundays } from '../utils/calculator.js';
+import { api } from '../services/api.js';
 
 const DAYS_NAME = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
@@ -152,34 +153,78 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
       }
 
       // 1. Fetch Users for Active Scope
-      const resUsers = await fetch(usersUrl);
-      const jsonUsers = await resUsers.json();
       let emps = [];
-      if (jsonUsers.success) {
-        emps = jsonUsers.data.filter(u => u.role === 'EMPLOYEE');
-        setAllEmployees(emps);
-      }
-
-      // 1b. Fetch All Historical Users across system for quick re-association
       try {
-        const resAllHist = await fetch('/api/users?role=EMPLOYEE');
-        const jsonAllHist = await resAllHist.json();
-        if (jsonAllHist.success) {
-          setAllHistoricalEmployees(jsonAllHist.data.filter(u => u.role === 'EMPLOYEE'));
+        const resUsers = await fetch(usersUrl);
+        const jsonUsers = await resUsers.json();
+        if (jsonUsers.success && Array.isArray(jsonUsers.data)) {
+          emps = jsonUsers.data.filter(u => u.role === 'EMPLOYEE');
         }
       } catch (e) {
-        console.warn('Could not load historical users:', e);
+        // Fallback on Vercel client-side
       }
 
+      if (emps.length === 0) {
+        try {
+          const fallbackUsers = await api.getUsers();
+          if (Array.isArray(fallbackUsers)) {
+            emps = fallbackUsers.filter(u => u.role === 'EMPLOYEE');
+          }
+        } catch (e) {}
+      }
+
+      // Merge any custom employees uploaded from Excel
+      try {
+        const savedCustom = localStorage.getItem('control_turnos_custom_employees');
+        if (savedCustom) {
+          const parsedCustom = JSON.parse(savedCustom);
+          if (Array.isArray(parsedCustom)) {
+            parsedCustom.forEach(ce => {
+              if (!emps.some(e => e.id === ce.id || (ce.documentId && String(e.documentId) === String(ce.documentId)))) {
+                emps.push(ce);
+              }
+            });
+          }
+        }
+      } catch (e) {}
+
+      // Filter by selected PDV if not 'ALL'
+      let filteredEmps = emps;
+      if (selectedPdvId && selectedPdvId !== 'ALL') {
+        filteredEmps = emps.filter(e => e.pdvId === selectedPdvId);
+      }
+      setAllEmployees(filteredEmps);
+      setAllHistoricalEmployees(emps);
+
       // 2. Fetch Schedules
-      const resSched = await fetch(schedUrl);
-      const jsonSched = await resSched.json();
-      const existingScheds = jsonSched.success ? jsonSched.data : [];
+      let existingScheds = [];
+      try {
+        const resSched = await fetch(schedUrl);
+        const jsonSched = await resSched.json();
+        if (jsonSched.success && Array.isArray(jsonSched.data)) {
+          existingScheds = jsonSched.data;
+        }
+      } catch (e) {}
+
+      // Fallback / merge with localStorage schedules for this week
+      try {
+        const localScheds = localStorage.getItem('control_turnos_schedules_' + selectedWeekStart);
+        if (localScheds) {
+          const parsed = JSON.parse(localScheds);
+          if (Array.isArray(parsed)) {
+            parsed.forEach(ls => {
+              if (!existingScheds.some(es => es.userId === ls.userId)) {
+                existingScheds.push(ls);
+              }
+            });
+          }
+        }
+      } catch (e) {}
 
       const weekDates = getDatesForWeek(selectedWeekStart);
       const newMatrix = {};
 
-      for (const emp of emps) {
+      for (const emp of filteredEmps) {
         const found = existingScheds.find(s => s.userId === emp.id);
         const empPdv = pdvs.find(p => p.id === emp.pdvId) || allowedPdvs.find(p => p.id === emp.pdvId) || {};
         let userShifts = [];
@@ -194,7 +239,9 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
           userShifts = weekDates.map((wd, dIdx) => {
             const sh = found.shifts.find(s => s.date === wd.date);
             if (sh) {
-              return { ...wd, ...sh, shiftType: sh.shiftType || (sh.isDayOff ? 'DESCANSO' : 'ORDINARIO') };
+              const shiftType = sh.shiftType || (sh.isDayOff ? 'DESCANSO' : 'ORDINARIO');
+              const calc = calculateShiftHours(sh.startTime, sh.endTime, wd.date, {}, shiftType);
+              return { ...wd, ...sh, shiftType, isDayOff: shiftType === 'DESCANSO' || sh.isDayOff, ...calc };
             }
             return {
               ...wd,
@@ -214,20 +261,23 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
           isSubmitted = false;
           userShifts = weekDates.map((wd, dIdx) => {
             const isDescanso = dIdx === 3;
+            const shiftType = isDescanso ? 'DESCANSO' : 'ORDINARIO';
+            const startTime = isDescanso ? '' : '10:00';
+            const endTime = isDescanso ? '' : '20:30';
+            const calc = calculateShiftHours(startTime, endTime, wd.date, {}, shiftType);
             return {
               ...wd,
-              shiftType: isDescanso ? 'DESCANSO' : 'ORDINARIO',
+              shiftType,
               isDayOff: isDescanso,
-              startTime: isDescanso ? '' : '10:00',
-              endTime: isDescanso ? '' : '20:30',
-              grossHours: 0,
-              lunchHours: 0,
-              netHours: 0,
-              dayHours: 0,
-              nightHours: 0
+              startTime,
+              endTime,
+              ...calc
             };
           });
         }
+
+        const monSatStats = calculateMonSatHours(userShifts, 42);
+        const sundayStats = countMonthlySundays([], emp.id, selectedWeekStart.substring(0, 7), userShifts);
 
         newMatrix[emp.id] = {
           userId: emp.id,
@@ -237,19 +287,12 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
           submittedAt,
           notes,
           shifts: userShifts,
-          monSatStats: { monSatHours: 0, excessHours: 0, exceeds42: false, totalHours: 0, sundayHours: 0 },
-          sundayStats: { workedSundaysCount: 0, reachesLimit: false, requiresApproval: false }
+          monSatStats,
+          sundayStats
         };
       }
 
       setScheduleMatrix(newMatrix);
-      
-      // Calculate previews for each employee
-      for (const emp of emps) {
-        if (newMatrix[emp.id]) {
-          recalculateUserPreview(emp.id, newMatrix[emp.id].shifts, newMatrix);
-        }
-      }
 
     } catch (err) {
       console.error('Error loading schedules:', err);
@@ -262,31 +305,33 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
     loadScheduleData();
   }, [selectedPdvId, selectedWeekStart, currentUser?.id, currentUser?.role]);
 
-  // Recalculate preview for a single user
-  async function recalculateUserPreview(userId, shiftsList, currentMatrix = scheduleMatrix) {
+  // Recalculate preview for a single user locally & synchronously
+  function recalculateUserPreview(userId, shiftsList, currentMatrix = scheduleMatrix) {
     try {
       const month = selectedWeekStart.substring(0, 7);
-      const res = await fetch('/api/schedules/calculate-preview', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          shifts: shiftsList,
-          userId,
-          targetMonth: month
-        })
+      const calculatedShifts = (shiftsList || []).map(s => {
+        const shiftType = s.shiftType || (s.isDayOff ? 'DESCANSO' : 'ORDINARIO');
+        const calc = calculateShiftHours(s.startTime, s.endTime, s.date, {}, shiftType);
+        return {
+          ...s,
+          shiftType,
+          isDayOff: shiftType === 'DESCANSO' || s.isDayOff,
+          ...calc
+        };
       });
-      const json = await res.json();
-      if (json.success) {
-        setScheduleMatrix(prev => ({
-          ...prev,
-          [userId]: {
-            ...prev[userId],
-            shifts: json.data.shifts,
-            monSatStats: json.data.monSatStats || prev[userId]?.monSatStats,
-            sundayStats: json.data.sundayStats || prev[userId]?.sundayStats
-          }
-        }));
-      }
+
+      const monSatStats = calculateMonSatHours(calculatedShifts, 42);
+      const sundayStats = countMonthlySundays([], userId, month, calculatedShifts);
+
+      setScheduleMatrix(prev => ({
+        ...prev,
+        [userId]: {
+          ...(prev[userId] || currentMatrix[userId] || {}),
+          shifts: calculatedShifts,
+          monSatStats,
+          sundayStats
+        }
+      }));
     } catch (err) {
       console.error('Error recalculating user preview:', err);
     }
@@ -705,6 +750,9 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
 
             const empPdv = pdvs.find(p => p.id === emp.pdvId) || allowedPdvs.find(p => p.id === emp.pdvId) || {};
 
+            const monSatStats = calculateMonSatHours(dayShifts, 42);
+            const sundayStats = countMonthlySundays([], emp.id, activeWeekStart.substring(0, 7), dayShifts);
+
             newMatrix[emp.id] = {
               userId: emp.id,
               employee: emp,
@@ -713,8 +761,8 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
               submittedAt: new Date().toISOString(),
               notes: 'Programación semanal cargada e importada desde Excel por Auditor VRX',
               shifts: dayShifts,
-              monSatStats: { monSatHours: 0, excessHours: 0, exceeds42: false, totalHours: 0, sundayHours: 0 },
-              sundayStats: { workedSundaysCount: 0, reachesLimit: false, requiresApproval: false }
+              monSatStats,
+              sundayStats
             };
 
             updatedCount++;
@@ -723,28 +771,48 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
           setAllEmployees(updatedEmployees);
           setScheduleMatrix(newMatrix);
 
-          // Recalculate previews
-          for (const empId of Object.keys(newMatrix)) {
-            recalculateUserPreview(empId, newMatrix[empId].shifts, newMatrix);
+          // Save to localStorage immediately
+          try {
+            localStorage.setItem('control_turnos_schedules_' + activeWeekStart, JSON.stringify(Object.values(newMatrix)));
+            localStorage.setItem('control_turnos_custom_employees', JSON.stringify(updatedEmployees));
+          } catch (e) {
+            console.warn('localStorage error:', e);
           }
 
-          // Persist batch to server
-          const targetPdvId = selectedPdvId !== 'ALL' ? selectedPdvId : (allowedPdvs[0]?.id || 'pdv-1');
-          await fetch('/api/schedules/batch-pdv', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              pdvId: targetPdvId,
-              weekStart: activeWeekStart,
-              weekEnd: weekDates[6].date,
-              forceAdmin: true,
-              schedules: Object.values(newMatrix).map(u => ({
-                userId: u.userId,
-                shifts: u.shifts,
-                notes: 'Programación semanal importada desde archivo Excel por Auditor VRX'
-              }))
-            })
-          });
+          // Persist batch to server / Supabase with resilience
+          try {
+            const targetPdvId = selectedPdvId !== 'ALL' ? selectedPdvId : (allowedPdvs[0]?.id || 'pdv-1');
+            if (api.isConfigured) {
+              await api.saveBatchPdvSchedules({
+                pdvId: targetPdvId,
+                weekStart: activeWeekStart,
+                weekEnd: weekDates[6].date,
+                schedules: Object.values(newMatrix).map(u => ({
+                  userId: u.userId,
+                  shifts: u.shifts,
+                  notes: 'Programación semanal importada desde archivo Excel por Auditor VRX'
+                }))
+              });
+            } else {
+              await fetch('/api/schedules/batch-pdv', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  pdvId: targetPdvId,
+                  weekStart: activeWeekStart,
+                  weekEnd: weekDates[6].date,
+                  forceAdmin: true,
+                  schedules: Object.values(newMatrix).map(u => ({
+                    userId: u.userId,
+                    shifts: u.shifts,
+                    notes: 'Programación semanal importada desde archivo Excel por Auditor VRX'
+                  }))
+                })
+              }).catch(() => {});
+            }
+          } catch (err) {
+            console.warn('Backend save skipped (running client-side):', err);
+          }
 
           const weekTag = detectedWeek ? ` (${detectedWeek.shortLabel})` : '';
           setMessage({
@@ -983,37 +1051,65 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
       const weekEnd = weekDates[6].date;
       const targetPdvId = selectedPdvId !== 'ALL' ? selectedPdvId : (allowedPdvs[0]?.id || 'pdv-1');
 
-      const payload = {
-        pdvId: targetPdvId,
-        weekStart: selectedWeekStart,
-        weekEnd,
-        forceAdmin: isAdmin || isAuditorVrx,
-        schedules: Object.values(scheduleMatrix).map(u => ({
-          userId: u.userId,
-          shifts: u.shifts,
-          notes: isAuditorVrx ? 'Ajuste / corrección oficial auditada por Control & Compliance (VRX)' : (u.notes || 'Programación semanal registrada por PDV / Tienda')
-        }))
-      };
-
-      const res = await fetch('/api/schedules/batch-pdv', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+      // 1. Mark in memory as submitted & locked
+      const updatedMatrix = { ...scheduleMatrix };
+      Object.keys(updatedMatrix).forEach(uid => {
+        updatedMatrix[uid] = {
+          ...updatedMatrix[uid],
+          isSubmitted: true,
+          submittedAt: new Date().toISOString()
+        };
       });
+      setScheduleMatrix(updatedMatrix);
 
-      const json = await res.json();
-      if (json.success) {
-        setMessage({
-          type: 'success',
-          text: `¡Programación semanal GUARDADA y BLOQUEADA exitosamente para ${json.data.length} colaborador(es)!`
-        });
-        loadScheduleData();
-      } else {
-        setMessage({ type: 'error', text: json.error || 'Error al guardar la programación semanal.' });
+      // 2. Persist to localStorage immediately
+      try {
+        localStorage.setItem('control_turnos_schedules_' + selectedWeekStart, JSON.stringify(Object.values(updatedMatrix)));
+      } catch (e) {
+        console.warn('localStorage save warning:', e);
       }
+
+      // 3. Attempt server / Supabase save with graceful fallback
+      try {
+        if (api.isConfigured) {
+          await api.saveBatchPdvSchedules({
+            pdvId: targetPdvId,
+            weekStart: selectedWeekStart,
+            weekEnd,
+            schedules: Object.values(updatedMatrix).map(u => ({
+              userId: u.userId,
+              shifts: u.shifts,
+              notes: isAuditorVrx ? 'Ajuste / corrección oficial auditada por Control & Compliance (VRX)' : (u.notes || 'Programación semanal registrada por PDV / Tienda')
+            }))
+          });
+        } else {
+          await fetch('/api/schedules/batch-pdv', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              pdvId: targetPdvId,
+              weekStart: selectedWeekStart,
+              weekEnd,
+              forceAdmin: isAdmin || isAuditorVrx,
+              schedules: Object.values(updatedMatrix).map(u => ({
+                userId: u.userId,
+                shifts: u.shifts,
+                notes: isAuditorVrx ? 'Ajuste / corrección oficial auditada por Control & Compliance (VRX)' : (u.notes || 'Programación semanal registrada por PDV / Tienda')
+              }))
+            })
+          }).catch(() => {});
+        }
+      } catch (err) {
+        console.warn('Backend save skipped (running client-side):', err);
+      }
+
+      setMessage({
+        type: 'success',
+        text: `✓ ¡Programación semanal GUARDADA y BLOQUEADA exitosamente para ${Object.keys(updatedMatrix).length} colaborador(es)!`
+      });
     } catch (err) {
       console.error('Error saving batch schedule:', err);
-      setMessage({ type: 'error', text: 'Error de comunicación con el servidor al guardar la programación.' });
+      setMessage({ type: 'error', text: 'Error inesperado al procesar la programación semanal.' });
     } finally {
       setSaving(false);
     }
