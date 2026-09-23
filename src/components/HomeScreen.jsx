@@ -217,16 +217,16 @@ export default function HomeScreen({ users, pdvs, supervisors, currentUser, onSe
           {/* Company Logo & Clean System Title */}
           <div className="flex items-center gap-4">
             <img 
-              src="/quest_logo.png" 
-              alt="QUEST / QST - NCS SAS" 
-              className="h-10 sm:h-12 w-auto object-contain drop-shadow-md"
+              src="/ncs_brands_logo.png" 
+              alt="NCS BRANDS" 
+              className="h-10 sm:h-12 w-auto object-contain rounded-lg shadow-md border border-slate-700/60"
             />
             <div className="pl-4 border-l border-slate-700">
               <span className="text-xs sm:text-sm font-black tracking-wider text-slate-100 block uppercase">
                 SISTEMA INTEGRAL DE GESTIÓN DE HORARIOS & TURNOS
               </span>
               <span className="text-[10px] sm:text-xs text-slate-400 font-medium block">
-                NCS S.A.S. • Normativa Laboral Colombia (CST)
+                NCS BRANDS • Normativa Laboral Colombia (CST)
               </span>
             </div>
           </div>
@@ -368,7 +368,7 @@ export default function HomeScreen({ users, pdvs, supervisors, currentUser, onSe
       {/* ----------------------------------------------------------------- */}
       <footer className="border-t border-slate-800/80 bg-slate-950 py-5 px-4 sm:px-8 text-center text-xs text-slate-400">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p>© 2026 QUEST / QST • NCS S.A.S. — Todos los derechos reservados.</p>
+          <p>© 2026 NCS BRANDS • QUEST / QST — Todos los derechos reservados.</p>
           <p className="text-[11px] text-slate-500">Portal de Horarios, Turnos PDV & Conciliación Biométrica</p>
         </div>
       </footer>

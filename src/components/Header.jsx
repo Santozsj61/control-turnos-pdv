@@ -40,14 +40,14 @@ export default function Header({ activeTab, setActiveTab, currentUser, onOpenUse
               className="flex items-center gap-2 hover:opacity-90 transition group"
             >
               <img 
-                src="/quest_logo.png" 
-                alt="QUEST / QST - NCS SAS" 
-                className="h-7 sm:h-8 w-auto object-contain"
+                src="/ncs_brands_logo.png" 
+                alt="NCS BRANDS" 
+                className="h-8 sm:h-9 w-auto object-contain rounded-md shadow-xs border border-slate-700/60"
               />
             </button>
             <div className="hidden lg:block pl-2 border-l border-slate-700">
               <span className="font-bold tracking-wide text-white text-xs">PORTAL HORARIOS & MARCADORES PDV</span>
-              <span className="hidden xl:inline-block ml-2 text-slate-400 text-[11px]">| Control Retail Colombia (CST)</span>
+              <span className="hidden xl:inline-block ml-2 text-slate-400 text-[11px]">| NCS BRANDS Colombia (CST)</span>
             </div>
           </div>
 
