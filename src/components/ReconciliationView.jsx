@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Upload, FileSpreadsheet, BarChart3, Filter, CheckCircle2, AlertTriangle, AlertCircle, Clock, Download, RefreshCw, Eye, Sparkles, UserCheck, ShieldAlert, ArrowUpDown, ChevronRight, ChevronDown, Store, Building2, Edit3, CheckSquare, Square, X, Send, Lock, HelpCircle, Activity, TrendingUp, Calendar, Zap } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid, Cell } from 'recharts';
 import * as XLSX from 'xlsx';
+import { ALL_WEEKS_2026, CURRENT_WEEK_START } from '../utils/weeks.js';
 
 export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
   const isAdmin = currentUser?.role === 'ADMIN';
@@ -20,7 +21,7 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
     ? pdvs.filter(p => p.supervisorId === currentSupervisorObj?.id || p.supervisorId === currentUser?.supervisorId)
     : pdvs.filter(p => p.id === currentUser?.pdvId || p.code === currentUser?.pdvId);
 
-  const [weekStart, setWeekStart] = useState('2026-08-31');
+  const [weekStart, setWeekStart] = useState(CURRENT_WEEK_START);
   const [selectedPdv, setSelectedPdv] = useState(isEmployee ? (currentUser.pdvId || allowedPdvs[0]?.id) : '');
   const [selectedSupervisor, setSelectedSupervisor] = useState(isSupervisor ? (currentSupervisorObj?.id || '') : '');
   const [statusFilter, setStatusFilter] = useState('ALL');
@@ -1154,11 +1155,13 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
             <select
               value={weekStart}
               onChange={(e) => setWeekStart(e.target.value)}
-              className="bg-slate-50 border border-slate-300 text-slate-800 text-xs font-semibold rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-blue-500"
+              className="bg-slate-50 border border-slate-300 text-slate-800 text-xs font-semibold rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-blue-500 max-w-[280px]"
             >
-              <option value="2026-08-31">Semana 31 Ago - 06 Sep 2026</option>
-              <option value="2026-09-07">Semana 07 Sep - 13 Sep 2026</option>
-              <option value="2026-08-24">Semana 24 Ago - 30 Ago 2026</option>
+              {ALL_WEEKS_2026.map(w => (
+                <option key={w.weekStart} value={w.weekStart}>
+                  {w.label}
+                </option>
+              ))}
             </select>
           </div>
 

@@ -4,6 +4,7 @@ import {
   FileText, ChevronDown, ChevronRight, User, Filter, Store, 
   Layers, Search, ShieldCheck, Sparkles, Building2, UserCheck, Eye
 } from 'lucide-react';
+import { ALL_WEEKS_2026, CURRENT_WEEK_START } from '../utils/weeks.js';
 
 const DAYS_NAME = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
@@ -30,7 +31,7 @@ export default function HistoryView({ currentUser, pdvs, supervisors }) {
   const [schedules, setSchedules] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [selectedWeek, setSelectedWeek] = useState('2026-08-31');
+  const [selectedWeek, setSelectedWeek] = useState(CURRENT_WEEK_START);
   const [filterType, setFilterType] = useState('ALL'); // 'ALL', 'FIJO', 'TEMPORAL'
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedEmpId, setExpandedEmpId] = useState(null);
@@ -51,8 +52,8 @@ export default function HistoryView({ currentUser, pdvs, supervisors }) {
         if (jsonSched.success) {
           schedList = jsonSched.data;
           setSchedules(schedList);
-          // Auto-select the latest week if available
-          if (schedList.length > 0 && !schedList.some(s => s.weekStart === selectedWeek)) {
+          // If current selectedWeek is not in schedList, keep CURRENT_WEEK_START or pick latest
+          if (schedList.length > 0 && !schedList.some(s => s.weekStart === selectedWeek) && !ALL_WEEKS_2026.some(w => w.weekStart === selectedWeek)) {
             setSelectedWeek(schedList[0].weekStart);
           }
         }
@@ -170,31 +171,22 @@ export default function HistoryView({ currentUser, pdvs, supervisors }) {
       {/* Week Selector Bar & KPI Badges */}
       <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs space-y-4">
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-          {/* Week Selector Pills */}
+          {/* Week Selector Dropdown & Recorded Weeks */}
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-xs font-extrabold text-slate-700 mr-1 flex items-center gap-1.5">
-              <Clock className="w-4 h-4 text-blue-600" /> Semanas Registradas:
+              <Clock className="w-4 h-4 text-blue-600" /> Semana de Consulta:
             </span>
-            {availableWeeks.map(w => {
-              const isSelected = selectedWeek === w;
-              const wDate = new Date(w + 'T12:00:00Z');
-              const endDate = new Date(wDate.getTime() + 6 * 86400000);
-              const label = `${wDate.toLocaleDateString('es-CO', { day: 'numeric', month: 'short' })} al ${endDate.toLocaleDateString('es-CO', { day: 'numeric', month: 'short' })}`;
-              return (
-                <button
-                  key={w}
-                  onClick={() => setSelectedWeek(w)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
-                    isSelected
-                      ? 'bg-blue-600 text-white shadow-xs'
-                      : 'bg-slate-100 hover:bg-slate-200/80 text-slate-700'
-                  }`}
-                >
-                  <Calendar className="w-3.5 h-3.5" />
-                  <span>{label}</span>
-                </button>
-              );
-            })}
+            <select
+              value={selectedWeek}
+              onChange={(e) => setSelectedWeek(e.target.value)}
+              className="bg-slate-50 border border-slate-300 text-slate-800 text-xs font-bold rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-blue-500 max-w-[300px]"
+            >
+              {ALL_WEEKS_2026.map(w => (
+                <option key={w.weekStart} value={w.weekStart}>
+                  {w.label}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Quick Search & Contract Filter */}

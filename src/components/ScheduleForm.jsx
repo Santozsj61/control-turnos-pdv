@@ -8,6 +8,15 @@ import {
   FileSpreadsheet, Download, Upload
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
+import { 
+  ALL_WEEKS_2026, 
+  CURRENT_WEEK_START, 
+  CURRENT_WEEK_NUMBER, 
+  formatExcelTime, 
+  detectWeekFromHeaders, 
+  cleanNormalizeStr 
+} from '../utils/weeks.js';
+import { calculateShiftHours } from '../utils/calculator.js';
 
 const DAYS_NAME = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
@@ -69,7 +78,7 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
     }
   }, [currentUser?.id, currentUser?.role]);
 
-  const [selectedWeekStart, setSelectedWeekStart] = useState('2026-08-31');
+  const [selectedWeekStart, setSelectedWeekStart] = useState(CURRENT_WEEK_START);
   const [allEmployees, setAllEmployees] = useState([]);
   const [allHistoricalEmployees, setAllHistoricalEmployees] = useState([]);
   
@@ -487,6 +496,94 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
     };
   }
 
+  function parseDayShiftFromInOut(inVal, outVal, weekDayObj) {
+    const rawInClean = cleanNormalizeStr(inVal);
+    const rawOutClean = cleanNormalizeStr(outVal);
+
+    if (rawInClean.includes('descanso') || rawOutClean.includes('descanso') || inVal?.toLowerCase() === 'd' || (!inVal && !outVal)) {
+      return {
+        ...weekDayObj,
+        shiftType: 'DESCANSO',
+        isDayOff: true,
+        startTime: '',
+        endTime: '',
+        grossHours: 0,
+        lunchHours: 0,
+        netHours: 7,
+        dayHours: 7,
+        nightHours: 0
+      };
+    }
+
+    if (rawInClean.includes('vacaciones') || rawOutClean.includes('vacaciones') || rawInClean === 'v' || rawInClean.includes('vac')) {
+      return {
+        ...weekDayObj,
+        shiftType: 'VACACIONES',
+        isDayOff: false,
+        startTime: '08:00',
+        endTime: '16:00',
+        grossHours: 8,
+        lunchHours: 1,
+        netHours: 7,
+        dayHours: 7,
+        nightHours: 0
+      };
+    }
+
+    if (rawInClean.includes('incapacidad') || rawOutClean.includes('incapacidad') || rawInClean === 'inc' || rawInClean.includes('med')) {
+      return {
+        ...weekDayObj,
+        shiftType: 'INCAPACIDAD',
+        isDayOff: false,
+        startTime: '08:00',
+        endTime: '16:00',
+        grossHours: 8,
+        lunchHours: 1,
+        netHours: 7,
+        dayHours: 7,
+        nightHours: 0
+      };
+    }
+
+    if (rawInClean.includes('licencia') || rawOutClean.includes('licencia') || rawInClean.includes('luto')) {
+      return {
+        ...weekDayObj,
+        shiftType: 'LICENCIA',
+        isDayOff: false,
+        startTime: '08:00',
+        endTime: '16:00',
+        grossHours: 8,
+        lunchHours: 1,
+        netHours: 7,
+        dayHours: 7,
+        nightHours: 0
+      };
+    }
+
+    const startMatch = String(inVal).match(/(\d{1,2}:\d{2})/);
+    const endMatch = String(outVal).match(/(\d{1,2}:\d{2})/);
+
+    if (startMatch && endMatch) {
+      const startTime = startMatch[1].padStart(5, '0');
+      const endTime = endMatch[1].padStart(5, '0');
+      const calc = calculateShiftHours(startTime, endTime, weekDayObj.date);
+      return {
+        ...weekDayObj,
+        shiftType: 'ORDINARIO',
+        isDayOff: false,
+        startTime,
+        endTime,
+        grossHours: calc.grossHours || 0,
+        lunchHours: calc.lunchHours || 0,
+        netHours: calc.netHours || 0,
+        dayHours: calc.dayHours || 0,
+        nightHours: calc.nightHours || 0
+      };
+    }
+
+    return parseShiftCellString(inVal || outVal, weekDayObj);
+  }
+
   // Upload schedule programming Excel (Auditor VRX & Admin)
   async function handleUploadScheduleExcel(e) {
     const file = e.target.files?.[0];
@@ -511,7 +608,15 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
             return;
           }
 
-          const weekDates = getDatesForWeek(selectedWeekStart);
+          // Detección inteligente de semana a partir de encabezados (ej: "Lunes 29 Junio", etc.)
+          const detectedWeek = detectWeekFromHeaders(Object.keys(rawData[0]));
+          let activeWeekStart = selectedWeekStart;
+          if (detectedWeek && detectedWeek.weekStart) {
+            activeWeekStart = detectedWeek.weekStart;
+            setSelectedWeekStart(detectedWeek.weekStart);
+          }
+
+          const weekDates = getDatesForWeek(activeWeekStart);
           let updatedCount = 0;
           let newMatrix = { ...scheduleMatrix };
           let updatedEmployees = [...allEmployees];
@@ -564,12 +669,32 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
 
             if (!emp) continue;
 
-            // Parse 7 days
+            // Parse 7 days: Detecta columnas pares [Ingreso / Salida] de la plantilla oficial o columna única de rango
             const dayShifts = weekDates.map((wd, dayIdx) => {
               const dayName = wd.dayOfWeek.toLowerCase();
+              const dayKey = dayName.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+              // 1. Columnas separadas de Ingreso y Salida (Plantilla oficial Quest)
+              const inColKey = Object.keys(row).find(k => {
+                const kClean = cleanNormalizeStr(k);
+                return kClean.includes(dayKey) && (kClean.includes('ingreso') || kClean.includes('entrada') || kClean.includes('in') || kClean.includes('inicio'));
+              });
+
+              const outColKey = Object.keys(row).find(k => {
+                const kClean = cleanNormalizeStr(k);
+                return kClean.includes(dayKey) && (kClean.includes('salida') || kClean.includes('out') || kClean.includes('fin'));
+              });
+
+              if (inColKey || outColKey) {
+                const inVal = inColKey ? formatExcelTime(row[inColKey]) : '';
+                const outVal = outColKey ? formatExcelTime(row[outColKey]) : '';
+                return parseDayShiftFromInOut(inVal, outVal, wd);
+              }
+
+              // 2. Columna única de turno (Formato tradicional)
               const colKey = Object.keys(row).find(k => {
                 const kClean = k.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-                return kClean.includes(dayName.normalize('NFD').replace(/[\u0300-\u036f]/g, '')) || 
+                return kClean.includes(dayKey) || 
                        kClean.includes(wd.date) || 
                        kClean.includes(`dia ${dayIdx + 1}`);
               });
@@ -610,7 +735,7 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               pdvId: targetPdvId,
-              weekStart: selectedWeekStart,
+              weekStart: activeWeekStart,
               weekEnd: weekDates[6].date,
               forceAdmin: true,
               schedules: Object.values(newMatrix).map(u => ({
@@ -621,9 +746,10 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
             })
           });
 
+          const weekTag = detectedWeek ? ` (${detectedWeek.shortLabel})` : '';
           setMessage({
             type: 'success',
-            text: `✓ ¡Programación semanal cargada y sincronizada exitosamente desde Excel para ${updatedCount} colaborador(es)!`
+            text: `✓ ¡Programación semanal vinculada y cargada exitosamente para ${updatedCount} colaborador(es)${weekTag}!`
           });
           setUploadingSchedule(false);
         } catch (err) {
@@ -632,7 +758,6 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
           setUploadingSchedule(false);
         }
       };
-
       reader.readAsBinaryString(file);
     } catch (err) {
       setMessage({ type: 'error', text: 'Error al cargar el archivo Excel de programación.' });
@@ -1119,12 +1244,13 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
               <select
                 value={selectedWeekStart}
                 onChange={(e) => setSelectedWeekStart(e.target.value)}
-                className="bg-slate-900 border border-slate-600 text-white text-xs font-bold rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-blue-500"
+                className="bg-slate-900 border border-slate-600 text-white text-xs font-bold rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-blue-500 max-w-[280px]"
               >
-                <option value="2026-08-31">31 Ago 2026 - 06 Sep 2026 (Semana Actual)</option>
-                <option value="2026-09-07">07 Sep 2026 - 13 Sep 2026 (Próxima Semana)</option>
-                <option value="2026-09-14">14 Sep 2026 - 20 Sep 2026</option>
-                <option value="2026-08-24">24 Ago 2026 - 30 Ago 2026 (Semana Pasada)</option>
+                {ALL_WEEKS_2026.map(w => (
+                  <option key={w.weekStart} value={w.weekStart}>
+                    {w.label}
+                  </option>
+                ))}
               </select>
             </div>
           </div>

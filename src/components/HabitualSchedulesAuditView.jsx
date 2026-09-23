@@ -10,12 +10,13 @@ import {
   Tooltip, Legend, CartesianGrid, Cell 
 } from 'recharts';
 import * as XLSX from 'xlsx';
+import { ALL_WEEKS_2026, CURRENT_WEEK_START } from '../utils/weeks.js';
 
 export default function HabitualSchedulesAuditView({ currentUser, pdvs = [], supervisors = [] }) {
   const isAdmin = currentUser?.role === 'ADMIN';
   const isAuditorVrx = currentUser?.role === 'AUDITOR_VRX';
 
-  const [weekStart, setWeekStart] = useState('2026-08-31');
+  const [weekStart, setWeekStart] = useState(CURRENT_WEEK_START);
   const [selectedPdvId, setSelectedPdvId] = useState('ALL'); // 'ALL' for unified comparison or specific pdvId
   const [selectedSupervisorId, setSelectedSupervisorId] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -422,12 +423,17 @@ export default function HabitualSchedulesAuditView({ currentUser, pdvs = [], sup
             <Calendar className="w-3.5 h-3.5 text-blue-600" />
             <span>Semana de Auditoría (Lunes)</span>
           </label>
-          <input
-            type="date"
+          <select
             value={weekStart}
             onChange={(e) => setWeekStart(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 font-semibold text-slate-800 focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
-          />
+            className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 font-semibold text-slate-800 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-hidden cursor-pointer"
+          >
+            {ALL_WEEKS_2026.map(w => (
+              <option key={w.weekStart} value={w.weekStart}>
+                {w.label}
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* Filtro por Zona */}
