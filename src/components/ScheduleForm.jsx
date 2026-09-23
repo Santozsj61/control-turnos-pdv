@@ -445,29 +445,17 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append('file', file);
-
     setUploadingPunches(true);
     setMessage(null);
 
     try {
-      const res = await fetch('/api/punches/upload', {
-        method: 'POST',
-        headers: { 'x-user-role': currentUser?.role || 'HR_ADMIN' },
-        body: formData
+      const res = await api.uploadPunchFile(file);
+      setMessage({
+        type: 'success',
+        text: `✓ Archivo procesado correctamente (${res?.recordCount || 0} marcaciones sincronizadas en Supabase).`
       });
-      const json = await res.json();
-      if (json.success) {
-        setMessage({
-          type: 'success',
-          text: `✓ ${json.message} (${json.data?.recordCount || 0} registros procesados correctamente).`
-        });
-      } else {
-        setMessage({ type: 'error', text: json.error || 'Error al procesar archivo de marcaciones' });
-      }
     } catch (err) {
-      setMessage({ type: 'error', text: 'Error de comunicación al subir archivo de marcaciones.' });
+      setMessage({ type: 'error', text: err.message || 'Error de comunicación al subir archivo de marcaciones.' });
     } finally {
       setUploadingPunches(false);
       e.target.value = '';
@@ -1075,35 +1063,28 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
     const targetPdvId = selectedPdvId !== 'ALL' ? selectedPdvId : (allowedPdvs[0]?.id || 'pdv-1');
 
     try {
-      const res = await fetch('/api/users/pdv-member', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          pdvId: targetPdvId,
-          documentId: newDocId.trim(),
-          fullName: newFullName.trim().toUpperCase(),
-          position: newPosition,
-          contractType: newContractType
-        })
+      const data = await api.addPdvMember({
+        pdvId: targetPdvId,
+        documentId: newDocId.trim(),
+        fullName: newFullName.trim().toUpperCase(),
+        position: newPosition,
+        contractType: newContractType
       });
 
-      const json = await res.json();
-      if (json.success) {
+      if (data) {
         setIsAddingPerson(false);
         setNewDocId('');
         setNewFullName('');
         setNewContractType('FIJO');
         setMessage({ 
           type: 'success', 
-          text: `Colaborador ${json.data.fullName} asociado como personal ${json.data.contractType || 'FIJO'} exitosamente.` 
+          text: `Colaborador ${data.fullName || newFullName} asociado como personal ${data.contractType || newContractType} exitosamente.` 
         });
         loadScheduleData();
         if (onReloadUsers) onReloadUsers();
-      } else {
-        setMessage({ type: 'error', text: json.error || 'Error al asociar colaborador.' });
       }
     } catch (err) {
-      setMessage({ type: 'error', text: 'Error al registrar colaborador en el servidor.' });
+      setMessage({ type: 'error', text: err.message || 'Error al registrar colaborador en el servidor.' });
     }
   }
 

@@ -4,6 +4,7 @@ import {
   Trash2, CheckCircle2, AlertCircle, Shield, Phone, Mail, Globe,
   Building2, Sparkles, Filter, Edit3
 } from 'lucide-react';
+import { api } from '../services/api.js';
 
 export default function PdvDirectoryView({ currentUser, pdvs, supervisors, users, onReloadPdvs }) {
   const [searchTerm, setSearchTerm] = useState('');
@@ -98,22 +99,12 @@ export default function PdvDirectoryView({ currentUser, pdvs, supervisors, users
         allowedShifts: shiftsArray
       };
 
-      const res = await fetch('/api/pdvs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      const json = await res.json();
-      if (json.success) {
-        setMessage({ type: 'success', text: json.message || 'Punto de Venta registrado exitosamente.' });
-        setShowCreatePdvModal(false);
-        if (onReloadPdvs) onReloadPdvs();
-      } else {
-        setMessage({ type: 'error', text: json.error });
-      }
+      await api.createPDV(payload);
+      setMessage({ type: 'success', text: 'Punto de Venta registrado exitosamente en la base de datos.' });
+      setShowCreatePdvModal(false);
+      if (onReloadPdvs) onReloadPdvs();
     } catch (err) {
-      setMessage({ type: 'error', text: 'Error al procesar la solicitud de PDV.' });
+      setMessage({ type: 'error', text: err.message || 'Error al procesar la solicitud de PDV.' });
     } finally {
       setLoading(false);
     }
@@ -136,31 +127,18 @@ export default function PdvDirectoryView({ currentUser, pdvs, supervisors, users
         email: zonaForm.email
       };
 
-      let url = '/api/zonas';
-      let method = 'POST';
-
       if (editingZona) {
-        url = `/api/zonas/${editingZona.id}`;
-        method = 'PUT';
-      }
-
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      const json = await res.json();
-      if (json.success) {
-        setMessage({ type: 'success', text: json.message || 'Zona guardada con éxito.' });
-        setShowCreateZonaModal(false);
-        setEditingZona(null);
-        if (onReloadPdvs) onReloadPdvs();
+        await api.updateSupervisor(editingZona.id, payload);
       } else {
-        setMessage({ type: 'error', text: json.error });
+        await api.createSupervisor(payload);
       }
+
+      setMessage({ type: 'success', text: 'Zona guardada con éxito.' });
+      setShowCreateZonaModal(false);
+      setEditingZona(null);
+      if (onReloadPdvs) onReloadPdvs();
     } catch (err) {
-      setMessage({ type: 'error', text: 'Error al procesar la solicitud de Zona.' });
+      setMessage({ type: 'error', text: err.message || 'Error al procesar la solicitud de Zona.' });
     } finally {
       setLoading(false);
     }
@@ -171,16 +149,11 @@ export default function PdvDirectoryView({ currentUser, pdvs, supervisors, users
     if (!window.confirm(`¿Estás seguro de eliminar el Punto de Venta "${pdvName}"?`)) return;
 
     try {
-      const res = await fetch(`/api/pdvs/${pdvId}`, { method: 'DELETE' });
-      const json = await res.json();
-      if (json.success) {
-        setMessage({ type: 'success', text: `PDV "${pdvName}" eliminado correctamente.` });
-        if (onReloadPdvs) onReloadPdvs();
-      } else {
-        setMessage({ type: 'error', text: json.error });
-      }
+      await api.deletePDV(pdvId);
+      setMessage({ type: 'success', text: `PDV "${pdvName}" eliminado correctamente.` });
+      if (onReloadPdvs) onReloadPdvs();
     } catch (err) {
-      setMessage({ type: 'error', text: 'Error al eliminar el PDV.' });
+      setMessage({ type: 'error', text: err.message || 'Error al eliminar el PDV.' });
     }
   }
 
@@ -189,16 +162,11 @@ export default function PdvDirectoryView({ currentUser, pdvs, supervisors, users
     if (!window.confirm(`¿Estás seguro de eliminar la Zona "${zonaName}"?`)) return;
 
     try {
-      const res = await fetch(`/api/zonas/${zonaId}`, { method: 'DELETE' });
-      const json = await res.json();
-      if (json.success) {
-        setMessage({ type: 'success', text: `Zona "${zonaName}" eliminada correctamente.` });
-        if (onReloadPdvs) onReloadPdvs();
-      } else {
-        setMessage({ type: 'error', text: json.error });
-      }
+      await api.deleteSupervisor(zonaId);
+      setMessage({ type: 'success', text: `Zona "${zonaName}" eliminada correctamente.` });
+      if (onReloadPdvs) onReloadPdvs();
     } catch (err) {
-      setMessage({ type: 'error', text: 'Error al eliminar la Zona.' });
+      setMessage({ type: 'error', text: err.message || 'Error al eliminar la Zona.' });
     }
   }
 

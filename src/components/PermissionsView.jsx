@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CheckSquare, Clock, User, Store, AlertCircle, CheckCircle2, XCircle, Plus, Send, ShieldCheck, MessageSquare, Sparkles, Mail, Tag, Building2 } from 'lucide-react';
+import { api } from '../services/api.js';
 
 const ASSIGNED_AREAS = [
   'Mantenimiento y Obras',
@@ -49,16 +50,13 @@ export default function PermissionsView({ currentUser, pdvs, supervisors, onRefr
   // Load collaborators for this PDV (or all employees if admin/supervisor)
   async function fetchPdvEmployees() {
     try {
-      let url = '/api/users?role=EMPLOYEE';
-      if (currentUser.pdvId) {
-        url += `&pdvId=${currentUser.pdvId}`;
-      }
-      const res = await fetch(url);
-      const json = await res.json();
-      if (json.success && json.data) {
-        setPdvEmployees(json.data);
-        if (json.data.length > 0 && !selectedEmpId) {
-          setSelectedEmpId(json.data[0].id);
+      const filters = { role: 'EMPLOYEE' };
+      if (currentUser.pdvId) filters.pdvId = currentUser.pdvId;
+      const data = await api.getUsers(filters).catch(() => []);
+      if (Array.isArray(data)) {
+        setPdvEmployees(data);
+        if (data.length > 0 && !selectedEmpId) {
+          setSelectedEmpId(data[0].id);
         }
       }
     } catch (err) {
@@ -66,32 +64,25 @@ export default function PermissionsView({ currentUser, pdvs, supervisors, onRefr
     }
   }
 
-  // Load permissions based on current user role
+  // Load permissions based on current user role from Supabase
   async function fetchPermissions() {
     setLoading(true);
     try {
-      let url = '/api/permissions';
+      const filters = {};
       if (isEmployee && currentUser.pdvId) {
-        // Show all permissions for this PDV's store collaborators
-        url += `?pdvId=${currentUser.pdvId}`;
+        filters.pdvId = currentUser.pdvId;
       } else if (isEmployee) {
-        url += `?userId=${currentUser.id}`;
+        filters.userId = currentUser.id;
       } else if (isSupervisor) {
-        // Find supervisor record matching this user
-        const supRecord = supervisors.find(s => s.name === currentUser.fullName || currentUser.id.includes(s.id));
-        if (supRecord) {
-          url += `?supervisorId=${supRecord.id}`;
-        }
+        const supRecord = supervisors.find(s => s.name === currentUser.fullName || currentUser.id?.includes(s.id));
+        if (supRecord) filters.supervisorId = supRecord.id;
       } else if (isMaintenanceApprover) {
-        url += `?recipientRole=MAINTENANCE_APPROVER`;
+        filters.recipientRole = 'MAINTENANCE_APPROVER';
       }
-      const res = await fetch(url);
-      const json = await res.json();
-      if (json.success) {
-        setPermissions(json.data);
-      }
+      const data = await api.getPermissions(filters).catch(() => []);
+      setPermissions(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error(err);
+      console.error('Error fetching permissions from Supabase:', err);
     } finally {
       setLoading(false);
     }
@@ -115,39 +106,36 @@ export default function PermissionsView({ currentUser, pdvs, supervisors, onRefr
     setSubmitting(true);
     setFormMsg(null);
     try {
-      const res = await fetch('/api/permissions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: targetEmployee.id,
-          date: requestDate,
-          originalStartTime: '10:00',
-          originalEndTime: '20:30',
-          requestedStartTime: isDayOffChange ? '' : reqStartTime,
-          requestedEndTime: isDayOffChange ? '' : reqEndTime,
-          isDayOffChange,
-          reason,
-          assignedArea
-        })
+      await api.createPermission({
+        userId: targetEmployee.id,
+        employeeName: targetEmployee.fullName || targetEmployee.name || 'Colaborador',
+        documentId: targetEmployee.documentId || '',
+        position: targetEmployee.position || 'ASESOR(A) DE IMAGEN',
+        pdvId: targetEmployee.pdvId || currentUser.pdvId || 'pdv-1',
+        supervisorId: mySupervisor?.id || targetEmployee.supervisorId,
+        date: requestDate,
+        shiftType: isDayOffChange ? 'DESCANSO' : 'ORDINARIO',
+        originalStartTime: '10:00',
+        originalEndTime: '20:30',
+        requestedStartTime: isDayOffChange ? '' : reqStartTime,
+        requestedEndTime: isDayOffChange ? '' : reqEndTime,
+        isDayOffChange,
+        reason,
+        assignedArea
       });
 
-      const json = await res.json();
-      if (json.success) {
-        const destText = assignedArea === 'Mantenimiento y Obras'
-          ? 'al Correo Corporativo de Mantenimiento y Obras'
-          : `a tu jefe inmediato (${mySupervisor?.name || 'Asignado'})`;
-        setFormMsg({ type: 'success', text: `¡Solicitud para "${targetEmployee.fullName}" [${assignedArea}] radicada exitosamente ${destText}!` });
-        setReason('');
-        setTimeout(() => {
-          setShowModal(false);
-          setFormMsg(null);
-          fetchPermissions();
-        }, 1500);
-      } else {
-        setFormMsg({ type: 'error', text: json.error || 'Error al enviar solicitud' });
-      }
+      const destText = assignedArea === 'Mantenimiento y Obras'
+        ? 'al Correo Corporativo de Mantenimiento y Obras'
+        : `a tu jefe inmediato (${mySupervisor?.name || 'Asignado'})`;
+      setFormMsg({ type: 'success', text: `¡Solicitud para "${targetEmployee.fullName}" [${assignedArea}] radicada exitosamente ${destText}!` });
+      setReason('');
+      setTimeout(() => {
+        setShowModal(false);
+        setFormMsg(null);
+        fetchPermissions();
+      }, 1500);
     } catch (err) {
-      setFormMsg({ type: 'error', text: 'Error de comunicación con el servidor' });
+      setFormMsg({ type: 'error', text: err.message || 'Error al enviar solicitud a Supabase' });
     } finally {
       setSubmitting(false);
     }
@@ -157,25 +145,19 @@ export default function PermissionsView({ currentUser, pdvs, supervisors, onRefr
   async function handleReviewStatus(permId, status) {
     setReviewing(true);
     try {
-      const res = await fetch(`/api/permissions/${permId}/status`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          status,
-          supervisorNotes: supervisorNotes || (status === 'APPROVED' ? 'Aprobado según solicitud.' : 'Rechazado por necesidades de cobertura.'),
-          reviewerId: currentUser.id
-        })
-      });
+      await api.updatePermissionStatus(
+        permId,
+        status,
+        supervisorNotes || (status === 'APPROVED' ? 'Aprobado según solicitud.' : 'Rechazado por necesidades de cobertura.'),
+        currentUser.id
+      );
 
-      const json = await res.json();
-      if (json.success) {
-        setReviewModalPerm(null);
-        setSupervisorNotes('');
-        fetchPermissions();
-        if (onRefreshSchedules) onRefreshSchedules();
-      }
+      setReviewModalPerm(null);
+      setSupervisorNotes('');
+      fetchPermissions();
+      if (onRefreshSchedules) onRefreshSchedules();
     } catch (err) {
-      console.error(err);
+      console.error('Error updating permission in Supabase:', err);
     } finally {
       setReviewing(false);
     }

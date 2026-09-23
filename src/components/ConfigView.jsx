@@ -3,6 +3,7 @@ import {
   Settings, ShieldCheck, CheckCircle2, Clock, Coffee, AlertCircle, 
   RotateCcw, Save, Loader2, Sparkles, Mail 
 } from 'lucide-react';
+import { api } from '../services/api.js';
 
 const DEFAULT_LEGAL_CONFIG = {
   lunchDurationHours: 1.5,
@@ -29,20 +30,19 @@ export default function ConfigView() {
     setLoading(true);
     setFeedback(null);
     try {
-      const res = await fetch('/api/config');
-      const json = await res.json();
-      if (json.success && json.data) {
+      const data = await api.getConfig();
+      if (data) {
         setConfig({
-          lunchDurationHours: json.data.lunchDurationHours !== undefined ? Number(json.data.lunchDurationHours) : 1.5,
-          lunchCutoffTime: json.data.lunchCutoffTime || '12:30',
-          lunchMinShiftDuration: json.data.lunchMinShiftDuration !== undefined ? Number(json.data.lunchMinShiftDuration) : 6.0,
-          dayStartTime: json.data.dayStartTime || '06:00',
-          nightStartTime: json.data.nightStartTime || '21:00',
-          weeklyMaxStandardHours: json.data.weeklyMaxStandardHours !== undefined ? Number(json.data.weeklyMaxStandardHours) : 42,
-          maxSundaysPerMonth: json.data.maxSundaysPerMonth !== undefined ? Number(json.data.maxSundaysPerMonth) : 2,
-          lateToleranceMinutes: json.data.lateToleranceMinutes !== undefined ? Number(json.data.lateToleranceMinutes) : 10,
-          earlyExitToleranceMinutes: json.data.earlyExitToleranceMinutes !== undefined ? Number(json.data.earlyExitToleranceMinutes) : 10,
-          maintenanceApprovalEmail: json.data.maintenanceApprovalEmail || 'mantenimiento.obras@quest.com.co'
+          lunchDurationHours: data.lunchDurationHours !== undefined ? Number(data.lunchDurationHours) : 1.5,
+          lunchCutoffTime: data.lunchCutoffTime || '12:30',
+          lunchMinShiftDuration: data.lunchMinShiftDuration !== undefined ? Number(data.lunchMinShiftDuration) : 6.0,
+          dayStartTime: data.dayStartTime || '06:00',
+          nightStartTime: data.nightStartTime || '21:00',
+          weeklyMaxStandardHours: data.weeklyMaxStandardHours !== undefined ? Number(data.weeklyMaxStandardHours) : 42,
+          maxSundaysPerMonth: data.maxSundaysPerMonth !== undefined ? Number(data.maxSundaysPerMonth) : 2,
+          lateToleranceMinutes: data.lateToleranceMinutes !== undefined ? Number(data.lateToleranceMinutes) : 10,
+          earlyExitToleranceMinutes: data.earlyExitToleranceMinutes !== undefined ? Number(data.earlyExitToleranceMinutes) : 10,
+          maintenanceApprovalEmail: data.maintenanceApprovalEmail || 'mantenimiento.obras@quest.com.co'
         });
       }
     } catch (err) {
@@ -76,26 +76,18 @@ export default function ConfigView() {
     };
 
     try {
-      const res = await fetch('/api/config', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      const json = await res.json();
-      if (json.success) {
-        setConfig(json.data);
+      const updated = await api.updateConfig(payload);
+      if (updated) {
+        setConfig(updated);
         setLastSavedAt(new Date());
         setFeedback({ 
           type: 'success', 
           text: '¡Parámetros guardados y sincronizados correctamente en la base de datos! Las nuevas reglas aplican para la conciliación y los cálculos de turnos.' 
         });
         setTimeout(() => setFeedback(null), 6000);
-      } else {
-        setFeedback({ type: 'error', text: json.error || 'Error al guardar los parámetros.' });
       }
     } catch (err) {
-      console.error('Error saving config:', err);
-      setFeedback({ type: 'error', text: 'Error de comunicación al guardar parámetros en el servidor.' });
+      setFeedback({ type: 'error', text: err.message || 'Error al guardar los parámetros.' });
     } finally {
       setSaving(false);
     }

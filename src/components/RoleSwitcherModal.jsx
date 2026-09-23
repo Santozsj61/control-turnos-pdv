@@ -4,6 +4,7 @@ import {
   ArrowRight, AlertCircle, Sparkles, Building2, Search, Eye, EyeOff
 } from 'lucide-react';
 import { initialSupervisors, initialPDVs, initialUsers } from '../data/seedData.js';
+import { api } from '../services/api.js';
 
 export default function RoleSwitcherModal({ isOpen, onClose, users, pdvs, supervisors, currentUser, onSelectUser }) {
   if (!isOpen) return null;
@@ -87,18 +88,11 @@ export default function RoleSwitcherModal({ isOpen, onClose, users, pdvs, superv
     setErrorMsg(null);
 
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: username.trim(), password: password.trim() })
-      });
-
-      const json = await res.json();
-      if (json.success && json.user) {
-        onSelectUser(json.user);
+      const loggedUser = await api.login({ username: username.trim(), password: password.trim() });
+      if (loggedUser) {
+        onSelectUser(loggedUser);
         onClose();
-      } else {
-        setErrorMsg(json.error || 'Credenciales inválidas. Revisa usuario y contraseña.');
+        return;
       }
     } catch (err) {
       console.error('Error logging in:', err);
@@ -195,22 +189,16 @@ export default function RoleSwitcherModal({ isOpen, onClose, users, pdvs, superv
     setErrorMsg(null);
 
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          pdvId: targetPdv.id,
-          username: targetPdv.code || targetPdv.id,
-          password: pdvPassword.trim()
-        })
+      const loggedUser = await api.login({
+        pdvId: targetPdv.id,
+        username: targetPdv.code || targetPdv.id,
+        password: pdvPassword.trim()
       });
 
-      const json = await res.json();
-      if (json.success && json.user) {
-        onSelectUser(json.user);
+      if (loggedUser) {
+        onSelectUser(loggedUser);
         onClose();
-      } else {
-        setErrorMsg(json.error || 'Contraseña incorrecta. Recuerda usar los primeros 4 dígitos del nombre de tu PDV.');
+        return;
       }
     } catch (err) {
       console.error('Error logging into PDV:', err);

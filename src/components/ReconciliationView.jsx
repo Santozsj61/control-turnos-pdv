@@ -3,6 +3,7 @@ import { Upload, FileSpreadsheet, BarChart3, Filter, CheckCircle2, AlertTriangle
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid, Cell } from 'recharts';
 import * as XLSX from 'xlsx';
 import { ALL_WEEKS_2026, CURRENT_WEEK_START } from '../utils/weeks.js';
+import { api } from '../services/api.js';
 
 export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
   const isAdmin = currentUser?.role === 'ADMIN';
@@ -66,45 +67,48 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
   async function fetchReconciliation() {
     setLoading(true);
     try {
-      let url = `/api/reconciliation?weekStart=${weekStart}`;
+      let targetPdvId = null;
+      let targetSupId = null;
       if (isEmployee) {
-        url += `&pdvId=${currentUser.pdvId}`;
+        targetPdvId = currentUser.pdvId;
       } else if (isSupervisor) {
-        url += `&supervisorId=${currentSupervisorObj?.id}`;
-        if (selectedPdv) url += `&pdvId=${selectedPdv}`;
+        targetSupId = currentSupervisorObj?.id;
+        if (selectedPdv) targetPdvId = selectedPdv;
       } else if (isAdmin || isHrAdmin || isAuditorVrx) {
-        if (selectedPdv) url += `&pdvId=${selectedPdv}`;
-        if (selectedSupervisor) url += `&supervisorId=${selectedSupervisor}`;
+        if (selectedPdv) targetPdvId = selectedPdv;
+        if (selectedSupervisor) targetSupId = selectedSupervisor;
       }
       
-      const res = await fetch(url);
-      const json = await res.json();
-      if (json.success) {
-        setReconciliationData(json.data);
+      const data = await api.getReconciliation({
+        weekStart,
+        pdvId: targetPdvId,
+        supervisorId: targetSupId
+      });
+      if (data) {
+        setReconciliationData(data);
       }
 
       // Fetch integrity data for Admin / Supervisor / Auditor VRX
       if (isAdmin || isSupervisor || isAuditorVrx) {
-        let integUrl = `/api/reconciliation/integrity?weekStart=${weekStart}`;
-        if (isSupervisor && currentSupervisorObj) integUrl += `&supervisorId=${currentSupervisorObj.id}`;
-        if (selectedPdv) integUrl += `&pdvId=${selectedPdv}`;
-        const integRes = await fetch(integUrl);
-        const integJson = await integRes.json();
-        if (integJson.success) {
-          setIntegrityData(integJson.data);
+        const integData = await api.getReconciliationIntegrity({
+          weekStart,
+          pdvId: targetPdvId,
+          supervisorId: targetSupId
+        });
+        if (integData) {
+          setIntegrityData(integData);
         }
       }
 
       // Fetch weekly comparison for PDV
       if (isEmployee) {
-        const compRes = await fetch(`/api/analytics/dashboard?pdvId=${currentUser.pdvId}`);
-        const compJson = await compRes.json();
-        if (compJson.success && compJson.data?.weeklyComparison) {
-          setWeeklyComparisonData(compJson.data.weeklyComparison);
+        const dashData = await api.getDashboardAnalytics({ pdvId: currentUser.pdvId });
+        if (dashData?.weeklyComparison) {
+          setWeeklyComparisonData(dashData.weeklyComparison);
         }
       }
     } catch (err) {
-      console.error(err);
+      console.error('Error fetching reconciliation:', err);
     } finally {
       setLoading(false);
     }
@@ -115,10 +119,9 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
     if (!targetPdvId) return;
     setLoadingMonthly(true);
     try {
-      const res = await fetch(`/api/reconciliation/monthly-dashboard?pdvId=${targetPdvId}&month=${selectedMonth}`);
-      const json = await res.json();
-      if (json.success) {
-        setMonthlyDashboardData(json.data);
+      const data = await api.getMonthlyReconciliationDashboard({ pdvId: targetPdvId, month: selectedMonth });
+      if (data) {
+        setMonthlyDashboardData(data);
       }
     } catch (err) {
       console.error('Error fetching monthly dashboard:', err);
@@ -130,15 +133,12 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
   async function fetchJustifications() {
     try {
       const activePdvId = isEmployee ? (currentUser.pdvId || allowedPdvs[0]?.id) : selectedPdv;
-      let url = '/api/reconciliation/supplementary-justifications';
-      const params = [];
-      if (activePdvId) params.push(`pdvId=${activePdvId}`);
-      if (weekStart) params.push(`weekStart=${weekStart}`);
-      if (params.length > 0) url += `?${params.join('&')}`;
-      const res = await fetch(url);
-      const json = await res.json();
-      if (json.success && Array.isArray(json.data)) {
-        setExistingJustifications(json.data);
+      const data = await api.getSupplementaryJustifications({
+        pdvId: activePdvId,
+        weekStart
+      });
+      if (Array.isArray(data)) {
+        setExistingJustifications(data);
       }
     } catch (e) {
       console.error('Error fetching supplementary justifications:', e);
@@ -159,35 +159,27 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
     setSubmittingJustification(true);
     setJustificationMsg(null);
     try {
-      const res = await fetch('/api/reconciliation/supplementary-justifications', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          pdvId: currentPdvObj?.id || currentUser.pdvId || 'pdv-1',
-          weekStart,
-          month: selectedMonth,
-          reasonCategory: justificationReasonCategory,
-          detailedReason: justificationDetailedReason,
-          createdBy: currentUser.fullName || 'ADMINISTRADOR PDV',
-          supervisorId: targetSupervisorId,
-          totalSupplementaryHours: totalSuppHours
-        })
+      await api.saveSupplementaryJustification({
+        pdvId: currentPdvObj?.id || currentUser.pdvId || 'pdv-1',
+        pdvName: currentPdvObj?.name || 'PDV',
+        weekStart,
+        month: selectedMonth,
+        reasonCategory: justificationReasonCategory,
+        detailedReason: justificationDetailedReason,
+        createdBy: currentUser.fullName || 'ADMINISTRADOR PDV',
+        supervisorId: targetSupervisorId,
+        totalSupplementaryHours: totalSuppHours
       });
 
-      const json = await res.json();
-      if (json.success) {
-        setJustificationMsg({ type: 'success', text: json.message });
-        setJustificationDetailedReason('');
-        fetchJustifications();
-        setTimeout(() => {
-          setShowJustifyModal(false);
-          setJustificationMsg(null);
-        }, 2000);
-      } else {
-        setJustificationMsg({ type: 'error', text: json.error || 'Error al guardar justificación.' });
-      }
+      setJustificationMsg({ type: 'success', text: 'Justificación radicada exitosamente ante el Líder de Zona.' });
+      setJustificationDetailedReason('');
+      fetchJustifications();
+      setTimeout(() => {
+        setShowJustifyModal(false);
+        setJustificationMsg(null);
+      }, 2000);
     } catch (err) {
-      setJustificationMsg({ type: 'error', text: 'Error al enviar justificación al Jefe de Zona.' });
+      setJustificationMsg({ type: 'error', text: err.message || 'Error al enviar justificación al Jefe de Zona.' });
     } finally {
       setSubmittingJustification(false);
     }
@@ -219,26 +211,14 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append('file', file);
-
     setUploading(true);
     setUploadMsg(null);
     try {
-      const res = await fetch('/api/punches/upload', {
-        method: 'POST',
-        headers: { 'x-user-role': currentUser.role },
-        body: formData
-      });
-      const json = await res.json();
-      if (json.success) {
-        setUploadMsg({ type: 'success', text: json.message });
-        fetchReconciliation();
-      } else {
-        setUploadMsg({ type: 'error', text: json.error || 'Error al procesar el archivo' });
-      }
+      const res = await api.uploadPunchFile(file);
+      setUploadMsg({ type: 'success', text: `Archivo cargado exitosamente: ${res.recordCount} marcaciones registradas.` });
+      fetchReconciliation();
     } catch (err) {
-      setUploadMsg({ type: 'error', text: 'Error de conexión durante la carga' });
+      setUploadMsg({ type: 'error', text: err.message || 'Error de conexión durante la carga' });
     } finally {
       setUploading(false);
       e.target.value = '';
@@ -254,19 +234,11 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
     setUploading(true);
     setUploadMsg(null);
     try {
-      const res = await fetch('/api/punches/generate-sample', {
-        method: 'POST',
-        headers: { 'x-user-role': currentUser.role }
-      });
-      const json = await res.json();
-      if (json.success) {
-        setUploadMsg({ type: 'success', text: json.message });
-        fetchReconciliation();
-      } else {
-        setUploadMsg({ type: 'error', text: json.error });
-      }
+      const res = await api.generateSamplePunches({ weekStart });
+      setUploadMsg({ type: 'success', text: `Datos de prueba cargados con éxito: ${res.recordCount} marcaciones generadas.` });
+      fetchReconciliation();
     } catch (err) {
-      setUploadMsg({ type: 'error', text: 'Error al cargar datos de muestra' });
+      setUploadMsg({ type: 'error', text: err.message || 'Error al cargar datos de muestra' });
     } finally {
       setUploading(false);
     }
@@ -343,26 +315,16 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
 
     setSubmittingCorrection(true);
     try {
-      const res = await fetch('/api/reconciliation/request-corrections', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          weekStart,
-          corrections,
-          adminNotes: adminCorrectionReason,
-          requestedBy: currentUser?.fullName || 'ADMINISTRACIÓN'
-        })
+      const res = await api.requestCorrections({
+        weekStart,
+        corrections,
+        adminNotes: adminCorrectionReason,
+        requestedBy: currentUser?.fullName || 'ADMINISTRACIÓN'
       });
-
-      const json = await res.json();
-      if (json.success) {
-        setUploadMsg({ type: 'success', text: json.message });
-        setShowCorrectionModal(false);
-        setSelectedCorrectionRows({});
-        fetchReconciliation();
-      } else {
-        setUploadMsg({ type: 'error', text: json.error });
-      }
+      setUploadMsg({ type: 'success', text: res.message });
+      setShowCorrectionModal(false);
+      setSelectedCorrectionRows({});
+      fetchReconciliation();
     } catch (err) {
       setUploadMsg({ type: 'error', text: 'Error al enviar solicitudes de corrección' });
     } finally {
@@ -372,20 +334,13 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
 
   async function handleCancelCorrection(row) {
     try {
-      const res = await fetch('/api/reconciliation/cancel-correction', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: row.userId,
-          weekStart,
-          date: row.date
-        })
+      const res = await api.cancelCorrection({
+        userId: row.userId,
+        weekStart,
+        date: row.date
       });
-      const json = await res.json();
-      if (json.success) {
-        setUploadMsg({ type: 'success', text: 'Corrección cancelada.' });
-        fetchReconciliation();
-      }
+      setUploadMsg({ type: 'success', text: res.message || 'Corrección cancelada.' });
+      fetchReconciliation();
     } catch (err) {
       console.error(err);
     }

@@ -5,6 +5,7 @@ import {
   Layers, Search, ShieldCheck, Sparkles, Building2, UserCheck, Eye
 } from 'lucide-react';
 import { ALL_WEEKS_2026, CURRENT_WEEK_START } from '../utils/weeks.js';
+import { api } from '../services/api.js';
 
 const DAYS_NAME = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
@@ -39,31 +40,68 @@ export default function HistoryView({ currentUser, pdvs, supervisors }) {
   const activePdv = allowedPdvs.find(p => p.id === selectedPdvId || p.code === selectedPdvId) || allowedPdvs[0] || pdvs[0];
   const activeSupervisor = supervisors.find(s => s.id === activePdv?.supervisorId);
 
-  // Fetch PDV schedules and employees
+  // Fetch PDV schedules and employees directly from Supabase / api service
   useEffect(() => {
     async function loadData() {
       if (!activePdv?.id) return;
       setLoading(true);
       try {
-        // 1. Fetch schedules for this PDV
-        const resSched = await fetch(`/api/schedules?pdvId=${activePdv.id}`);
-        const jsonSched = await resSched.json();
-        let schedList = [];
-        if (jsonSched.success) {
-          schedList = jsonSched.data;
-          setSchedules(schedList);
-          // If current selectedWeek is not in schedList, keep CURRENT_WEEK_START or pick latest
-          if (schedList.length > 0 && !schedList.some(s => s.weekStart === selectedWeek) && !ALL_WEEKS_2026.some(w => w.weekStart === selectedWeek)) {
-            setSelectedWeek(schedList[0].weekStart);
-          }
-        }
+        // 1. Fetch schedules for this PDV (or all if admin)
+        const schedFilter = activePdv.id ? { pdvId: activePdv.id } : {};
+        let schedList = await api.getSchedules(schedFilter).catch(() => []);
+        
+        // Also check localStorage schedules
+        try {
+          ALL_WEEKS_2026.forEach(w => {
+            const ls = localStorage.getItem('control_turnos_schedules_' + w.weekStart);
+            if (ls) {
+              const parsed = JSON.parse(ls);
+              if (Array.isArray(parsed)) {
+                parsed.forEach(item => {
+                  if (!schedList.some(s => s.userId === item.userId && s.weekStart === w.weekStart)) {
+                    schedList.push({
+                      id: `local-${item.userId}-${w.weekStart}`,
+                      userId: item.userId,
+                      pdvId: activePdv.id,
+                      weekStart: w.weekStart,
+                      shifts: item.shifts || [],
+                      totalNetHours: item.shifts ? item.shifts.reduce((acc, sh) => acc + (sh.netHours || 0), 0) : 0,
+                      isSubmitted: item.isSubmitted || true,
+                      notes: item.notes || ''
+                    });
+                  }
+                });
+              }
+            }
+          });
+        } catch (e) {}
+
+        setSchedules(schedList);
 
         // 2. Fetch employees of this PDV
-        const resUsers = await fetch(`/api/users?pdvId=${activePdv.id}`);
-        const jsonUsers = await resUsers.json();
-        if (jsonUsers.success) {
-          setEmployees(jsonUsers.data.filter(u => u.role === 'EMPLOYEE'));
+        let userList = await api.getUsers({ pdvId: activePdv.id }).catch(() => []);
+        if (!userList || userList.length === 0) {
+          userList = await api.getUsers().catch(() => []);
         }
+        let emps = userList.filter(u => u.role === 'EMPLOYEE');
+
+        // Merge any employee appearing in schedules
+        schedList.forEach(s => {
+          const u = s.user || {};
+          if (!emps.some(e => e.id === s.userId)) {
+            emps.push({
+              id: s.userId,
+              fullName: u.full_name || `COLABORADOR ${s.userId}`,
+              documentId: u.document_id || '',
+              position: u.position || 'ASESOR(A) DE IMAGEN',
+              role: 'EMPLOYEE',
+              pdvId: s.pdvId || activePdv.id,
+              contractType: u.contract_type || 'FIJO'
+            });
+          }
+        });
+
+        setEmployees(emps);
       } catch (err) {
         console.error('Error loading history data:', err);
       } finally {

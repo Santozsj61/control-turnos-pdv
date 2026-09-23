@@ -17,6 +17,7 @@ import {
   TrendingUp,
   History
 } from 'lucide-react';
+import { api } from '../services/api.js';
 
 export default function EmployeeTrackingView({ currentUser, pdvs, supervisors, users }) {
   const isAdmin = currentUser?.role === 'ADMIN';
@@ -55,13 +56,12 @@ export default function EmployeeTrackingView({ currentUser, pdvs, supervisors, u
     if (!userId) return;
     setLoading(true);
     try {
-      const res = await fetch(`/api/employees/tracking/${userId}`);
-      const json = await res.json();
-      if (json.success) {
-        setTrackingData(json.data);
+      const data = await api.getEmployeeTracking(userId);
+      if (data) {
+        setTrackingData(data);
       }
     } catch (err) {
-      console.error('Error fetching employee dossier:', err);
+      console.error('Error fetching employee dossier from Supabase:', err);
     } finally {
       setLoading(false);
     }

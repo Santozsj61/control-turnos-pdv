@@ -12,6 +12,7 @@ import {
 import * as XLSX from 'xlsx';
 import { ALL_WEEKS_2026, CURRENT_WEEK_START } from '../utils/weeks.js';
 import { buildAuditDataLocally } from '../utils/auditCalculator.js';
+import { api } from '../services/api.js';
 
 export default function HabitualSchedulesAuditView({ currentUser, pdvs = [], supervisors = [] }) {
   const isAdmin = currentUser?.role === 'ADMIN';
@@ -46,23 +47,18 @@ export default function HabitualSchedulesAuditView({ currentUser, pdvs = [], sup
     setLoading(true);
     setErrorMsg(null);
     try {
-      let url = `/api/audit/habitual-vs-punches?weekStart=${weekStart}`;
-      if (selectedPdvId && selectedPdvId !== 'ALL') {
-        url += `&pdvId=${selectedPdvId}`;
-      } else {
-        url += `&pdvId=ALL`;
-      }
-      if (selectedSupervisorId) url += `&supervisorId=${selectedSupervisorId}`;
-
-      const res = await fetch(url);
-      const json = await res.json();
-      if (json.success && json.data) {
-        setAuditData(json.data);
+      const data = await api.getHabitualVsPunchesAudit({
+        weekStart,
+        pdvId: selectedPdvId && selectedPdvId !== 'ALL' ? selectedPdvId : 'ALL',
+        supervisorId: selectedSupervisorId || undefined
+      });
+      if (data && data.habitualSummaries && data.habitualSummaries.length > 0) {
+        setAuditData(data);
         setLoading(false);
         return;
       }
     } catch (err) {
-      // Remote API unavailable, compute locally
+      console.warn('Remote audit calculation error, falling back locally:', err);
     }
 
     try {
@@ -124,24 +120,15 @@ export default function HabitualSchedulesAuditView({ currentUser, pdvs = [], sup
     setSavingSchedule(true);
     setSaveSuccessMsg(null);
     try {
-      const res = await fetch(`/api/pdvs/${editFormData.pdvId}/habitual-schedule`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editFormData)
-      });
-      const json = await res.json();
-      if (json.success) {
-        setSaveSuccessMsg('¡Horario habitual guardado y actualizado con éxito!');
-        setTimeout(() => {
-          setShowEditModal(false);
-          fetchAuditData();
-        }, 800);
-      } else {
-        alert(json.error || 'Error al guardar el horario habitual');
-      }
+      await api.updatePdvHabitualSchedule(editFormData.pdvId, editFormData);
+      setSaveSuccessMsg('¡Horario habitual guardado y actualizado con éxito!');
+      setTimeout(() => {
+        setShowEditModal(false);
+        fetchAuditData();
+      }, 800);
     } catch (err) {
       console.error(err);
-      alert('Error de conexión al guardar el horario habitual');
+      alert(err.message || 'Error de conexión al guardar el horario habitual');
     } finally {
       setSavingSchedule(false);
     }

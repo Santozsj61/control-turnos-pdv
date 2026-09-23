@@ -41,6 +41,7 @@ import {
   Area
 } from 'recharts';
 import * as XLSX from 'xlsx';
+import { api } from '../services/api.js';
 
 export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
   const isAdmin = currentUser?.role === 'ADMIN';
@@ -64,20 +65,16 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
   async function fetchAnalytics() {
     setLoading(true);
     try {
-      let url = `/api/analytics/dashboard?month=${selectedMonth}`;
-      if (isSupervisor) {
-        url += `&supervisorId=${currentSupervisorObj?.id || ''}`;
-      } else if (isAdmin || isHrAdmin || isAuditorVrx) {
-        if (selectedZone) url += `&supervisorId=${selectedZone}`;
-        if (selectedPdv) url += `&pdvId=${selectedPdv}`;
-      }
-      const res = await fetch(url);
-      const json = await res.json();
-      if (json.success) {
-        setAnalyticsData(json.data);
+      const data = await api.getDashboardAnalytics({
+        month: selectedMonth,
+        supervisorId: isSupervisor ? (currentSupervisorObj?.id || '') : selectedZone,
+        pdvId: selectedPdv
+      });
+      if (data) {
+        setAnalyticsData(data);
       }
     } catch (err) {
-      console.error('Error fetching analytics:', err);
+      console.error('Error fetching analytics from Supabase:', err);
     } finally {
       setLoading(false);
     }
