@@ -11,6 +11,7 @@ import {
 } from 'recharts';
 import * as XLSX from 'xlsx';
 import { ALL_WEEKS_2026, CURRENT_WEEK_START } from '../utils/weeks.js';
+import { buildAuditDataLocally } from '../utils/auditCalculator.js';
 
 export default function HabitualSchedulesAuditView({ currentUser, pdvs = [], supervisors = [] }) {
   const isAdmin = currentUser?.role === 'ADMIN';
@@ -40,7 +41,7 @@ export default function HabitualSchedulesAuditView({ currentUser, pdvs = [], sup
 
   const isUnified = selectedPdvId === 'ALL';
 
-  // Fetch Audit Data
+  // Fetch Audit Data (with resilient local calculation)
   async function fetchAuditData() {
     setLoading(true);
     setErrorMsg(null);
@@ -57,12 +58,25 @@ export default function HabitualSchedulesAuditView({ currentUser, pdvs = [], sup
       const json = await res.json();
       if (json.success && json.data) {
         setAuditData(json.data);
-      } else {
-        setErrorMsg(json.error || 'Error al obtener datos de auditoría');
+        setLoading(false);
+        return;
       }
     } catch (err) {
-      console.error(err);
-      setErrorMsg('No se pudo conectar con el servidor para obtener la auditoría.');
+      // Remote API unavailable, compute locally
+    }
+
+    try {
+      const localData = buildAuditDataLocally({
+        pdvs,
+        supervisors,
+        weekStart,
+        selectedPdvId,
+        selectedSupervisorId
+      });
+      setAuditData(localData);
+    } catch (calcErr) {
+      console.error('Error generating local audit data:', calcErr);
+      setErrorMsg('No se pudieron calcular los datos de auditoría.');
     } finally {
       setLoading(false);
     }

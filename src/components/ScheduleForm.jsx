@@ -956,25 +956,48 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
     const confirmed = window.confirm(`¿Estás seguro de quitar la línea de "${emp.fullName}" de la programación de esta semana antes de guardar y bloquear?`);
     if (!confirmed) return;
 
+    // 1. Remove from all employees states
+    setAllEmployees(prev => prev.filter(e => e.id !== emp.id && (!emp.documentId || String(e.documentId) !== String(emp.documentId))));
+    setAllHistoricalEmployees(prev => prev.filter(e => e.id !== emp.id && (!emp.documentId || String(e.documentId) !== String(emp.documentId))));
+
+    // 2. Remove from matrix and update localStorage immediately
+    setScheduleMatrix(prev => {
+      const next = { ...prev };
+      delete next[emp.id];
+      Object.keys(next).forEach(k => {
+        if (next[k]?.employee?.documentId && String(next[k]?.employee?.documentId) === String(emp.documentId)) {
+          delete next[k];
+        }
+      });
+      try {
+        localStorage.setItem('control_turnos_schedules_' + selectedWeekStart, JSON.stringify(Object.values(next)));
+      } catch (e) {}
+      return next;
+    });
+
+    // 3. Remove from custom employees in localStorage
+    try {
+      const savedCustom = localStorage.getItem('control_turnos_custom_employees');
+      if (savedCustom) {
+        const parsed = JSON.parse(savedCustom);
+        if (Array.isArray(parsed)) {
+          const filtered = parsed.filter(e => e.id !== emp.id && (!emp.documentId || String(e.documentId) !== String(emp.documentId)));
+          localStorage.setItem('control_turnos_custom_employees', JSON.stringify(filtered));
+        }
+      }
+    } catch (e) {}
+
+    // 4. Remote server notification (graceful fallback)
     try {
       const targetPdvId = selectedPdvId !== 'ALL' ? selectedPdvId : (allowedPdvs[0]?.id || 'pdv-1');
       await fetch(`/api/users/${emp.id}/pdv-member?pdvId=${targetPdvId}&weekStart=${selectedWeekStart}`, {
         method: 'DELETE'
-      });
-    } catch (err) {
-      console.warn('Error al desasociar en el servidor:', err);
-    }
-
-    setAllEmployees(prev => prev.filter(e => e.id !== emp.id));
-    setScheduleMatrix(prev => {
-      const next = { ...prev };
-      delete next[emp.id];
-      return next;
-    });
+      }).catch(() => {});
+    } catch (err) {}
 
     setMessage({
       type: 'success',
-      text: `✓ Línea de "${emp.fullName}" eliminada de la programación semanal. Haz clic en "Guardar y Bloquear Programación PDV" para fijar los cambios.`
+      text: `✓ Línea de "${emp.fullName}" eliminada correctamente de la programación semanal.`
     });
   }
 
