@@ -155,7 +155,7 @@ export default function NetworkMonitorView({ currentUser, pdvs = [], supervisors
               <div className="flex items-center gap-2">
                 <h1 className="text-xl font-black text-white">Monitor de Red & Conexiones en Vivo</h1>
                 <span className="bg-indigo-500/30 text-indigo-300 border border-indigo-400/40 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full">
-                  Exclusivo Santiago
+                  Control VRX & Santiago (TI)
                 </span>
               </div>
               <p className="text-xs text-slate-300 mt-1">

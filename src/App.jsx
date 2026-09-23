@@ -145,6 +145,18 @@ export default function App() {
           setShowHomeScreen(false);
         }}
         onEnterPlatform={() => setShowHomeScreen(false)}
+        onOpenNetworkMonitor={() => {
+          const vrxUser = { 
+            id: 'user-vrx', 
+            username: 'AuditorVRX', 
+            fullName: 'AUDITORÍA & CONTROL (VRX)', 
+            role: 'AUDITOR_VRX', 
+            position: 'AUDITOR DE CONTROL & COMPLIANCE' 
+          };
+          handleSelectUser(vrxUser);
+          setActiveTab('network_monitor');
+          setShowHomeScreen(false);
+        }}
       />
     );
   }

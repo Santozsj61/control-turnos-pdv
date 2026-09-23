@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Wifi, WifiOff, Database, RefreshCw, CheckCircle2, AlertTriangle, ShieldCheck, Activity, X } from 'lucide-react';
 import { isSupabaseConfigured } from '../services/supabaseClient.js';
 
-export default function ConnectionStatusBadge({ currentUser }) {
+export default function ConnectionStatusBadge({ currentUser, onOpenNetworkMonitor }) {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [supabaseStatus, setSupabaseStatus] = useState('checking'); // 'connected' | 'error' | 'checking'
   const [latency, setLatency] = useState(null);
@@ -192,15 +192,30 @@ export default function ConnectionStatusBadge({ currentUser }) {
               )}
             </div>
 
-            <div className="mt-4 flex items-center justify-between gap-3">
-              <button
-                onClick={checkConnection}
-                disabled={checking}
-                className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition shadow-xs cursor-pointer"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${checking ? 'animate-spin' : ''}`} />
-                <span>{checking ? 'Probando...' : 'Test Ping Ahora'}</span>
-              </button>
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-2.5">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={checkConnection}
+                  disabled={checking}
+                  className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition shadow-xs cursor-pointer"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${checking ? 'animate-spin' : ''}`} />
+                  <span>{checking ? 'Probando...' : 'Test Ping'}</span>
+                </button>
+
+                {onOpenNetworkMonitor && (
+                  <button
+                    onClick={() => {
+                      setShowModal(false);
+                      onOpenNetworkMonitor();
+                    }}
+                    className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition shadow-xs cursor-pointer"
+                  >
+                    <Activity className="w-3.5 h-3.5" />
+                    <span>Abrir Monitor de Red</span>
+                  </button>
+                )}
+              </div>
 
               <button
                 onClick={() => setShowModal(false)}

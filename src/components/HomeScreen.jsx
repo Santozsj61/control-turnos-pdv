@@ -8,7 +8,7 @@ import { api } from '../services/api.js';
 import { initialSupervisors, initialPDVs } from '../data/seedData.js';
 import ConnectionStatusBadge from './ConnectionStatusBadge.jsx';
 
-export default function HomeScreen({ users, pdvs, supervisors, currentUser, onSelectUser, onEnterPlatform }) {
+export default function HomeScreen({ users, pdvs, supervisors, currentUser, onSelectUser, onEnterPlatform, onOpenNetworkMonitor }) {
   const effectivePdvs = (pdvs && pdvs.length > 0) ? pdvs : initialPDVs;
   const effectiveSupervisors = (supervisors && supervisors.length > 0) ? supervisors : initialSupervisors;
 
@@ -178,7 +178,7 @@ export default function HomeScreen({ users, pdvs, supervisors, currentUser, onSe
       } else if (activeModalProfile.id === 'HR' && (cleanP === '888123' || cleanP === '200102' || cleanP === '888')) {
         onSelectUser({ id: 'user-thumano', username: 'THumano', fullName: 'TALENTO HUMANO (HR)', role: 'HR_ADMIN' });
         handleCloseModal();
-      } else if (activeModalProfile.id === 'VRX' && cleanP === '0814') {
+      } else if (activeModalProfile.id === 'VRX' && (cleanP === '0814' || cleanP === '888')) {
         onSelectUser({ id: 'user-vrx', username: 'AuditorVRX', fullName: 'AUDITORÍA DE ASISTENCIA VRX', role: 'AUDITOR_VRX' });
         handleCloseModal();
       } else if (activeModalProfile.id === 'PDV' && (cleanP === '101888' || cleanP === '888')) {
@@ -234,7 +234,10 @@ export default function HomeScreen({ users, pdvs, supervisors, currentUser, onSe
 
           {/* Right session action and live online status */}
           <div className="flex items-center gap-3">
-            <ConnectionStatusBadge currentUser={currentUser} />
+            <ConnectionStatusBadge 
+              currentUser={currentUser} 
+              onOpenNetworkMonitor={onOpenNetworkMonitor}
+            />
             {currentUser && (
               <button
                 onClick={onEnterPlatform}

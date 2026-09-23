@@ -12,6 +12,7 @@ export default function Header({ activeTab, setActiveTab, currentUser, onOpenUse
   const isSantiago = currentUser?.fullName?.toLowerCase().includes('santiago') || 
                      currentUser?.username?.toLowerCase() === 'santiago' || 
                      currentUser?.role === 'ADMIN';
+  const canAccessNetwork = isSantiago || isAuditorVrx || isAdmin;
 
   const navItems = [
     { id: 'schedule', label: isEmployee ? 'Mi Cronograma Semanal' : 'Programación de Horarios', icon: Calendar, show: !isMaintenanceApprover },
@@ -28,7 +29,7 @@ export default function Header({ activeTab, setActiveTab, currentUser, onOpenUse
     { id: 'analytics', label: isAdmin || isHrAdmin || isAuditorVrx ? 'Dashboard Analítica Nacional' : 'Analítica & Alertas Zona', icon: TrendingUp, show: isAdmin || isHrAdmin || isAuditorVrx || isSupervisor },
     { id: 'tracking', label: isEmployee ? 'Mi Expediente & Historial' : 'Seguimiento & Hoja de Vida', icon: FileText, show: !isMaintenanceApprover && !isSupervisor && !isHrAdmin && !isEmployee },
     { id: 'pdvs', label: isEmployee ? 'Mi Punto de Venta' : 'Directorio PDVs & Zonas', icon: Store, show: !isSupervisor && !isEmployee },
-    { id: 'network_monitor', label: isSantiago ? '📡 Monitor de Red & Nube (Santiago)' : '📡 Monitor de Red & Nube', icon: Activity, show: isSantiago },
+    { id: 'network_monitor', label: '📡 Monitor de Red & Nube', icon: Activity, show: canAccessNetwork },
     { id: 'config', label: 'Reglas y Parámetros', icon: Settings, show: isAdmin || isHrAdmin || isAuditorVrx }
   ];
 
@@ -58,7 +59,10 @@ export default function Header({ activeTab, setActiveTab, currentUser, onOpenUse
 
           <div className="flex items-center gap-2.5 flex-wrap">
             {/* Live Online/Offline Status Indicator */}
-            <ConnectionStatusBadge currentUser={currentUser} />
+            <ConnectionStatusBadge 
+              currentUser={currentUser} 
+              onOpenNetworkMonitor={canAccessNetwork ? () => setActiveTab('network_monitor') : null} 
+            />
 
             <div className="flex items-center gap-2 bg-slate-800/90 px-3 py-1 rounded-full border border-slate-700">
               <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
