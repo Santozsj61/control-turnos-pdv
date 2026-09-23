@@ -18,6 +18,7 @@ import {
 } from '../utils/weeks.js';
 import { calculateShiftHours, calculateMonSatHours, countMonthlySundays } from '../utils/calculator.js';
 import { api } from '../services/api.js';
+import { supabase } from '../services/supabaseClient.js';
 
 const DAYS_NAME = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
@@ -236,11 +237,31 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
         }
       } catch (e) {}
 
+      // 3. Incorporate any employees found in existingScheds (e.g., uploaded by another user in Supabase)
+      existingScheds.forEach(es => {
+        const u = es.user || {};
+        if (!emps.some(e => e.id === es.userId || (u.document_id && String(e.documentId) === String(u.document_id)))) {
+          const newEmp = {
+            id: es.userId,
+            fullName: u.full_name || `COLABORADOR ${es.userId}`,
+            documentId: u.document_id || (es.userId.startsWith('emp-doc-') ? es.userId.replace('emp-doc-', '') : '1000000000'),
+            position: u.position || 'ASESOR(A) DE IMAGEN',
+            role: 'EMPLOYEE',
+            pdvId: es.pdvId || selectedPdvId || 'pdv-1',
+            contractType: u.contract_type || 'FIJO'
+          };
+          emps.push(newEmp);
+          if (!filteredEmps.some(fe => fe.id === newEmp.id)) {
+            filteredEmps.push(newEmp);
+          }
+        }
+      });
+
       const weekDates = getDatesForWeek(selectedWeekStart);
       const newMatrix = {};
 
       for (const emp of filteredEmps) {
-        const found = existingScheds.find(s => s.userId === emp.id);
+        const found = existingScheds.find(s => s.userId === emp.id || (emp.documentId && s.user?.document_id && String(s.user.document_id) === String(emp.documentId)));
         const empPdv = pdvs.find(p => p.id === emp.pdvId) || allowedPdvs.find(p => p.id === emp.pdvId) || {};
         let userShifts = [];
         let isSubmitted = false;
@@ -248,22 +269,22 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
         let notes = '';
 
         if (found && found.shifts && found.shifts.length > 0) {
-          isSubmitted = found.isSubmitted;
+          isSubmitted = Boolean(found.isSubmitted);
           submittedAt = found.submittedAt;
           notes = found.notes || '';
-          userShifts = weekDates.map((wd, dIdx) => {
+          userShifts = weekDates.map((wd) => {
             const sh = found.shifts.find(s => s.date === wd.date);
             if (sh) {
               const shiftType = sh.shiftType || (sh.isDayOff ? 'DESCANSO' : 'ORDINARIO');
               const calc = calculateShiftHours(sh.startTime, sh.endTime, wd.date, {}, shiftType);
-              return { ...wd, ...sh, shiftType, isDayOff: shiftType === 'DESCANSO' || sh.isDayOff, ...calc };
+              return { ...wd, ...sh, shiftType, isDayOff: shiftType === 'DESCANSO' || Boolean(sh.isDayOff), ...calc };
             }
             return {
               ...wd,
-              shiftType: dIdx === 3 ? 'DESCANSO' : 'ORDINARIO',
-              isDayOff: dIdx === 3,
-              startTime: dIdx === 3 ? '' : '10:00',
-              endTime: dIdx === 3 ? '' : '20:30',
+              shiftType: 'NO_PROGRAMADO',
+              isDayOff: false,
+              startTime: '',
+              endTime: '',
               grossHours: 0,
               lunchHours: 0,
               netHours: 0,
@@ -272,23 +293,27 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
             };
           });
         } else {
-          // Default template: Thursday off
+          // If this is an employee uploaded from an Excel file, and they have NO schedule for this week:
+          // DO NOT show them in this week! (They remain strictly anchored to the week they were uploaded)
+          const isCustomEmp = emp.id?.startsWith('emp-doc-') || emp.isCustom;
+          if (isCustomEmp) {
+            continue;
+          }
+
+          // Unprogrammed regular store employee: start with empty/no programado, NOT fake work hours
           isSubmitted = false;
-          userShifts = weekDates.map((wd, dIdx) => {
-            const isDescanso = dIdx === 3;
-            const shiftType = isDescanso ? 'DESCANSO' : 'ORDINARIO';
-            const startTime = isDescanso ? '' : '10:00';
-            const endTime = isDescanso ? '' : '20:30';
-            const calc = calculateShiftHours(startTime, endTime, wd.date, {}, shiftType);
-            return {
-              ...wd,
-              shiftType,
-              isDayOff: isDescanso,
-              startTime,
-              endTime,
-              ...calc
-            };
-          });
+          userShifts = weekDates.map((wd) => ({
+            ...wd,
+            shiftType: 'NO_PROGRAMADO',
+            isDayOff: false,
+            startTime: '',
+            endTime: '',
+            grossHours: 0,
+            lunchHours: 0,
+            netHours: 0,
+            dayHours: 0,
+            nightHours: 0
+          }));
         }
 
         const monSatStats = calculateMonSatHours(userShifts, 42);
@@ -318,6 +343,11 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
 
   useEffect(() => {
     loadScheduleData();
+    const interval = setInterval(() => {
+      // Auto-sync updates from other users in the background
+      loadScheduleData();
+    }, 30000);
+    return () => clearInterval(interval);
   }, [selectedPdvId, selectedWeekStart, currentUser?.id, currentUser?.role]);
 
   // Recalculate preview for a single user locally & synchronously
@@ -795,6 +825,7 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
           }
 
           // Persist batch to server / Supabase with resilience
+          let cloudSaved = false;
           try {
             const targetPdvId = selectedPdvId !== 'ALL' ? selectedPdvId : (allowedPdvs[0]?.id || 'pdv-1');
             if (api.isConfigured) {
@@ -804,10 +835,14 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
                 weekEnd: weekDates[6].date,
                 schedules: Object.values(newMatrix).map(u => ({
                   userId: u.userId,
+                  documentId: u.employee?.documentId,
+                  fullName: u.employee?.fullName,
+                  position: u.employee?.position,
                   shifts: u.shifts,
                   notes: 'Programación semanal importada desde archivo Excel por Auditor VRX'
                 }))
               });
+              cloudSaved = true;
             } else {
               await fetch('/api/schedules/batch-pdv', {
                 method: 'POST',
@@ -819,6 +854,9 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
                   forceAdmin: true,
                   schedules: Object.values(newMatrix).map(u => ({
                     userId: u.userId,
+                    documentId: u.employee?.documentId,
+                    fullName: u.employee?.fullName,
+                    position: u.employee?.position,
                     shifts: u.shifts,
                     notes: 'Programación semanal importada desde archivo Excel por Auditor VRX'
                   }))
@@ -826,13 +864,14 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
               }).catch(() => {});
             }
           } catch (err) {
-            console.warn('Backend save skipped (running client-side):', err);
+            console.error('Error saving to cloud database:', err);
+            setMessage({ type: 'error', text: `Aviso de Nube: ${err.message}` });
           }
 
           const weekTag = detectedWeek ? ` (${detectedWeek.shortLabel})` : '';
           setMessage({
             type: 'success',
-            text: `✓ ¡Programación semanal vinculada y cargada exitosamente para ${updatedCount} colaborador(es)${weekTag}!`
+            text: `✓ ¡Programación semanal vinculada y guardada exitosamente en la NUBE para ${updatedCount} colaborador(es)${weekTag}! ${cloudSaved ? '☁️ Sincronizado en Supabase.' : ''}`
           });
           setUploadingSchedule(false);
         } catch (err) {
@@ -1002,13 +1041,18 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
       }
     } catch (e) {}
 
-    // 4. Remote server notification (graceful fallback)
+    // 4. Remote Supabase and server deletion
     try {
+      if (api.isConfigured && supabase) {
+        await supabase.from('schedules').delete().eq('user_id', emp.id).eq('week_start', selectedWeekStart);
+      }
       const targetPdvId = selectedPdvId !== 'ALL' ? selectedPdvId : (allowedPdvs[0]?.id || 'pdv-1');
       await fetch(`/api/users/${emp.id}/pdv-member?pdvId=${targetPdvId}&weekStart=${selectedWeekStart}`, {
         method: 'DELETE'
       }).catch(() => {});
-    } catch (err) {}
+    } catch (err) {
+      console.warn('Error deleting schedule row in cloud:', err);
+    }
 
     setMessage({
       type: 'success',
@@ -1108,6 +1152,7 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
       }
 
       // 3. Attempt server / Supabase save with graceful fallback
+      let cloudSynced = false;
       try {
         if (api.isConfigured) {
           await api.saveBatchPdvSchedules({
@@ -1116,10 +1161,14 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
             weekEnd,
             schedules: Object.values(updatedMatrix).map(u => ({
               userId: u.userId,
+              documentId: u.employee?.documentId,
+              fullName: u.employee?.fullName,
+              position: u.employee?.position,
               shifts: u.shifts,
               notes: isAuditorVrx ? 'Ajuste / corrección oficial auditada por Control & Compliance (VRX)' : (u.notes || 'Programación semanal registrada por PDV / Tienda')
             }))
           });
+          cloudSynced = true;
         } else {
           await fetch('/api/schedules/batch-pdv', {
             method: 'POST',
@@ -1131,6 +1180,9 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
               forceAdmin: isAdmin || isAuditorVrx,
               schedules: Object.values(updatedMatrix).map(u => ({
                 userId: u.userId,
+                documentId: u.employee?.documentId,
+                fullName: u.employee?.fullName,
+                position: u.employee?.position,
                 shifts: u.shifts,
                 notes: isAuditorVrx ? 'Ajuste / corrección oficial auditada por Control & Compliance (VRX)' : (u.notes || 'Programación semanal registrada por PDV / Tienda')
               }))
@@ -1138,12 +1190,13 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
           }).catch(() => {});
         }
       } catch (err) {
-        console.warn('Backend save skipped (running client-side):', err);
+        console.error('Error saving batch schedule to cloud:', err);
+        setMessage({ type: 'error', text: `Aviso de Nube: ${err.message}` });
       }
 
       setMessage({
         type: 'success',
-        text: `✓ ¡Programación semanal GUARDADA y BLOQUEADA exitosamente para ${Object.keys(updatedMatrix).length} colaborador(es)!`
+        text: `✓ ¡Programación semanal GUARDADA y BLOQUEADA exitosamente para ${Object.keys(updatedMatrix).length} colaborador(es)! ${cloudSynced ? '☁️ Sincronizado en tiempo real en la Nube.' : ''}`
       });
     } catch (err) {
       console.error('Error saving batch schedule:', err);
@@ -1697,6 +1750,20 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
           </div>
 
           <div className="flex items-center gap-2">
+            {/* BOTÓN SINCRONIZAR NUBE (Para todos los usuarios para ver cambios en vivo) */}
+            <button
+              type="button"
+              onClick={() => {
+                loadScheduleData();
+                setMessage({ type: 'success', text: '✓ Sincronizado con la base de datos central en la Nube.' });
+              }}
+              className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs px-3.5 py-2 rounded-xl transition shadow-xs cursor-pointer"
+              title="Refrescar y traer las últimas modificaciones guardadas en la nube"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 text-blue-400 ${loading ? 'animate-spin' : ''}`} />
+              <span>Sincronizar Nube</span>
+            </button>
+
             {/* BOTÓN CARGAR PROGRAMACIÓN EXCEL (Exclusivo Auditor VRX & Administrador) */}
             {(isAuditorVrx || isAdmin) && (
               <label className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-4 py-2 rounded-xl transition cursor-pointer shadow-md shadow-indigo-600/20" title="Cargar archivo Excel con la programación semanal de horarios">

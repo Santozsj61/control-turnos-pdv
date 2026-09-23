@@ -511,10 +511,10 @@ export const api = {
       const q = new URLSearchParams(filters).toString();
       return fetchLocal(`/api/schedules${q ? '?' + q : ''}`);
     }
-    let query = supabase.from('schedules').select('*');
+    let query = supabase.from('schedules').select('*, users(*)');
     if (filters.userId) query = query.eq('user_id', filters.userId);
     if (filters.weekStart) query = query.eq('week_start', filters.weekStart);
-    if (filters.pdvId) query = query.eq('pdv_id', filters.pdvId);
+    if (filters.pdvId && filters.pdvId !== 'ALL') query = query.eq('pdv_id', filters.pdvId);
     const { data, error } = await query;
     if (error) throw new Error(error.message);
     return (data || []).map(s => ({
@@ -527,7 +527,8 @@ export const api = {
       shifts: s.shifts || [],
       totalNetHours: Number(s.total_net_hours || 0),
       totalLunchHours: Number(s.total_lunch_hours || 0),
-      notes: s.notes
+      notes: s.notes,
+      user: s.users || null
     }));
   },
 
@@ -540,20 +541,45 @@ export const api = {
     }
     const config = await api.getConfig();
     const results = [];
+    const safePdvId = (pdvId && pdvId !== 'ALL') ? pdvId : 'pdv-1';
 
     for (const item of schedules) {
       const { userId, shifts, notes } = item;
       if (!userId || !shifts) continue;
 
+      // 1. Ensure user exists in users table so foreign key constraint (schedules_user_id_fkey) is always satisfied
+      try {
+        const docId = item.documentId || (String(userId).startsWith('emp-doc-') ? String(userId).replace('emp-doc-', '') : '1000000000');
+        const fullName = item.fullName || item.employeeName || `COLABORADOR ${docId}`;
+        const userPayload = {
+          id: userId,
+          username: `user_${String(userId).replace(/[^a-zA-Z0-9_-]/g, '_')}`,
+          full_name: fullName,
+          document_id: docId,
+          role: 'EMPLOYEE',
+          pdv_id: safePdvId,
+          position: item.position || 'ASESOR(A) DE IMAGEN',
+          contract_type: item.contractType || 'FIJO',
+          is_active: true
+        };
+        await supabase.from('users').upsert(userPayload, { onConflict: 'id' });
+      } catch (uErr) {
+        console.warn('Could not auto-upsert user for schedule FK:', uErr);
+      }
+
       // Unique Cedula check across other PDVs for this week
-      const { data: otherSched } = await supabase.from('schedules')
-        .select('*, pdvs(name)')
-        .eq('user_id', userId)
-        .eq('week_start', weekStart)
-        .neq('pdv_id', pdvId);
-      
-      if (otherSched && otherSched.length > 0) {
-        throw new Error(`⚠️ Restricción de Cédula Única: El colaborador ya tiene programación registrada en la semana ${weekStart} en otro PDV.`);
+      try {
+        const { data: otherSched } = await supabase.from('schedules')
+          .select('*, pdvs(name)')
+          .eq('user_id', userId)
+          .eq('week_start', weekStart)
+          .neq('pdv_id', safePdvId);
+        
+        if (otherSched && otherSched.length > 0) {
+          throw new Error(`⚠️ Restricción de Cédula Única: El colaborador ya tiene programación registrada en la semana ${weekStart} en otro PDV.`);
+        }
+      } catch (checkErr) {
+        if (checkErr.message?.includes('Restricción de Cédula Única')) throw checkErr;
       }
 
       const calculatedShifts = shifts.map(s => {
@@ -587,13 +613,13 @@ export const api = {
         return { ...s, shiftType, ...calc };
       });
 
-      const totalNetHours = +calculatedShifts.reduce((sum, s) => sum + s.netHours, 0).toFixed(2);
-      const totalLunchHours = +calculatedShifts.reduce((sum, s) => sum + s.lunchHours, 0).toFixed(2);
+      const totalNetHours = +calculatedShifts.reduce((sum, s) => sum + (s.netHours || 0), 0).toFixed(2);
+      const totalLunchHours = +calculatedShifts.reduce((sum, s) => sum + (s.lunchHours || 0), 0).toFixed(2);
 
       const schedPayload = {
         id: `sched-${userId}-${weekStart}`,
         user_id: userId,
-        pdv_id: pdvId,
+        pdv_id: safePdvId,
         week_start: weekStart,
         week_end: weekEnd || shifts[shifts.length - 1]?.date || weekStart,
         is_submitted: true,
@@ -605,7 +631,7 @@ export const api = {
         updated_at: new Date().toISOString()
       };
 
-      const { data, error } = await supabase.from('schedules').upsert(schedPayload).select().single();
+      const { data, error } = await supabase.from('schedules').upsert(schedPayload, { onConflict: 'user_id,week_start' }).select().single();
       if (error) throw new Error(error.message);
       results.push(data);
     }
