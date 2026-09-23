@@ -196,15 +196,30 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
       setAllEmployees(filteredEmps);
       setAllHistoricalEmployees(emps);
 
-      // 2. Fetch Schedules
+      // 2. Fetch Schedules (Supabase cloud first, then local fallback)
       let existingScheds = [];
       try {
-        const resSched = await fetch(schedUrl);
-        const jsonSched = await resSched.json();
-        if (jsonSched.success && Array.isArray(jsonSched.data)) {
-          existingScheds = jsonSched.data;
+        if (api.isConfigured) {
+          const filters = { weekStart: selectedWeekStart };
+          if (selectedPdvId && selectedPdvId !== 'ALL') filters.pdvId = selectedPdvId;
+          const supScheds = await api.getSchedules(filters);
+          if (Array.isArray(supScheds) && supScheds.length > 0) {
+            existingScheds = supScheds;
+          }
         }
-      } catch (e) {}
+      } catch (e) {
+        console.warn('Supabase schedules fetch notice:', e);
+      }
+
+      if (existingScheds.length === 0) {
+        try {
+          const resSched = await fetch(schedUrl);
+          const jsonSched = await resSched.json();
+          if (jsonSched.success && Array.isArray(jsonSched.data)) {
+            existingScheds = jsonSched.data;
+          }
+        } catch (e) {}
+      }
 
       // Fallback / merge with localStorage schedules for this week
       try {
