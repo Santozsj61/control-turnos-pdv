@@ -83,6 +83,8 @@ export function formatExcelTime(val) {
  * inspeccionando los encabezados de columnas (ej: "Lunes 29 Junio", "21 Septiembre", etc.)
  */
 export function detectWeekFromHeaders(headers) {
+  if (!headers || !Array.isArray(headers)) return null;
+
   const monthsMap = {
     'enero': 1, 'ene': 1,
     'febrero': 2, 'feb': 2,
@@ -98,9 +100,21 @@ export function detectWeekFromHeaders(headers) {
     'diciembre': 12, 'dic': 12
   };
 
+  // 1. Direct week consecutive in header: "Semana 39", "Sem 39", "W39"
   for (const h of headers) {
     const clean = cleanNormalizeStr(h);
-    const regex1 = /lunes.*?(\d{1,2})\s+([a-z]+)/i;
+    const mSem = clean.match(/(?:semana|sem|w)\s*(\d{1,2})\b/i);
+    if (mSem) {
+      const num = parseInt(mSem[1], 10);
+      const found = ALL_WEEKS_2026.find(w => w.weekNumber === num);
+      if (found) return found;
+    }
+  }
+
+  // 2. Look for "Lunes [dia] [de]? [mes]" (ej: "Lunes 29 Junio", "Lunes 21 de Septiembre")
+  for (const h of headers) {
+    const clean = cleanNormalizeStr(h);
+    const regex1 = /lunes.*?(\d{1,2})\s*(?:de\s+)?([a-z]+)/i;
     const m = clean.match(regex1);
     if (m) {
       const day = parseInt(m[1], 10);
@@ -113,6 +127,44 @@ export function detectWeekFromHeaders(headers) {
         if (found) return found;
       }
     }
+
+    // 3. Look for "DD/MM/YYYY", "YYYY-MM-DD" or "DD/MM"
+    const regexDate = /(\d{4})[/-](\d{1,2})[/-](\d{1,2})|(\d{1,2})[/-](\d{1,2})(?:[/-](\d{2,4}))?/;
+    const mDate = clean.match(regexDate);
+    if (mDate) {
+      let y = 2026, mNum = 1, dNum = 1;
+      if (mDate[1]) {
+        y = parseInt(mDate[1], 10);
+        mNum = parseInt(mDate[2], 10);
+        dNum = parseInt(mDate[3], 10);
+      } else if (mDate[4] && mDate[5]) {
+        dNum = parseInt(mDate[4], 10);
+        mNum = parseInt(mDate[5], 10);
+        if (mDate[6]) {
+          y = mDate[6].length === 2 ? 2000 + parseInt(mDate[6], 10) : parseInt(mDate[6], 10);
+        }
+      }
+      const isoDate = `${y}-${String(mNum).padStart(2, '0')}-${String(dNum).padStart(2, '0')}`;
+      const foundWeek = ALL_WEEKS_2026.find(w => isoDate >= w.weekStart && isoDate <= w.weekEnd);
+      if (foundWeek) return foundWeek;
+    }
   }
+
+  // 4. Any day header matching "[dia] [mes]" (ej: "29 Junio", "21 Septiembre")
+  for (const h of headers) {
+    const clean = cleanNormalizeStr(h);
+    for (const [mName, mNum] of Object.entries(monthsMap)) {
+      const pattern = new RegExp(`(\\d{1,2})\\s*(?:de\\s+)?${mName}`, 'i');
+      const match = clean.match(pattern);
+      if (match) {
+        const day = parseInt(match[1], 10);
+        const year = (mNum === 12 && day >= 28) ? 2025 : 2026;
+        const iso = `${year}-${String(mNum).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const found = ALL_WEEKS_2026.find(w => iso >= w.weekStart && iso <= w.weekEnd);
+        if (found) return found;
+      }
+    }
+  }
+
   return null;
 }
