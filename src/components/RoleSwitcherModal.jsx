@@ -25,6 +25,16 @@ export default function RoleSwitcherModal({ isOpen, onClose, users, pdvs, superv
 
   const quickRoles = [
     {
+      user: 'Santiago',
+      pass: '888',
+      label: 'Santiago (Admin TI & Red)',
+      role: 'ADMIN',
+      icon: Shield,
+      badge: 'Santiago (888)',
+      color: 'blue',
+      desc: 'Control total del sistema y acceso exclusivo al Monitor de Red & Nube'
+    },
+    {
       user: 'Administrador',
       pass: '888',
       label: 'Administrador General',
@@ -95,8 +105,14 @@ export default function RoleSwitcherModal({ isOpen, onClose, users, pdvs, superv
       // Fallback local matching
       const cleanU = username.trim().toLowerCase();
       const cleanP = password.trim();
-      if (cleanU === 'administrador' && cleanP === '888') {
-        onSelectUser({ id: 'user-admin', fullName: 'ADMINISTRADOR GENERAL', role: 'ADMIN' });
+      if ((cleanU === 'administrador' || cleanU === 'santiago') && cleanP === '888') {
+        onSelectUser({ 
+          id: cleanU === 'santiago' ? 'user-santiago' : 'user-admin', 
+          username: cleanU === 'santiago' ? 'Santiago' : 'Administrador',
+          fullName: cleanU === 'santiago' ? 'SANTIAGO (ADMIN TI & RED)' : 'ADMINISTRADOR GENERAL', 
+          role: 'ADMIN',
+          position: cleanU === 'santiago' ? 'ADMINISTRADOR DE RED & TI' : 'SUPERUSUARIO'
+        });
         onClose();
       } else if (cleanU === 'zona' && cleanP === '200101') {
         onSelectUser({ id: 'user-zone-1', fullName: 'LÍDER ZONA 2', role: 'SUPERVISOR', supervisorId: 'zone-1' });
@@ -120,6 +136,17 @@ export default function RoleSwitcherModal({ isOpen, onClose, users, pdvs, superv
     setPassword(quick.pass);
     setErrorMsg(null);
     // Direct instant login
+    if (quick.user === 'Santiago') {
+      onSelectUser({ 
+        id: 'user-santiago', 
+        username: 'Santiago', 
+        fullName: 'SANTIAGO (ADMIN TI & RED)', 
+        role: 'ADMIN', 
+        position: 'ADMINISTRADOR DE RED & TI' 
+      });
+      onClose();
+      return;
+    }
     if (quick.role === 'ADMIN') {
       onSelectUser({ id: 'user-admin', username: 'Administrador', fullName: 'ADMINISTRADOR GENERAL', role: 'ADMIN', position: 'SUPERUSUARIO' });
       onClose();

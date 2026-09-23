@@ -1,5 +1,6 @@
 import React from 'react';
-import { Clock, Users, Calendar, CheckSquare, BarChart3, Store, Settings, UserCheck, ShieldAlert, ArrowRightLeft, TrendingUp, FileText, Wrench, Home, LogOut } from 'lucide-react';
+import { Clock, Users, Calendar, CheckSquare, BarChart3, Store, Settings, UserCheck, ShieldAlert, ArrowRightLeft, TrendingUp, FileText, Wrench, Home, LogOut, Activity } from 'lucide-react';
+import ConnectionStatusBadge from './ConnectionStatusBadge.jsx';
 
 export default function Header({ activeTab, setActiveTab, currentUser, onOpenUserSwitcher, onGoToHome, onLogout, pendingPermissionsCount }) {
   const isSupervisor = currentUser?.role === 'SUPERVISOR';
@@ -8,6 +9,9 @@ export default function Header({ activeTab, setActiveTab, currentUser, onOpenUse
   const isAuditorVrx = currentUser?.role === 'AUDITOR_VRX';
   const isEmployee = currentUser?.role === 'EMPLOYEE';
   const isMaintenanceApprover = currentUser?.role === 'MAINTENANCE_APPROVER';
+  const isSantiago = currentUser?.fullName?.toLowerCase().includes('santiago') || 
+                     currentUser?.username?.toLowerCase() === 'santiago' || 
+                     currentUser?.role === 'ADMIN';
 
   const navItems = [
     { id: 'schedule', label: isEmployee ? 'Mi Cronograma Semanal' : 'Programación de Horarios', icon: Calendar, show: !isMaintenanceApprover },
@@ -24,6 +28,7 @@ export default function Header({ activeTab, setActiveTab, currentUser, onOpenUse
     { id: 'analytics', label: isAdmin || isHrAdmin || isAuditorVrx ? 'Dashboard Analítica Nacional' : 'Analítica & Alertas Zona', icon: TrendingUp, show: isAdmin || isHrAdmin || isAuditorVrx || isSupervisor },
     { id: 'tracking', label: isEmployee ? 'Mi Expediente & Historial' : 'Seguimiento & Hoja de Vida', icon: FileText, show: !isMaintenanceApprover && !isSupervisor && !isHrAdmin && !isEmployee },
     { id: 'pdvs', label: isEmployee ? 'Mi Punto de Venta' : 'Directorio PDVs & Zonas', icon: Store, show: !isSupervisor && !isEmployee },
+    { id: 'network_monitor', label: isSantiago ? '📡 Monitor de Red & Nube (Santiago)' : '📡 Monitor de Red & Nube', icon: Activity, show: isSantiago },
     { id: 'config', label: 'Reglas y Parámetros', icon: Settings, show: isAdmin || isHrAdmin || isAuditorVrx }
   ];
 
@@ -52,6 +57,9 @@ export default function Header({ activeTab, setActiveTab, currentUser, onOpenUse
           </div>
 
           <div className="flex items-center gap-2.5 flex-wrap">
+            {/* Live Online/Offline Status Indicator */}
+            <ConnectionStatusBadge currentUser={currentUser} />
+
             <div className="flex items-center gap-2 bg-slate-800/90 px-3 py-1 rounded-full border border-slate-700">
               <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
               <span className="text-slate-400 text-xs hidden sm:inline">Sesión:</span>

@@ -6,6 +6,7 @@ import {
 
 import { api } from '../services/api.js';
 import { initialSupervisors, initialPDVs } from '../data/seedData.js';
+import ConnectionStatusBadge from './ConnectionStatusBadge.jsx';
 
 export default function HomeScreen({ users, pdvs, supervisors, currentUser, onSelectUser, onEnterPlatform }) {
   const effectivePdvs = (pdvs && pdvs.length > 0) ? pdvs : initialPDVs;
@@ -231,16 +232,19 @@ export default function HomeScreen({ users, pdvs, supervisors, currentUser, onSe
             </div>
           </div>
 
-          {/* Right session action if already active */}
-          {currentUser && (
-            <button
-              onClick={onEnterPlatform}
-              className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs px-4 py-2 rounded-xl transition shadow-lg shadow-blue-600/30 flex items-center gap-1.5"
-            >
-              <span>Continuar a Plataforma</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          )}
+          {/* Right session action and live online status */}
+          <div className="flex items-center gap-3">
+            <ConnectionStatusBadge currentUser={currentUser} />
+            {currentUser && (
+              <button
+                onClick={onEnterPlatform}
+                className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs px-4 py-2 rounded-xl transition shadow-lg shadow-blue-600/30 flex items-center gap-1.5"
+              >
+                <span>Continuar a Plataforma</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
