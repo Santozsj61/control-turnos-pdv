@@ -5,7 +5,7 @@ import {
   HeartPulse, Palmtree, FileCheck2, AlertTriangle, ChevronDown, Wrench,
   Save, Trash2, Check, RefreshCw, Layers, ShieldCheck, BadgeCheck,
   ArrowUpDown, ArrowUp, ArrowDown, Search, Filter, Building2, Eye,
-  FileSpreadsheet, Download, Upload
+  FileSpreadsheet, Download, Upload, Users, UserMinus
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { 
@@ -110,6 +110,37 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
 
   const activeSupervisor = currentSupervisorObj || supervisors.find(s => s.id === allowedPdvs[0]?.supervisorId);
   const activeSinglePdv = selectedPdvId !== 'ALL' ? (allowedPdvs.find(p => p.id === selectedPdvId) || allowedPdvs[0]) : null;
+
+  const [showPlantillaModal, setShowPlantillaModal] = useState(false);
+  const [plantillaSearchTerm, setPlantillaSearchTerm] = useState('');
+
+  const activePdvPersonnel = useMemo(() => {
+    const currentTargetId = selectedPdvId !== 'ALL' ? selectedPdvId : (currentUser?.pdvId || activeSinglePdv?.id);
+    if (currentTargetId && currentTargetId !== 'ALL') {
+      return allHistoricalEmployees.filter(e => e.pdvId === currentTargetId || e.pdv_id === currentTargetId);
+    }
+    if (isSupervisor) {
+      return allHistoricalEmployees.filter(e => allowedPdvs.some(ap => ap.id === e.pdvId || ap.code === e.pdvId));
+    }
+    return allHistoricalEmployees;
+  }, [allHistoricalEmployees, selectedPdvId, currentUser?.pdvId, activeSinglePdv, isSupervisor, allowedPdvs]);
+
+  async function handleRemovePdvMember(memberId, memberName) {
+    if (!window.confirm(`¿Confirmas desvincular a "${memberName}" de este PDV? Dejará de figurar en la dotación de la tienda.`)) {
+      return;
+    }
+    const currentTargetId = selectedPdvId !== 'ALL' ? selectedPdvId : (currentUser?.pdvId || activeSinglePdv?.id || 'pdv-1');
+    try {
+      await api.removePdvMember(memberId, currentTargetId, selectedWeekStart);
+      setMessage({ type: 'success', text: `✓ Colaborador ${memberName} desvinculado del PDV exitosamente.` });
+      setAllEmployees(prev => prev.filter(e => e.id !== memberId));
+      setAllHistoricalEmployees(prev => prev.map(e => e.id === memberId ? { ...e, pdvId: null, pdv_id: null } : e));
+      loadScheduleData();
+      if (onReloadUsers) onReloadUsers();
+    } catch (err) {
+      setMessage({ type: 'error', text: err.message || 'Error al desvincular colaborador.' });
+    }
+  }
 
   // Generate date descriptors for the selected week
   function getDatesForWeek(startDateStr) {
@@ -1249,8 +1280,10 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
       result = result.filter(e => e.pdvId === currentUser.pdvId || e.pdvId === activeSinglePdv?.id);
     }
 
-    // "si esta en blanco no visualizar": For PDV and Supervisor, hide rows without programmed shifts
-    if (currentUser?.role === 'PDV' || isSupervisor) {
+    // "si esta en blanco no visualizar": For Supervisor or locked schedule, hide empty rows.
+    // In draft/editing mode, keep the PDV's registered staff visible so they can be scheduled!
+    const isLocked = result.length > 0 && result.every(e => scheduleMatrix[e.id]?.isSubmitted);
+    if (isSupervisor || (currentUser?.role === 'PDV' && isLocked)) {
       result = result.filter(e => {
         const row = scheduleMatrix[e.id];
         if (!row || !row.shifts || row.shifts.length === 0) return false;
@@ -1466,13 +1499,21 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
             </span>
           </div>
 
-          <div className="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/60">
-            <span className="text-slate-400 block text-[10px] uppercase font-bold">Personal Registrado</span>
+          <button
+            type="button"
+            onClick={() => setShowPlantillaModal(true)}
+            className="bg-slate-800/60 hover:bg-slate-800 p-2.5 rounded-xl border border-slate-700/60 hover:border-indigo-500/50 text-left transition group cursor-pointer"
+            title="Hacer clic para comprobar y auditar la plantilla de personal de este PDV"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-slate-400 block text-[10px] uppercase font-bold">Personal Registrado</span>
+              <span className="text-[10px] text-indigo-400 font-bold group-hover:underline">Auditar ↗</span>
+            </div>
             <span className="text-base font-black text-white flex items-center gap-1.5 mt-0.5">
-              <User className="w-4 h-4 text-indigo-400" />
-              {allEmployees.length} colaboradores
+              <Users className="w-4 h-4 text-indigo-400" />
+              {activePdvPersonnel.length} colaboradores
             </span>
-          </div>
+          </button>
 
           <div className="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/60">
             <span className="text-slate-400 block text-[10px] uppercase font-bold">Total Horas Semanales</span>
@@ -1714,6 +1755,17 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
         <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2">
             
+            {/* Botón Comprobar y Auditar Plantilla del PDV */}
+            <button
+              type="button"
+              onClick={() => setShowPlantillaModal(true)}
+              className="flex items-center gap-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs px-3.5 py-2 rounded-xl transition border border-indigo-200 cursor-pointer shadow-xs"
+              title="Auditar y comprobar la lista del personal de este PDV"
+            >
+              <Users className="w-4 h-4 text-indigo-600" />
+              <span>👥 Comprobar Plantilla del PDV ({activePdvPersonnel.length})</span>
+            </button>
+
             {/* STRICT ROLE RESTRICTION: Hide "+ Registrar Colaborador" for Supervisor & HR Admin */}
             {!isSupervisor && !isHrAdmin && (
               <button
@@ -2363,6 +2415,178 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
                 className="px-5 py-2 text-xs font-black bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow-md shadow-blue-500/30"
               >
                 {saving ? 'Guardando...' : 'Sí, Bloquear Programación Oficial'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ---------------------------------------------------- */}
+      {/* 8. MODAL: COMPROBAR Y AUDITAR PLANTILLA DEL PDV */}
+      {/* ---------------------------------------------------- */}
+      {showPlantillaModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-3xl w-full shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in duration-150 max-h-[90vh] flex flex-col">
+            {/* Header */}
+            <div className="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="bg-indigo-100 p-2.5 rounded-2xl text-indigo-700">
+                  <Users className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
+                    <span>Plantilla Oficial de Personal</span>
+                    <span className="bg-indigo-100 text-indigo-800 text-xs px-2.5 py-0.5 rounded-full font-bold">
+                      {activePdvPersonnel.length} colaboradores
+                    </span>
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Punto de Venta: <strong>{activeSinglePdv?.name || 'PDV Seleccionado'}</strong>
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPlantillaModal(false)}
+                className="text-slate-400 hover:text-slate-600 text-lg font-bold p-1 rounded-lg"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Informative Audit Note */}
+            <div className="bg-indigo-50/70 border border-indigo-200/80 rounded-2xl p-3 text-xs text-indigo-900 flex items-start gap-2.5">
+              <Info className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
+              <div className="text-[11px] leading-relaxed">
+                <strong>Monitoreo de Plantilla en Tiempo Real:</strong> Aquí puedes verificar los colaboradores vinculados a este PDV. Cuando registres una persona se sumará a esta lista; si la semana finaliza o un colaborador es trasladado/retirado, puedes desvincularlo para mantener el control exacto de la dotación.
+              </div>
+            </div>
+
+            {/* Search & Actions Bar */}
+            <div className="flex flex-wrap items-center justify-between gap-2.5">
+              <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 flex-1 min-w-48 text-xs">
+                <Search className="w-3.5 h-3.5 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Buscar colaborador por nombre o cédula..."
+                  value={plantillaSearchTerm}
+                  onChange={(e) => setPlantillaSearchTerm(e.target.value)}
+                  className="bg-transparent border-none outline-none w-full font-semibold text-slate-800"
+                />
+              </div>
+
+              {!isSupervisor && !isHrAdmin && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPlantillaModal(false);
+                    setIsAddingPerson(true);
+                  }}
+                  className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition shadow-xs cursor-pointer"
+                >
+                  <UserPlus className="w-3.5 h-3.5" />
+                  <span>+ Agregar Persona al PDV</span>
+                </button>
+              )}
+            </div>
+
+            {/* Collaborators Table */}
+            <div className="flex-1 overflow-y-auto border border-slate-200 rounded-2xl">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-100/80 text-slate-600 font-extrabold uppercase text-[10px] sticky top-0">
+                  <tr>
+                    <th className="p-3">#</th>
+                    <th className="p-3">Colaborador</th>
+                    <th className="p-3">Cédula</th>
+                    <th className="p-3">Cargo & Contrato</th>
+                    <th className="p-3 text-center">Estado Semana</th>
+                    {!isSupervisor && !isHrAdmin && (
+                      <th className="p-3 text-center">Acción</th>
+                    )}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {activePdvPersonnel
+                    .filter(emp => {
+                      if (!plantillaSearchTerm.trim()) return true;
+                      const q = plantillaSearchTerm.toLowerCase().trim();
+                      return (
+                        emp.fullName?.toLowerCase().includes(q) ||
+                        String(emp.documentId || '').includes(q)
+                      );
+                    })
+                    .map((emp, idx) => {
+                      const empSched = scheduleMatrix[emp.id];
+                      const hasShifts = empSched?.shifts?.some(s => s.shiftType && s.shiftType !== 'NO_PROGRAMADO' && (s.startTime || s.isDayOff));
+                      const totalHrs = empSched?.totalNetHours || 0;
+
+                      return (
+                        <tr key={emp.id} className="hover:bg-slate-50/80 transition">
+                          <td className="p-3 font-mono text-[10px] text-slate-400">#{idx + 1}</td>
+                          <td className="p-3 font-bold text-slate-900">
+                            <div>{emp.fullName}</div>
+                            <div className="text-[10px] font-mono text-slate-400">{emp.code || emp.id}</div>
+                          </td>
+                          <td className="p-3 font-mono font-semibold text-slate-700">
+                            {emp.documentId || 'S/N'}
+                          </td>
+                          <td className="p-3">
+                            <span className="font-semibold text-slate-800 block text-[11px]">{emp.position || 'ASESOR(A) DE IMAGEN'}</span>
+                            <span className="text-[10px] uppercase font-bold text-slate-400">{emp.contractType || 'FIJO'}</span>
+                          </td>
+                          <td className="p-3 text-center">
+                            {hasShifts ? (
+                              <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 font-bold text-[10px] px-2 py-0.5 rounded-full">
+                                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                Programado ({totalHrs}h)
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-600 font-bold text-[10px] px-2 py-0.5 rounded-full">
+                                Sin turnos esta sem.
+                              </span>
+                            )}
+                          </td>
+                          {!isSupervisor && !isHrAdmin && (
+                            <td className="p-3 text-center">
+                              <button
+                                type="button"
+                                onClick={() => handleRemovePdvMember(emp.id, emp.fullName)}
+                                className="inline-flex items-center gap-1 text-rose-600 hover:text-rose-700 hover:bg-rose-50 px-2.5 py-1 rounded-lg text-xs font-bold transition border border-rose-200 cursor-pointer"
+                                title="Desvincular o retirar a este colaborador de la tienda"
+                              >
+                                <UserMinus className="w-3.5 h-3.5" />
+                                <span>Desvincular</span>
+                              </button>
+                            </td>
+                          )}
+                        </tr>
+                      );
+                    })}
+
+                  {activePdvPersonnel.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="p-8 text-center text-slate-400">
+                        <Users className="w-8 h-8 mx-auto text-slate-300 mb-2" />
+                        <div className="font-bold text-slate-600">Sin colaboradores vinculados</div>
+                        <p className="text-[11px] text-slate-400 mt-0.5">Utiliza el botón "+ Agregar Persona al PDV" para vincular personal a este punto de venta.</p>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-between pt-2">
+              <span className="text-xs text-slate-500 font-semibold">
+                Total: <strong>{activePdvPersonnel.length} colaboradores activos</strong> en {activeSinglePdv?.code || 'PDV'}
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowPlantillaModal(false)}
+                className="px-5 py-2 text-xs font-black bg-slate-900 hover:bg-slate-800 text-white rounded-xl transition cursor-pointer"
+              >
+                Cerrar
               </button>
             </div>
           </div>
