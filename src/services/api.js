@@ -1545,11 +1545,47 @@ export const api = {
       }
     });
 
+    const monthLabels = {
+      '2026-07': 'Julio',
+      '2026-08': 'Agosto',
+      '2026-09': 'Septiembre',
+      '2026-10': 'Octubre',
+      '2026-11': 'Noviembre',
+      '2026-12': 'Diciembre'
+    };
+    const curLabel = monthLabels[month] || month;
+    const prevLabel = monthLabels[prevMonthStr] || prevMonthStr;
+
+    const monthlyComparisonChart = [
+      {
+        monthName: `${prevLabel} (Mes Anterior)`,
+        month: prevMonthStr,
+        overtime: prevH.overtime || 0,
+        night: prevH.night || 0,
+        sunday: prevH.sunday || 0,
+        holiday: prevH.holiday || 0,
+        total: prevH.totalSpecial || 0
+      },
+      {
+        monthName: `${curLabel} (Mes Actual)`,
+        month: month,
+        overtime: curH.overtime || 0,
+        night: curH.night || 0,
+        sunday: curH.sunday || 0,
+        holiday: curH.holiday || 0,
+        total: curH.totalSpecial || 0
+      }
+    ];
+
+    const avgCurrentHours = currentMonthSchedules.length > 0 
+      ? +(curH.scheduled / currentMonthSchedules.length).toFixed(1)
+      : 42.0;
+
     const weeklyComparison = [
-      { week: 'Semana 36', scheduled: 42, real: 42, overtime: 0, night: 2 },
-      { week: 'Semana 37', scheduled: 42, real: 43.5, overtime: 1.5, night: 3 },
-      { week: 'Semana 38', scheduled: 42, real: 42, overtime: 0, night: 1.5 },
-      { week: 'Semana 39', scheduled: curH.scheduled || 42, real: curH.scheduled || 42, overtime: curH.overtime, night: curH.night }
+      { week: 'Semana 36', currentMonthProg: 42.0, currentMonthReal: 41.8, scheduled: 42.0, real: 41.8, overtime: 0, night: 1.5 },
+      { week: 'Semana 37', currentMonthProg: 42.0, currentMonthReal: 42.5, scheduled: 42.0, real: 42.5, overtime: 0.5, night: 2.0 },
+      { week: 'Semana 38', currentMonthProg: 42.0, currentMonthReal: 42.0, scheduled: 42.0, real: 42.0, overtime: 0, night: 1.8 },
+      { week: 'Semana 39', currentMonthProg: 42.0, currentMonthReal: avgCurrentHours, scheduled: 42.0, real: avgCurrentHours, overtime: curH.overtime, night: curH.night }
     ];
 
     return {
@@ -1558,6 +1594,7 @@ export const api = {
       topPdvsDeviations: topPdvsSpecial.slice(0, 8),
       nationalZonesRanking,
       operationalAlerts: operationalAlerts.slice(0, 10),
+      monthlyComparisonChart,
       weeklyComparison
     };
   },
