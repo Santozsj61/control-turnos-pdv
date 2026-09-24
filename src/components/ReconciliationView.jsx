@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Upload, FileSpreadsheet, BarChart3, Filter, CheckCircle2, AlertTriangle, AlertCircle, Clock, Download, RefreshCw, Eye, Sparkles, UserCheck, ShieldAlert, ArrowUpDown, ChevronRight, ChevronDown, Store, Building2, Edit3, CheckSquare, Square, X, Send, Lock, HelpCircle, Activity, TrendingUp, Calendar, Zap } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Upload, FileSpreadsheet, BarChart3, Filter, CheckCircle2, AlertTriangle, AlertCircle, Clock, Download, RefreshCw, Eye, Sparkles, UserCheck, ShieldAlert, ArrowUpDown, ChevronRight, ChevronDown, Store, Building2, Edit3, CheckSquare, Square, X, Send, Lock, HelpCircle, Activity, TrendingUp, Calendar, Zap, Users } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid, Cell } from 'recharts';
 import * as XLSX from 'xlsx';
 import { ALL_WEEKS_2026, CURRENT_WEEK_START } from '../utils/weeks.js';
@@ -27,7 +27,7 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
   const [selectedSupervisor, setSelectedSupervisor] = useState(isSupervisor ? (currentSupervisorObj?.id || '') : '');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [searchTerm, setSearchTerm] = useState('');
-  const [viewMode, setViewMode] = useState('PDV_GROUPED'); // 'PDV_GROUPED' or 'TABLE'
+  const [viewMode, setViewMode] = useState(isEmployee ? 'HORIZONTAL_PERSON' : 'PDV_GROUPED'); // 'HORIZONTAL_PERSON', 'PDV_GROUPED' or 'TABLE'
   const [expandedPdvIds, setExpandedPdvIds] = useState({ 'pdv-1': true, 'pdv-3': true });
   
   // Shift Correction Enablement by Admin / Supervisor / Auditor VRX
@@ -386,8 +386,73 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
     return true;
   });
 
+  const weekDays = useMemo(() => {
+    if (!weekStart) return [];
+    const base = new Date(weekStart + 'T12:00:00');
+    const dayNames = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+    return dayNames.map((name, i) => {
+      const d = new Date(base);
+      d.setDate(base.getDate() + i);
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      const dateStr = `${yyyy}-${mm}-${dd}`;
+      return {
+        dayIndex: i,
+        dayName: name,
+        date: dateStr,
+        shortLabel: `${name.slice(0, 3)} ${dd}/${mm}`
+      };
+    });
+  }, [weekStart]);
+
+  const horizontalPersonList = useMemo(() => {
+    const map = new Map();
+    for (const r of filteredRows) {
+      const key = r.documentId || r.userId || r.fullName;
+      if (!map.has(key)) {
+        map.set(key, {
+          key,
+          userId: r.userId,
+          documentId: r.documentId,
+          fullName: r.fullName,
+          position: r.position,
+          pdvId: r.pdvId,
+          pdvName: r.pdvName,
+          supervisorName: r.supervisorName,
+          daysMap: {},
+          totalScheduledHours: 0,
+          totalRealHours: 0,
+          diffHours: 0,
+          lateCount: 0,
+          earlyCount: 0,
+          absenceCount: 0,
+          okCount: 0
+        });
+      }
+      const item = map.get(key);
+      if (r.date) item.daysMap[r.date] = r;
+      if (r.dayName) item.daysMap[r.dayName.toLowerCase()] = r;
+      item.totalScheduledHours += (Number(r.scheduledNetHours) || 0);
+      item.totalRealHours += (Number(r.realNetHours) || 0);
+      if (r.status === 'LATE_ARRIVAL') item.lateCount++;
+      else if (r.status === 'EARLY_DEPARTURE') item.earlyCount++;
+      else if (r.status === 'ABSENT') item.absenceCount++;
+      else if (r.status === 'OK_MATCH') item.okCount++;
+    }
+
+    const list = Array.from(map.values());
+    list.forEach(item => {
+      item.totalScheduledHours = Math.round(item.totalScheduledHours * 10) / 10;
+      item.totalRealHours = Math.round(item.totalRealHours * 10) / 10;
+      item.diffHours = Math.round((item.totalRealHours - item.totalScheduledHours) * 10) / 10;
+    });
+    list.sort((a, b) => a.fullName.localeCompare(b.fullName));
+    return list;
+  }, [filteredRows]);
+
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+    <div className="max-w-[98%] xl:max-w-[1700px] 2xl:max-w-[1900px] mx-auto px-2 sm:px-4 py-6 space-y-6">
       {/* Top Banner with File Upload & Actions */}
       <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
         <div>
@@ -1266,22 +1331,39 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
       )}
 
       {/* View Mode Switcher */}
-      <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center justify-between border-b border-slate-200 pb-2 gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
-            onClick={() => setViewMode('PDV_GROUPED')}
+            onClick={() => setViewMode('HORIZONTAL_PERSON')}
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition ${
-              viewMode === 'PDV_GROUPED'
+              viewMode === 'HORIZONTAL_PERSON'
                 ? 'bg-blue-600 text-white shadow-md'
                 : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
             }`}
           >
-            <Store className="w-4 h-4" />
-            <span>Vista Agrupada por Punto de Venta (PDV)</span>
-            <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${viewMode === 'PDV_GROUPED' ? 'bg-blue-800 text-blue-100' : 'bg-slate-200 text-slate-700'}`}>
-              {reconciliationData?.pdvSummaries?.length || 0} PDVs
+            <Users className="w-4 h-4" />
+            <span>Vista Semanal Horizontal por Persona</span>
+            <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${viewMode === 'HORIZONTAL_PERSON' ? 'bg-blue-800 text-blue-100' : 'bg-slate-200 text-slate-700'}`}>
+              {horizontalPersonList.length} colaboradores
             </span>
           </button>
+
+          {!isEmployee && (
+            <button
+              onClick={() => setViewMode('PDV_GROUPED')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition ${
+                viewMode === 'PDV_GROUPED'
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+              }`}
+            >
+              <Store className="w-4 h-4" />
+              <span>Vista Agrupada por Punto de Venta (PDV)</span>
+              <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${viewMode === 'PDV_GROUPED' ? 'bg-blue-800 text-blue-100' : 'bg-slate-200 text-slate-700'}`}>
+                {reconciliationData?.pdvSummaries?.length || 0} PDVs
+              </span>
+            </button>
+          )}
 
           <button
             onClick={() => setViewMode('TABLE')}
@@ -1300,6 +1382,200 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
           Semana {weekStart} • Cruce Biométrico
         </span>
       </div>
+
+      {/* 0. HORIZONTAL PERSON WEEKLY VIEW (Requerimiento PDV: Comparativo Semanal por Persona) */}
+      {viewMode === 'HORIZONTAL_PERSON' && (
+        <div className="space-y-4">
+          {/* Quick Guide Banner */}
+          <div className="bg-gradient-to-r from-blue-50 via-slate-50 to-emerald-50 rounded-2xl p-4 border border-blue-200/80 shadow-2xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-blue-600 text-white rounded-xl shadow-xs">
+                <Users className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-slate-900">
+                  Comparativo Semanal Horizontal de Marcaciones por Colaborador
+                </h3>
+                <p className="text-xs text-slate-600 mt-0.5">
+                  Visualización horizontal de lunes a domingo: compara directamente el turno programado frente a la marcación real y horas netas de cada persona.
+                </p>
+              </div>
+            </div>
+
+            {/* Legend */}
+            <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold">
+              <span className="flex items-center gap-1 bg-white border border-slate-200 px-2 py-1 rounded-lg text-slate-700">
+                <Calendar className="w-3 h-3 text-blue-600" /> Prog = Programado
+              </span>
+              <span className="flex items-center gap-1 bg-white border border-slate-200 px-2 py-1 rounded-lg text-slate-700">
+                <Clock className="w-3 h-3 text-slate-600" /> Real = Reloj Biométrico
+              </span>
+              <span className="bg-emerald-100 text-emerald-800 px-2 py-1 rounded-lg">OK Cumple</span>
+              <span className="bg-amber-100 text-amber-800 px-2 py-1 rounded-lg">Llegada Tarde</span>
+              <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded-lg">Salida Anticipada</span>
+              <span className="bg-rose-100 text-rose-800 px-2 py-1 rounded-lg">Ausencia / Sin Marcación</span>
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="bg-white rounded-2xl p-12 text-center text-slate-400">
+              Cargando comparativo horizontal por colaborador...
+            </div>
+          ) : horizontalPersonList.length === 0 ? (
+            <div className="bg-white rounded-2xl p-12 text-center text-slate-400 font-semibold">
+              No hay colaboradores ni registros cargados para los filtros seleccionados.
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-slate-900 text-slate-200 uppercase tracking-wider text-[10px] font-extrabold border-b border-slate-800">
+                      <th className="py-3 px-4 min-w-[220px] sticky left-0 z-10 bg-slate-900">
+                        Colaborador
+                      </th>
+                      {weekDays.map(w => (
+                        <th key={w.date} className="py-3 px-2.5 text-center min-w-[155px]">
+                          <div>{w.dayName}</div>
+                          <div className="text-[9px] text-slate-400 font-normal">{w.shortLabel}</div>
+                        </th>
+                      ))}
+                      <th className="py-3 px-3 text-center min-w-[140px] bg-slate-800">
+                        Balance Semanal
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {horizontalPersonList.map((collab, idx) => (
+                      <tr key={collab.key || idx} className="hover:bg-slate-50/80 transition">
+                        {/* Colaborador Column */}
+                        <td className="py-3 px-4 sticky left-0 z-10 bg-white shadow-xs">
+                          <div className="font-extrabold text-slate-900 text-xs">{collab.fullName}</div>
+                          <div className="text-[10px] text-slate-500 font-mono">CC: {collab.documentId}</div>
+                          <div className="text-[10px] text-blue-700 font-semibold">{collab.position}</div>
+                          <div className="text-[9px] text-slate-400 truncate max-w-[200px] mt-0.5">{collab.pdvName}</div>
+                        </td>
+
+                        {/* 7 Days Columns */}
+                        {weekDays.map(w => {
+                          const dayRow = collab.daysMap[w.date] || collab.daysMap[w.dayName.toLowerCase()];
+                          if (!dayRow) {
+                            return (
+                              <td key={w.date} className="py-2.5 px-2 text-center text-slate-300">
+                                <span className="text-[11px]">-</span>
+                              </td>
+                            );
+                          }
+
+                          const isLate = dayRow.status === 'LATE_ARRIVAL';
+                          const isEarly = dayRow.status === 'EARLY_DEPARTURE';
+                          const isAbsent = dayRow.status === 'ABSENT';
+                          const isDayOff = dayRow.status === 'DAY_OFF' || (!dayRow.isScheduled && !dayRow.hasPunch);
+
+                          return (
+                            <td
+                              key={w.date}
+                              className="py-2 px-1.5 align-top"
+                              onClick={() => setSelectedRowDetail(dayRow)}
+                            >
+                              <div
+                                className={`p-2 rounded-xl border text-[11px] cursor-pointer transition hover:shadow-xs space-y-1.5 ${
+                                  isAbsent
+                                    ? 'bg-rose-50/80 border-rose-200'
+                                    : isLate
+                                    ? 'bg-amber-50/80 border-amber-200'
+                                    : isEarly
+                                    ? 'bg-orange-50/80 border-orange-200'
+                                    : dayRow.hasPermission
+                                    ? 'bg-emerald-50/70 border-emerald-200'
+                                    : isDayOff
+                                    ? 'bg-slate-50 border-slate-200 text-slate-500'
+                                    : 'bg-white border-slate-200'
+                                }`}
+                                title="Click para ver detalle completo de marcación"
+                              >
+                                {/* Cronograma Programado */}
+                                <div className="flex items-center justify-between gap-1 text-[10px]">
+                                  <span className="font-semibold text-slate-600 flex items-center gap-1 truncate">
+                                    <Calendar className="w-2.5 h-2.5 text-blue-500 shrink-0" />
+                                    {dayRow.isScheduled ? `${dayRow.scheduledStart}-${dayRow.scheduledEnd}` : 'Descanso'}
+                                  </span>
+                                  <span className="font-bold text-slate-500 shrink-0">{dayRow.scheduledNetHours || 0}h</span>
+                                </div>
+
+                                {/* Marcación Real */}
+                                <div className="flex items-center justify-between gap-1 text-[10px]">
+                                  <span className={`font-black flex items-center gap-1 truncate ${
+                                    dayRow.hasPunch ? 'text-blue-900' : isDayOff ? 'text-slate-400' : 'text-rose-600'
+                                  }`}>
+                                    <Clock className="w-2.5 h-2.5 text-slate-400 shrink-0" />
+                                    {dayRow.hasPunch ? `${dayRow.realStart}-${dayRow.realEnd || '?'}` : isDayOff ? 'Sin Turno' : 'Sin Marc.'}
+                                  </span>
+                                  <span className={`font-bold shrink-0 ${dayRow.hasPunch ? 'text-slate-900' : 'text-slate-400'}`}>
+                                    {dayRow.realNetHours || 0}h
+                                  </span>
+                                </div>
+
+                                {/* Mini Footer Diferencia / Novedad */}
+                                {(dayRow.isScheduled || dayRow.hasPunch) && (
+                                  <div className="pt-1 border-t border-slate-200/60 flex items-center justify-between text-[9px]">
+                                    <span className={`font-black ${
+                                      dayRow.hoursDiff > 0 ? 'text-blue-700' : dayRow.hoursDiff < 0 ? 'text-rose-600' : 'text-emerald-600'
+                                    }`}>
+                                      {dayRow.hoursDiff > 0 ? `+${dayRow.hoursDiff}h` : dayRow.hoursDiff < 0 ? `${dayRow.hoursDiff}h` : '0h'}
+                                    </span>
+                                    <span className={`px-1.5 py-0.2 rounded font-extrabold uppercase ${
+                                      dayRow.statusColor === 'green' ? 'bg-emerald-100 text-emerald-800' :
+                                      dayRow.statusColor === 'yellow' ? 'bg-amber-100 text-amber-800' :
+                                      dayRow.statusColor === 'orange' ? 'bg-orange-100 text-orange-800' :
+                                      dayRow.statusColor === 'red' ? 'bg-rose-100 text-rose-800' :
+                                      'bg-slate-100 text-slate-600'
+                                    }`}>
+                                      {dayRow.status === 'OK_MATCH' ? 'OK' : 
+                                       dayRow.status === 'LATE_ARRIVAL' ? 'Tarde' : 
+                                       dayRow.status === 'EARLY_DEPARTURE' ? 'Sal. Ant' : 
+                                       dayRow.status === 'ABSENT' ? 'Ausente' : 
+                                       dayRow.status === 'DAY_OFF' ? 'Desc' : dayRow.statusLabel}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                          );
+                        })}
+
+                        {/* Balance Semanal Column */}
+                        <td className="py-2.5 px-3 text-center align-middle bg-slate-50/50">
+                          <div className="p-2.5 bg-slate-900 text-white rounded-xl space-y-1">
+                            <div className="text-[9px] text-slate-400 font-bold uppercase">Prog vs Real</div>
+                            <div className="text-xs font-black">
+                              {collab.totalRealHours}h <span className="text-slate-400 text-[10px] font-normal">/ {collab.totalScheduledHours}h</span>
+                            </div>
+                            <div className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded ${
+                              collab.diffHours > 0 ? 'bg-blue-600 text-white' :
+                              collab.diffHours < 0 ? 'bg-rose-600 text-white' :
+                              'bg-emerald-600 text-white'
+                            }`}>
+                              {collab.diffHours > 0 ? `+${collab.diffHours}h extra` : collab.diffHours < 0 ? `${collab.diffHours}h` : 'Exacto (0h)'}
+                            </div>
+                            {(collab.lateCount > 0 || collab.earlyCount > 0 || collab.absenceCount > 0) && (
+                              <div className="pt-1 flex flex-wrap items-center justify-center gap-1 text-[8px] font-bold">
+                                {collab.lateCount > 0 && <span className="bg-amber-500/30 text-amber-200 px-1 py-0.2 rounded">{collab.lateCount}T</span>}
+                                {collab.earlyCount > 0 && <span className="bg-orange-500/30 text-orange-200 px-1 py-0.2 rounded">{collab.earlyCount}SA</span>}
+                                {collab.absenceCount > 0 && <span className="bg-rose-500/30 text-rose-200 px-1 py-0.2 rounded">{collab.absenceCount}A</span>}
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* 1. PDV GROUPED VIEW (Hero Experience) */}
       {viewMode === 'PDV_GROUPED' && (

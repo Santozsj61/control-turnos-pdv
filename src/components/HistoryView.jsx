@@ -14,19 +14,19 @@ export default function HistoryView({ currentUser, pdvs, supervisors }) {
   const isSupervisor = currentUser?.role === 'SUPERVISOR';
   const isHrAdmin = currentUser?.role === 'HR_ADMIN';
   const isAuditorVrx = currentUser?.role === 'AUDITOR_VRX';
-  const isEmployee = currentUser?.role === 'EMPLOYEE';
+  const isPdv = currentUser?.role === 'PDV' || currentUser?.role === 'EMPLOYEE';
 
-  const currentSupervisorObj = supervisors.find(s => s.name === currentUser?.fullName || currentUser?.id?.includes(s.id));
+  const currentSupervisorObj = supervisors.find(s => s.id === currentUser?.supervisorId || s.name === currentUser?.fullName || currentUser?.id?.includes(s.id));
 
   // Allowed PDVs based on security scope
   const allowedPdvs = (isAdmin || isHrAdmin || isAuditorVrx)
     ? pdvs
     : isSupervisor
-    ? pdvs.filter(p => p.supervisorId === currentSupervisorObj?.id)
+    ? pdvs.filter(p => p.supervisorId === currentSupervisorObj?.id || p.supervisorId === currentUser?.supervisorId)
     : pdvs.filter(p => p.id === currentUser?.pdvId || p.code === currentUser?.pdvId);
 
   const [selectedPdvId, setSelectedPdvId] = useState(
-    isEmployee ? (currentUser.pdvId || allowedPdvs[0]?.id || 'pdv-1') : (allowedPdvs[0]?.id || 'pdv-1')
+    isPdv ? (currentUser?.pdvId || allowedPdvs[0]?.id || 'pdv-1') : (allowedPdvs[0]?.id || 'pdv-1')
   );
 
   const [schedules, setSchedules] = useState([]);
@@ -137,16 +137,25 @@ export default function HistoryView({ currentUser, pdvs, supervisors }) {
 
   const weekDays = getDatesForWeek(selectedWeek);
 
-  // Filter employees
+  // Get schedules for the active week
+  const currentWeekSchedules = schedules.filter(s => s.weekStart === selectedWeek);
+
+  // Filter employees: Solamente ver colaboradores con programación guardada en esta semana
   const filteredEmployees = employees.filter(emp => {
     const matchSearch = (emp.fullName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                         (emp.documentId || '').includes(searchTerm);
     const matchType = filterType === 'ALL' || (emp.contractType || 'FIJO') === filterType;
-    return matchSearch && matchType;
-  });
+    if (!matchSearch || !matchType) return false;
 
-  // Get schedules for the active week
-  const currentWeekSchedules = schedules.filter(s => s.weekStart === selectedWeek);
+    if (isPdv || isSupervisor) {
+      const empSched = currentWeekSchedules.find(s => s.userId === emp.id || (emp.documentId && s.user?.document_id && String(s.user.document_id) === String(emp.documentId)));
+      if (!empSched) return false;
+      const hasAnyShift = empSched.shifts?.some(sh => sh.shiftType && sh.shiftType !== 'NO_PROGRAMADO' && (sh.startTime || sh.isDayOff || sh.shiftType === 'DESCANSO'));
+      return hasAnyShift;
+    }
+
+    return true;
+  });
 
   // Weekly stats calculation
   let totalWeekNetHours = 0;
@@ -188,7 +197,7 @@ export default function HistoryView({ currentUser, pdvs, supervisors }) {
         </div>
 
         {/* PDV Selector for Admins & Supervisors */}
-        {(!isEmployee && allowedPdvs.length > 1) && (
+        {(!isPdv && allowedPdvs.length > 1) && (
           <div className="w-full md:w-auto flex flex-col items-start md:items-end gap-1.5">
             <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider">Seleccionar Tienda / PDV:</label>
             <select

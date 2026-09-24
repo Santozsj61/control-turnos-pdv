@@ -71,10 +71,12 @@ export default function WeeklyJustificationView({ currentUser, pdvs, supervisors
     setLoading(true);
     try {
       const filters = {};
-      if (isPdv && activePdvObj?.id) {
-        filters.pdvId = activePdvObj.id;
-      } else if (isSupervisor && currentSupervisorObj?.id) {
-        filters.supervisorId = currentSupervisorObj.id;
+      if (isPdv) {
+        const pId = currentUser?.pdvId || activePdvObj?.id;
+        if (pId) filters.pdvId = pId;
+      } else if (isSupervisor) {
+        const sId = currentUser?.supervisorId || currentSupervisorObj?.id;
+        if (sId) filters.supervisorId = sId;
       }
       
       const list = await api.getSupplementaryJustifications(filters).catch(() => []);
@@ -131,30 +133,32 @@ export default function WeeklyJustificationView({ currentUser, pdvs, supervisors
 
   // Filtered list
   const filteredList = justifications.filter(item => {
+    const itemWeek = item.weekStart || item.week_start;
+    const itemMonth = item.month || (itemWeek ? itemWeek.substring(0, 7) : '');
+    const itemPdvId = item.pdvId || item.pdv_id;
+    const itemSupId = item.supervisorId || item.supervisor_id;
+
     // Week filter
-    if (filterPeriodType === 'WEEK' && item.weekStart !== selectedWeek) return false;
+    if (filterPeriodType === 'WEEK' && itemWeek !== selectedWeek) return false;
     // Month filter
-    if (filterPeriodType === 'MONTH') {
-      const itemMonth = item.month || (item.weekStart ? item.weekStart.substring(0, 7) : '');
-      if (itemMonth !== selectedMonth) return false;
-    }
+    if (filterPeriodType === 'MONTH' && itemMonth !== selectedMonth) return false;
     // PDV filter
-    if (selectedPdvId !== 'ALL' && item.pdvId !== selectedPdvId) return false;
+    if (selectedPdvId && selectedPdvId !== 'ALL' && itemPdvId !== selectedPdvId) return false;
     // Zone filter
-    if (selectedZoneId !== 'ALL' && item.supervisorId !== selectedZoneId) return false;
+    if (selectedZoneId && selectedZoneId !== 'ALL' && itemSupId !== selectedZoneId) return false;
     // Search
     if (searchTerm.trim()) {
       const q = searchTerm.toLowerCase();
-      const matchPdv = (item.pdvName || '').toLowerCase().includes(q);
+      const matchPdv = (item.pdvName || item.pdv_name || '').toLowerCase().includes(q);
       const matchCat = (item.reasonCategory || '').toLowerCase().includes(q);
-      const matchReason = (item.detailedReason || '').toLowerCase().includes(q);
-      const matchBy = (item.createdBy || '').toLowerCase().includes(q);
+      const matchReason = (item.detailedReason || item.reason || '').toLowerCase().includes(q);
+      const matchBy = (item.createdBy || item.submitted_by || '').toLowerCase().includes(q);
       if (!matchPdv && !matchCat && !matchReason && !matchBy) return false;
     }
     return true;
   });
 
-  const totalJustifiedHours = filteredList.reduce((acc, curr) => acc + (Number(curr.totalSupplementaryHours) || 0), 0);
+  const totalJustifiedHours = filteredList.reduce((acc, curr) => acc + (Number(curr.totalSupplementaryHours || curr.hours_increase) || 0), 0);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">

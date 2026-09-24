@@ -460,16 +460,25 @@ export const api = {
       });
     }
     const cleanDoc = String(documentId).trim();
-    const { data: existing } = await supabase.from('users').select('*').eq('document_id', cleanDoc).single();
+    const { data: existing } = await supabase.from('users').select('*').eq('document_id', cleanDoc).maybeSingle();
     if (existing) {
       const { data, error } = await supabase.from('users').update({
         pdv_id: pdvId,
         full_name: fullName || existing.full_name,
         position: position || existing.position,
+        contract_type: contractType || existing.contract_type || 'FIJO',
+        is_active: true,
         updated_at: new Date().toISOString()
       }).eq('id', existing.id).select().single();
       if (error) throw new Error(error.message);
-      return { ...data, fullName: data.full_name, pdvId: data.pdv_id };
+      return {
+        ...data,
+        id: data.id,
+        fullName: data.full_name,
+        pdvId: data.pdv_id,
+        documentId: data.document_id,
+        contractType: data.contract_type
+      };
     }
 
     const newId = `emp-${Date.now()}`;
@@ -488,7 +497,14 @@ export const api = {
     };
     const { data, error } = await supabase.from('users').insert(payload).select().single();
     if (error) throw new Error(error.message);
-    return { ...data, fullName: data.full_name, pdvId: data.pdv_id };
+    return {
+      ...data,
+      id: data.id,
+      fullName: data.full_name,
+      pdvId: data.pdv_id,
+      documentId: data.document_id,
+      contractType: data.contract_type
+    };
   },
 
   removePdvMember: async (userId, pdvId, weekStart) => {
@@ -658,7 +674,9 @@ export const api = {
     if (filters.status) query = query.eq('status', filters.status);
     if (filters.userId) query = query.eq('user_id', filters.userId);
     if (filters.pdvId) query = query.eq('pdv_id', filters.pdvId);
+    if (filters.supervisorId) query = query.eq('supervisor_id', filters.supervisorId);
     if (filters.recipientRole) query = query.eq('recipient_role', filters.recipientRole);
+    if (filters.excludeMaintenance) query = query.neq('assigned_area', 'Mantenimiento y Obras');
     const { data, error } = await query;
     if (error) throw new Error(error.message);
     return (data || []).map(p => ({
@@ -941,13 +959,17 @@ export const api = {
         body: JSON.stringify(justification)
       });
     }
+    const categoryTag = justification.reasonCategory ? `[${justification.reasonCategory}] ` : '';
+    const rawReason = justification.detailedReason || justification.reason || '';
+    const fullReason = rawReason.startsWith('[') ? rawReason : `${categoryTag}${rawReason}`;
+
     const payload = {
       id: `just-${Date.now()}`,
       pdv_id: justification.pdvId,
       pdv_name: justification.pdvName,
       supervisor_id: justification.supervisorId,
       week_start: justification.weekStart,
-      reason: justification.detailedReason || justification.reason,
+      reason: fullReason,
       hours_increase: Number(justification.totalSupplementaryHours || justification.hoursIncrease || 0),
       submitted_by: justification.createdBy || justification.submittedBy || 'Administrador PDV',
       submitted_at: new Date().toISOString(),
@@ -955,7 +977,19 @@ export const api = {
     };
     const { data, error } = await supabase.from('supplementary_justifications').insert(payload).select().single();
     if (error) throw new Error(error.message);
-    return data;
+    return {
+      id: data.id,
+      pdvId: data.pdv_id,
+      pdvName: data.pdv_name,
+      supervisorId: data.supervisor_id,
+      weekStart: data.week_start,
+      reasonCategory: justification.reasonCategory || 'Tiempo Adicional Autorizado',
+      detailedReason: rawReason,
+      totalSupplementaryHours: Number(data.hours_increase || 0),
+      createdBy: data.submitted_by,
+      submittedAt: data.submitted_at,
+      status: data.status
+    };
   },
 
   getSupplementaryJustifications: async (filters = {}) => {
@@ -972,7 +1006,34 @@ export const api = {
       console.warn('Error reading supplementary_justifications table:', error);
       return [];
     }
-    return data || [];
+    return (data || []).map(j => {
+      let cat = 'Tiempo Adicional Autorizado';
+      let detReason = j.reason || '';
+      const m = (j.reason || '').match(/^\[(.*?)\]\s*(.*)$/);
+      if (m) {
+        cat = m[1];
+        detReason = m[2];
+      }
+      return {
+        id: j.id,
+        pdvId: j.pdv_id,
+        pdv_id: j.pdv_id,
+        pdvName: j.pdv_name,
+        pdv_name: j.pdv_name,
+        supervisorId: j.supervisor_id,
+        supervisor_id: j.supervisor_id,
+        weekStart: j.week_start,
+        week_start: j.week_start,
+        month: j.week_start ? j.week_start.substring(0, 7) : '',
+        reasonCategory: cat,
+        detailedReason: detReason || j.reason,
+        totalSupplementaryHours: Number(j.hours_increase || 0),
+        hoursIncrease: Number(j.hours_increase || 0),
+        createdBy: j.submitted_by || 'Administrador PDV',
+        submittedAt: j.submitted_at,
+        status: j.status || 'SUBMITTED'
+      };
+    });
   },
 
   getReconciliationIntegrity: async ({ weekStart, pdvId, supervisorId } = {}) => {

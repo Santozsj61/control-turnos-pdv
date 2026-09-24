@@ -384,11 +384,6 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
 
   useEffect(() => {
     loadScheduleData();
-    const interval = setInterval(() => {
-      // Auto-sync updates from other users in the background
-      loadScheduleData();
-    }, 30000);
-    return () => clearInterval(interval);
   }, [selectedPdvId, selectedWeekStart, currentUser?.id, currentUser?.role]);
 
   // Recalculate preview for a single user locally & synchronously
@@ -1117,11 +1112,66 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
         setNewDocId('');
         setNewFullName('');
         setNewContractType('FIJO');
+
+        const newEmpObj = {
+          id: data.id,
+          fullName: data.fullName || data.full_name || newFullName.trim().toUpperCase(),
+          documentId: data.documentId || data.document_id || newDocId.trim(),
+          code: data.code || `COD-${newDocId.slice(-4)}`,
+          position: data.position || newPosition,
+          role: 'EMPLOYEE',
+          pdvId: targetPdvId,
+          contractType: data.contractType || data.contract_type || newContractType
+        };
+
+        // Initialize 7 shifts in schedule matrix immediately
+        const weekDates = getDatesForWeek(selectedWeekStart);
+        const blankShifts = weekDates.map((d, dayIdx) => ({
+          dayOfWeek: d.dayOfWeek,
+          date: d.date,
+          dayIndex: dayIdx,
+          shiftType: 'NO_PROGRAMADO',
+          startTime: '',
+          endTime: '',
+          grossHours: 0,
+          lunchHours: 0,
+          netHours: 0,
+          isSunday: d.isSunday,
+          isDayOff: false
+        }));
+
+        setScheduleMatrix(prev => ({
+          ...prev,
+          [data.id]: {
+            userId: data.id,
+            employee: newEmpObj,
+            shifts: blankShifts,
+            totalNetHours: 0,
+            totalLunchHours: 0,
+            notes: '',
+            isSubmitted: false
+          }
+        }));
+
+        setAllEmployees(prev => {
+          if (!prev.some(e => e.id === data.id)) {
+            return [...prev, newEmpObj];
+          }
+          return prev;
+        });
+
+        setAllHistoricalEmployees(prev => {
+          if (!prev.some(e => e.id === data.id)) {
+            return [...prev, newEmpObj];
+          }
+          return prev;
+        });
+
         setMessage({ 
           type: 'success', 
-          text: `Colaborador ${data.fullName || newFullName} asociado como personal ${data.contractType || newContractType} exitosamente.` 
+          text: `✓ Colaborador ${newEmpObj.fullName} asociado y agregado a la grilla exitosamente.` 
         });
-        loadScheduleData();
+
         if (onReloadUsers) onReloadUsers();
       }
     } catch (err) {
@@ -1375,7 +1425,7 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
     filteredAndSortedEmployees.every(emp => scheduleMatrix[emp.id]?.isSubmitted);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+    <div className="max-w-[98%] xl:max-w-[1650px] 2xl:max-w-[1850px] mx-auto px-2 sm:px-4 py-6 space-y-6">
       
       {/* ---------------------------------------------------- */}
       {/* 1. TOP HEADER & ZONE / NATIONAL CONTEXT */}

@@ -88,8 +88,11 @@ export default function App() {
       try {
         const filters = { status: 'PENDING' };
         if (currentUser.role === 'SUPERVISOR') {
-          const sup = supervisors.find(s => s.name === currentUser.fullName || currentUser.id?.includes(s.id));
-          if (sup) filters.supervisorId = sup.id;
+          const sup = supervisors.find(s => s.id === currentUser.supervisorId || s.name === currentUser.fullName || currentUser.id?.includes(s.id));
+          if (sup) {
+            filters.supervisorId = sup.id;
+            filters.excludeMaintenance = true;
+          }
         } else if (currentUser.role === 'MAINTENANCE_APPROVER') {
           filters.recipientRole = 'MAINTENANCE_APPROVER';
         }

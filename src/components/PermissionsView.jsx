@@ -85,14 +85,20 @@ export default function PermissionsView({ currentUser, pdvs, supervisors, onRefr
       if (isPdv && currentUser.pdvId) {
         filters.pdvId = currentUser.pdvId;
       } else if (isSupervisor) {
-        if (currentSupervisorObj?.id) filters.supervisorId = currentSupervisorObj.id;
+        const supId = currentUser.supervisorId || currentSupervisorObj?.id;
+        if (supId) filters.supervisorId = supId;
+        filters.excludeMaintenance = true;
       } else if (isMaintenanceApprover) {
         filters.recipientRole = 'MAINTENANCE_APPROVER';
       }
       let data = await api.getPermissions(filters).catch(() => []);
       if (Array.isArray(data)) {
-        if (isSupervisor && allowedPdvs.length > 0) {
-          data = data.filter(p => allowedPdvs.some(ap => ap.id === p.pdvId || ap.code === p.pdvId || p.supervisorId === currentSupervisorObj?.id));
+        if (isSupervisor) {
+          const supId = currentUser.supervisorId || currentSupervisorObj?.id;
+          data = data.filter(p => p.assignedArea !== 'Mantenimiento y Obras' && (
+            p.supervisorId === supId || 
+            allowedPdvs.some(ap => ap.id === p.pdvId || ap.code === p.pdvId)
+          ));
         }
         setPermissions(data);
       } else {
