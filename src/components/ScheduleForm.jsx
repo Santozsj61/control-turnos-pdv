@@ -126,6 +126,10 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
   }, [allHistoricalEmployees, selectedPdvId, currentUser?.pdvId, activeSinglePdv, isSupervisor, allowedPdvs]);
 
   async function handleRemovePdvMember(memberId, memberName) {
+    if (isEmployee || isSupervisor || isHrAdmin) {
+      setMessage({ type: 'error', text: 'Acceso Denegado: Los Puntos de Venta no tienen autorización para desvincular personal.' });
+      return;
+    }
     if (!window.confirm(`¿Confirmas desvincular a "${memberName}" de este PDV? Dejará de figurar en la dotación de la tienda.`)) {
       return;
     }
@@ -2508,7 +2512,7 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
             <div className="bg-indigo-50/70 border border-indigo-200/80 rounded-2xl p-3 text-xs text-indigo-900 flex items-start gap-2.5">
               <Info className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
               <div className="text-[11px] leading-relaxed">
-                <strong>Monitoreo de Plantilla en Tiempo Real:</strong> Aquí puedes verificar los colaboradores vinculados a este PDV. Cuando registres una persona se sumará a esta lista; si la semana finaliza o un colaborador es trasladado/retirado, puedes desvincularlo para mantener el control exacto de la dotación.
+                <strong>Monitoreo de Plantilla en Tiempo Real:</strong> Aquí puedes verificar los colaboradores vinculados a este PDV. Cuando registres una persona se sumará a esta lista para gestionar y programar sus turnos en la tienda.
               </div>
             </div>
 
@@ -2550,7 +2554,7 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
                     <th className="p-3">Cédula</th>
                     <th className="p-3">Cargo & Contrato</th>
                     <th className="p-3 text-center">Estado Semana</th>
-                    {!isSupervisor && !isHrAdmin && (
+                    {(isAdmin || isAuditorVrx) && (
                       <th className="p-3 text-center">Acción</th>
                     )}
                   </tr>
@@ -2596,7 +2600,7 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
                               </span>
                             )}
                           </td>
-                          {!isSupervisor && !isHrAdmin && (
+                          {(isAdmin || isAuditorVrx) && (
                             <td className="p-3 text-center">
                               <button
                                 type="button"
@@ -2615,7 +2619,7 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
 
                   {activePdvPersonnel.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="p-8 text-center text-slate-400">
+                      <td colSpan={(isAdmin || isAuditorVrx) ? 6 : 5} className="p-8 text-center text-slate-400">
                         <Users className="w-8 h-8 mx-auto text-slate-300 mb-2" />
                         <div className="font-bold text-slate-600">Sin colaboradores vinculados</div>
                         <p className="text-[11px] text-slate-400 mt-0.5">Utiliza el botón "+ Agregar Persona al PDV" para vincular personal a este punto de venta.</p>
