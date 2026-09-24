@@ -46,7 +46,7 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
   const isAdmin = currentUser?.role === 'ADMIN';
   const isHrAdmin = currentUser?.role === 'HR_ADMIN';
   const isAuditorVrx = currentUser?.role === 'AUDITOR_VRX';
-  const isEmployee = currentUser?.role === 'EMPLOYEE';
+  const isEmployee = currentUser?.role === 'EMPLOYEE' || currentUser?.role === 'PDV' || (!isAdmin && !isHrAdmin && !isAuditorVrx && !isSupervisor);
 
   const currentSupervisorObj = supervisors.find(s => 
     s.name === currentUser?.fullName || 

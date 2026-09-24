@@ -10,20 +10,30 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
   const isHrAdmin = currentUser?.role === 'HR_ADMIN';
   const isAuditorVrx = currentUser?.role === 'AUDITOR_VRX';
   const isSupervisor = currentUser?.role === 'SUPERVISOR';
-  const isEmployee = currentUser?.role === 'EMPLOYEE';
+  const isPdv = currentUser?.role === 'PDV' || currentUser?.role === 'EMPLOYEE' || (!isAdmin && !isHrAdmin && !isAuditorVrx && !isSupervisor);
+  const isEmployee = isPdv;
   const isAdminOrSup = isAdmin || isSupervisor || isAuditorVrx;
 
   const currentSupervisorObj = supervisors.find(s => s.name === currentUser?.fullName || currentUser?.id?.includes(s.id));
+
+  const myPdv = pdvs.find(p => 
+    p.id === currentUser?.pdvId || 
+    p.id === currentUser?.pdv_id || 
+    p.code === currentUser?.code || 
+    p.code?.toLowerCase() === currentUser?.username?.toLowerCase() ||
+    p.name === currentUser?.fullName
+  );
+  const currentPdvId = myPdv?.id || currentUser?.pdvId || currentUser?.pdv_id;
 
   // Allowed PDVs based on security scope
   const allowedPdvs = (isAdmin || isHrAdmin || isAuditorVrx)
     ? pdvs
     : isSupervisor
-    ? pdvs.filter(p => p.supervisorId === currentSupervisorObj?.id || p.supervisorId === currentUser?.supervisorId)
-    : pdvs.filter(p => p.id === currentUser?.pdvId || p.code === currentUser?.pdvId);
+    ? pdvs.filter(p => p.supervisorId === currentSupervisorObj?.id || p.supervisorId === currentUser?.supervisorId || p.supervisor_id === currentSupervisorObj?.id)
+    : myPdv ? [myPdv] : pdvs.filter(p => p.id === currentPdvId || p.code === currentUser?.code);
 
   const [weekStart, setWeekStart] = useState(CURRENT_WEEK_START);
-  const [selectedPdv, setSelectedPdv] = useState(isEmployee ? (currentUser.pdvId || allowedPdvs[0]?.id) : '');
+  const [selectedPdv, setSelectedPdv] = useState(isEmployee ? (currentPdvId || allowedPdvs[0]?.id || '') : '');
   const [selectedSupervisor, setSelectedSupervisor] = useState(isSupervisor ? (currentSupervisorObj?.id || '') : '');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [searchTerm, setSearchTerm] = useState('');
@@ -72,7 +82,7 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
       let targetPdvId = null;
       let targetSupId = null;
       if (isEmployee) {
-        targetPdvId = currentUser.pdvId;
+        targetPdvId = currentPdvId || allowedPdvs[0]?.id || null;
       } else if (isSupervisor) {
         targetSupId = currentSupervisorObj?.id;
         if (selectedPdv) targetPdvId = selectedPdv;
@@ -353,19 +363,69 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
     }
   }
 
-  const rows = reconciliationData?.rows || [];
-  const stats = reconciliationData?.stats || {
-    totalRows: 0,
-    exactMatches: 0,
-    lateArrivals: 0,
-    earlyDepartures: 0,
-    absences: 0,
-    unscheduledPunches: 0,
-    permissionsApproved: 0,
-    totalScheduledHours: 0,
-    totalRealHours: 0,
-    totalHoursDifference: 0
-  };
+  const rawRows = reconciliationData?.rows || [];
+  const rows = isEmployee
+    ? rawRows.filter(r => r.pdvId === currentPdvId || (myPdv && (r.pdvName === myPdv.name || r.pdvName?.toLowerCase()?.includes(myPdv.code?.toLowerCase()))))
+    : isSupervisor && !selectedPdv
+    ? rawRows.filter(r => allowedPdvs.some(p => p.id === r.pdvId))
+    : rawRows;
+
+  const rawPdvSummaries = reconciliationData?.pdvSummaries || [];
+  const pdvSummaries = isEmployee
+    ? rawPdvSummaries.filter(p => p.pdvId === currentPdvId || (myPdv && (p.pdvName === myPdv.name || p.pdvName?.toLowerCase()?.includes(myPdv.code?.toLowerCase()))))
+    : isSupervisor && !selectedPdv
+    ? rawPdvSummaries.filter(p => allowedPdvs.some(ap => ap.id === p.pdvId))
+    : rawPdvSummaries;
+
+  const stats = useMemo(() => {
+    if (!isEmployee && !isSupervisor) {
+      return reconciliationData?.stats || {
+        totalRows: 0,
+        exactMatches: 0,
+        lateArrivals: 0,
+        earlyDepartures: 0,
+        absences: 0,
+        unscheduledPunches: 0,
+        permissionsApproved: 0,
+        totalScheduledHours: 0,
+        totalRealHours: 0,
+        totalHoursDifference: 0
+      };
+    }
+    let exactMatches = 0;
+    let lateArrivals = 0;
+    let earlyDepartures = 0;
+    let absences = 0;
+    let unscheduledPunches = 0;
+    let permissionsApproved = 0;
+    let totalScheduledHours = 0;
+    let totalRealHours = 0;
+
+    for (const r of rows) {
+      if (r.status === 'OK_MATCH') exactMatches++;
+      else if (r.status === 'LATE_ARRIVAL') lateArrivals++;
+      else if (r.status === 'EARLY_DEPARTURE') earlyDepartures++;
+      else if (r.status === 'ABSENT') absences++;
+      else if (r.status === 'UNSCHEDULED_WORK') unscheduledPunches++;
+      if (r.hasPermission) permissionsApproved++;
+      totalScheduledHours += (Number(r.scheduledNetHours) || 0);
+      totalRealHours += (Number(r.realNetHours) || 0);
+    }
+
+    const totalHoursDifference = Math.round((totalRealHours - totalScheduledHours) * 10) / 10;
+    return {
+      totalRows: rows.length,
+      exactMatches,
+      lateArrivals,
+      earlyDepartures,
+      absences,
+      unscheduledPunches,
+      permissionsApproved,
+      totalScheduledHours: Math.round(totalScheduledHours * 10) / 10,
+      totalRealHours: Math.round(totalRealHours * 10) / 10,
+      totalHoursDifference
+    };
+  }, [reconciliationData?.stats, rows, isEmployee, isSupervisor]);
 
   const filteredRows = rows.filter(r => {
     if (statusFilter !== 'ALL') {
@@ -1360,7 +1420,7 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
               <Store className="w-4 h-4" />
               <span>Vista Agrupada por Punto de Venta (PDV)</span>
               <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${viewMode === 'PDV_GROUPED' ? 'bg-blue-800 text-blue-100' : 'bg-slate-200 text-slate-700'}`}>
-                {reconciliationData?.pdvSummaries?.length || 0} PDVs
+                {pdvSummaries.length} PDVs
               </span>
             </button>
           )}
@@ -1582,12 +1642,12 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
         <div className="space-y-4">
           {loading ? (
             <div className="bg-white rounded-2xl p-12 text-center text-slate-400">Cargando conciliación por PDV...</div>
-          ) : (!reconciliationData?.pdvSummaries || reconciliationData.pdvSummaries.length === 0) ? (
+          ) : (!pdvSummaries || pdvSummaries.length === 0) ? (
             <div className="bg-white rounded-2xl p-12 text-center text-slate-400 font-semibold">
               No hay registros cargados. Utilice las opciones de importación o nuevo registro para comenzar.
             </div>
           ) : (
-            reconciliationData.pdvSummaries.map(pdvSummary => {
+            pdvSummaries.map(pdvSummary => {
               const isExpanded = expandedPdvIds[pdvSummary.pdvId] !== false; // default expanded
               const pdvRows = filteredRows.filter(r => r.pdvId === pdvSummary.pdvId);
 

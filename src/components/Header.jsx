@@ -7,8 +7,8 @@ export default function Header({ activeTab, setActiveTab, currentUser, onOpenUse
   const isAdmin = currentUser?.role === 'ADMIN';
   const isHrAdmin = currentUser?.role === 'HR_ADMIN';
   const isAuditorVrx = currentUser?.role === 'AUDITOR_VRX';
-  const isEmployee = currentUser?.role === 'EMPLOYEE';
-  const isPdv = currentUser?.role === 'PDV';
+  const isEmployee = currentUser?.role === 'EMPLOYEE' || currentUser?.role === 'PDV';
+  const isPdv = isEmployee;
   const isMaintenanceApprover = currentUser?.role === 'MAINTENANCE_APPROVER';
   const isSantiago = currentUser?.fullName?.toLowerCase().includes('santiago') || 
                      currentUser?.username?.toLowerCase() === 'santiago' || 
