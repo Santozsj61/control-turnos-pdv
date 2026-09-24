@@ -41,8 +41,10 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
   const [showIntegrityDetails, setShowIntegrityDetails] = useState(false);
   const [integrityFilter, setIntegrityFilter] = useState('ALL'); // 'ALL', 'MISSING_EXIT', 'SHORT_SHIFT'
 
-  // Monthly Reconciliation Dashboard (Cronograma Semanal vs Marcaciones Subidas)
+  // Monthly / Weekly Reconciliation Dashboard (Cronograma Semanal vs Marcaciones Subidas)
   const [selectedMonth, setSelectedMonth] = useState('2026-09');
+  const [dashboardPeriodType, setDashboardPeriodType] = useState('MONTH'); // 'MONTH' | 'WEEK'
+  const [dashboardWeek, setDashboardWeek] = useState(CURRENT_WEEK_START);
   const [monthlyDashboardData, setMonthlyDashboardData] = useState(null);
   const [loadingMonthly, setLoadingMonthly] = useState(false);
   const [reconciliationViewTab, setReconciliationViewTab] = useState('DASHBOARD'); // 'DASHBOARD' | 'DETALLE'
@@ -119,7 +121,12 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
     if (!targetPdvId) return;
     setLoadingMonthly(true);
     try {
-      const data = await api.getMonthlyReconciliationDashboard({ pdvId: targetPdvId, month: selectedMonth });
+      const data = await api.getMonthlyReconciliationDashboard({ 
+        pdvId: targetPdvId, 
+        periodType: dashboardPeriodType,
+        month: selectedMonth,
+        weekStart: dashboardWeek 
+      });
       if (data) {
         setMonthlyDashboardData(data);
       }
@@ -200,7 +207,7 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
 
   useEffect(() => {
     fetchMonthlyDashboard();
-  }, [selectedMonth, selectedPdv, currentUser?.id, currentUser?.pdvId]);
+  }, [selectedMonth, dashboardPeriodType, dashboardWeek, selectedPdv, currentUser?.id, currentUser?.pdvId]);
 
   // Handle file upload (Exclusive for Admin, Talento Humano & Auditor VRX)
   async function handleFileUpload(e) {
@@ -401,35 +408,22 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
         {/* Upload & Export Actions based on Security Role */}
         <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
           {(isAdmin || isHrAdmin) ? (
-            <>
-              {/* Direct Sample Generator (Matches user's image) */}
-              <button
-                onClick={handleLoadSampleData}
+            /* File Upload Input */
+            <label className="flex-1 lg:flex-none flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2.5 rounded-xl cursor-pointer transition shadow-xs" title="Cargar archivo Excel con las marcaciones semanales">
+              <Upload className="w-4 h-4 text-amber-400" />
+              <span>{uploading ? 'Procesando...' : 'Subir Archivo Excel'}</span>
+              <input
+                type="file"
+                accept=".xlsx,.xls,.csv"
                 disabled={uploading}
-                className="flex-1 lg:flex-none flex items-center justify-center gap-2 bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-600 hover:to-indigo-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-md"
-                title="Carga directa de los 8 registros exactos del Excel adjunto"
-              >
-                <Sparkles className="w-4 h-4 text-amber-300" />
-                <span>Cargar Marcaciones de la Imagen</span>
-              </button>
-
-              {/* File Upload Input */}
-              <label className="flex-1 lg:flex-none flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2.5 rounded-xl cursor-pointer transition shadow-xs" title="Cargar archivo Excel con las marcaciones semanales">
-                <Upload className="w-4 h-4 text-amber-400" />
-                <span>{uploading ? 'Procesando...' : 'Subir Archivo Excel'}</span>
-                <input
-                  type="file"
-                  accept=".xlsx,.xls,.csv"
-                  disabled={uploading}
-                  onChange={handleFileUpload}
-                  className="hidden"
-                />
-              </label>
-            </>
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+            </label>
           ) : isSupervisor ? (
             <div className="bg-amber-50 border border-amber-300 text-amber-900 px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2">
               <span>👔 Vista de Zona:</span>
-              <span className="font-extrabold">{currentSupervisorObj?.name}</span>
+              <span className="font-extrabold">{currentSupervisorObj?.zoneName || currentSupervisorObj?.name}</span>
             </div>
           ) : (
             <div className="bg-blue-50 border border-blue-300 text-blue-900 px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2">
@@ -437,21 +431,6 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
               <span className="font-extrabold">{allowedPdvs[0]?.name}</span>
             </div>
           )}
-
-          {/* Botón de Justificación de Tiempos Suplementarios para PDV / Jefatura */}
-          <button
-            onClick={() => { setShowJustifyModal(true); setJustificationMsg(null); }}
-            className="flex items-center justify-center gap-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white text-xs font-extrabold px-4 py-2.5 rounded-xl transition shadow-md cursor-pointer"
-            title="Justificar formalmente el incremento de tiempos suplementarios del PDV y remitir a Jefatura de Zona"
-          >
-            <FileSpreadsheet className="w-4 h-4 text-amber-200" />
-            <span>Justificar Tiempos Suplementarios del PDV</span>
-            {existingJustifications.length > 0 && (
-              <span className="bg-black/20 text-white text-[10px] px-2 py-0.5 rounded-full font-black">
-                {existingJustifications.length}
-              </span>
-            )}
-          </button>
 
           {/* Export to Excel (Exclusive for Admin / HR / Auditor VRX, hidden for Supervisor and PDV) */}
           {(isAdmin || isHrAdmin || isAuditorVrx) && !isSupervisor && !isEmployee && (
@@ -499,25 +478,65 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
               Cronograma Semanal vs. Marcaciones Biométricas Subidas
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
-              Comparación mensual de Horas Extras, Recargo Nocturno, Dominicales y Festivos para <strong>{monthlyDashboardData?.pdv?.name || 'Punto de Venta'}</strong> ({monthlyDashboardData?.monthLabel || selectedMonth}).
+              Comparación de Horas Extras, Recargo Nocturno, Dominicales y Festivos para <strong>{monthlyDashboardData?.pdv?.name || 'Punto de Venta'}</strong> ({dashboardPeriodType === 'WEEK' ? `Semana ${dashboardWeek}` : `Mes ${selectedMonth}`}).
             </p>
           </div>
 
           <div className="flex items-center gap-2.5 flex-wrap">
-            {/* Month Selector */}
-            <div className="flex items-center gap-1.5 bg-slate-50 p-1.5 rounded-xl border border-slate-200">
-              <Calendar className="w-4 h-4 text-slate-500 ml-1" />
-              <select
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value)}
-                className="bg-transparent text-xs font-bold text-slate-800 focus:outline-hidden pr-2 cursor-pointer"
+            {/* Period Type Toggle: MONTH vs WEEK */}
+            <div className="flex items-center bg-slate-100 p-1 rounded-xl text-xs font-bold border border-slate-200">
+              <button
+                type="button"
+                onClick={() => setDashboardPeriodType('MONTH')}
+                className={`px-3 py-1 rounded-lg transition cursor-pointer ${
+                  dashboardPeriodType === 'MONTH' ? 'bg-white text-purple-700 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
+                }`}
               >
-                <option value="2026-09">Septiembre 2026 (Actual)</option>
-                <option value="2026-08">Agosto 2026 (Anterior)</option>
-                <option value="2026-07">Julio 2026</option>
-                <option value="2026-10">Octubre 2026</option>
-              </select>
+                Por Mes
+              </button>
+              <button
+                type="button"
+                onClick={() => setDashboardPeriodType('WEEK')}
+                className={`px-3 py-1 rounded-lg transition cursor-pointer ${
+                  dashboardPeriodType === 'WEEK' ? 'bg-white text-blue-700 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                Por Semana
+              </button>
             </div>
+
+            {/* Week Selector (if WEEK) */}
+            {dashboardPeriodType === 'WEEK' ? (
+              <div className="flex items-center gap-1.5 bg-blue-50 border border-blue-200 p-1.5 rounded-xl">
+                <Calendar className="w-4 h-4 text-blue-600 ml-1" />
+                <select
+                  value={dashboardWeek}
+                  onChange={(e) => setDashboardWeek(e.target.value)}
+                  className="bg-transparent text-xs font-bold text-blue-900 focus:outline-hidden pr-2 cursor-pointer"
+                >
+                  {ALL_WEEKS_2026.map(w => (
+                    <option key={w.weekStart} value={w.weekStart}>
+                      {w.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              /* Month Selector (if MONTH) */
+              <div className="flex items-center gap-1.5 bg-purple-50 border border-purple-200 p-1.5 rounded-xl">
+                <Calendar className="w-4 h-4 text-purple-600 ml-1" />
+                <select
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(e.target.value)}
+                  className="bg-transparent text-xs font-bold text-purple-900 focus:outline-hidden pr-2 cursor-pointer"
+                >
+                  <option value="2026-09">Septiembre 2026 (Actual)</option>
+                  <option value="2026-08">Agosto 2026 (Anterior)</option>
+                  <option value="2026-07">Julio 2026</option>
+                  <option value="2026-10">Octubre 2026</option>
+                </select>
+              </div>
+            )}
 
             {/* PDV Selector for Admins / Supervisors */}
             {(!isEmployee && allowedPdvs.length > 1) && (

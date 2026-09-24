@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   BarChart3,
   TrendingUp,
@@ -23,7 +23,10 @@ import {
   Minus,
   Sparkles,
   Layers,
-  FileSpreadsheet
+  FileSpreadsheet,
+  FileText,
+  Tag,
+  CheckSquare
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -41,6 +44,7 @@ import {
   Area
 } from 'recharts';
 import * as XLSX from 'xlsx';
+import { ALL_WEEKS_2026 } from '../utils/weeks.js';
 import { api } from '../services/api.js';
 
 export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
@@ -53,26 +57,44 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
     s => s.name === currentUser?.fullName || currentUser?.id?.includes(s.id)
   );
 
+  const [periodType, setPeriodType] = useState('MONTH'); // 'MONTH' | 'WEEK'
   const [selectedMonth, setSelectedMonth] = useState('2026-09');
+  const [selectedWeek, setSelectedWeek] = useState('2026-09-21');
   const [selectedZone, setSelectedZone] = useState(
     isSupervisor ? (currentSupervisorObj?.id || '') : ''
   );
   const [selectedPdv, setSelectedPdv] = useState('');
-  const [activeView, setActiveView] = useState('MOM_OVERVIEW'); // 'MOM_OVERVIEW', 'SPECIAL_HOURS', 'ZONES', 'ALERTS'
+  const [activeView, setActiveView] = useState('MOM_OVERVIEW'); // 'MOM_OVERVIEW', 'SPECIAL_HOURS', 'ZONES', 'ALERTS', 'MODIFICATIONS'
   const [analyticsData, setAnalyticsData] = useState(null);
+  const [permissions, setPermissions] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  const availablePdvs = useMemo(() => {
+    const activeSupId = isSupervisor ? (currentSupervisorObj?.id || '') : selectedZone;
+    if (activeSupId) {
+      return pdvs.filter(p => p.supervisorId === activeSupId);
+    }
+    return pdvs;
+  }, [pdvs, isSupervisor, currentSupervisorObj, selectedZone]);
 
   async function fetchAnalytics() {
     setLoading(true);
     try {
-      const data = await api.getDashboardAnalytics({
-        month: selectedMonth,
-        supervisorId: isSupervisor ? (currentSupervisorObj?.id || '') : selectedZone,
-        pdvId: selectedPdv
-      });
+      const activeSupId = isSupervisor ? (currentSupervisorObj?.id || '') : selectedZone;
+      const [data, perms] = await Promise.all([
+        api.getDashboardAnalytics({
+          month: selectedMonth,
+          weekStart: selectedWeek,
+          periodType: periodType,
+          supervisorId: activeSupId,
+          pdvId: selectedPdv
+        }).catch(() => null),
+        api.getPermissions(activeSupId ? { supervisorId: activeSupId } : {}).catch(() => [])
+      ]);
       if (data) {
         setAnalyticsData(data);
       }
+      setPermissions(Array.isArray(perms) ? perms : []);
     } catch (err) {
       console.error('Error fetching analytics from Supabase:', err);
     } finally {
@@ -82,7 +104,87 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
 
   useEffect(() => {
     fetchAnalytics();
-  }, [selectedMonth, selectedZone, selectedPdv, currentUser?.id]);
+  }, [selectedMonth, selectedWeek, periodType, selectedZone, selectedPdv, currentUser?.id]);
+
+  // Statistics for Schedule Modifications and Most Repeated Motives
+  const modificationStats = useMemo(() => {
+    let filteredPerms = permissions;
+    if (periodType === 'WEEK' && selectedWeek) {
+      const d = new Date(selectedWeek + 'T12:00:00Z');
+      const dEnd = new Date(d);
+      dEnd.setDate(dEnd.getDate() + 6);
+      const startStr = selectedWeek;
+      const endStr = dEnd.toISOString().split('T')[0];
+      filteredPerms = permissions.filter(p => p.date >= startStr && p.date <= endStr);
+    } else if (periodType === 'MONTH' && selectedMonth) {
+      filteredPerms = permissions.filter(p => p.date && p.date.startsWith(selectedMonth));
+    }
+
+    if (selectedPdv) {
+      filteredPerms = filteredPerms.filter(p => p.pdvId === selectedPdv);
+    }
+
+    // 1. Ranking de PDVs con más solicitudes
+    const pdvMap = {};
+    filteredPerms.forEach(p => {
+      const pId = p.pdvId || 'desconocido';
+      const pdvObj = pdvs.find(item => item.id === pId || item.code === pId);
+      const name = pdvObj ? `${pdvObj.code} - ${pdvObj.name}` : (p.pdvName || pId);
+      if (!pdvMap[pId]) {
+        pdvMap[pId] = {
+          pdvId: pId,
+          pdvName: name,
+          city: pdvObj?.city || 'Colombia',
+          count: 0,
+          pending: 0,
+          approved: 0,
+          rejected: 0
+        };
+      }
+      pdvMap[pId].count += 1;
+      if (p.status === 'PENDING') pdvMap[pId].pending += 1;
+      if (p.status === 'APPROVED') pdvMap[pId].approved += 1;
+      if (p.status === 'REJECTED') pdvMap[pId].rejected += 1;
+    });
+
+    const topPdvsModifications = Object.values(pdvMap).sort((a, b) => b.count - a.count);
+
+    // 2. Ranking de Motivos más repetidos (8 áreas)
+    const motiveMap = {};
+    const ALL_CATEGORIES = [
+      'Mantenimiento y Obras',
+      'Capacitación y Reuniones',
+      'Incapacidad o Licencia',
+      'Auditoría e Inventario',
+      'Líder de Zona',
+      'Evento Comercial',
+      'Tiempo Adicional Autorizado',
+      'Recepción Logística'
+    ];
+    ALL_CATEGORIES.forEach(cat => {
+      motiveMap[cat] = 0;
+    });
+
+    filteredPerms.forEach(p => {
+      const cat = p.assignedArea || p.reasonCategory || 'Líder de Zona';
+      motiveMap[cat] = (motiveMap[cat] || 0) + 1;
+    });
+
+    const totalRequests = filteredPerms.length || 1;
+    const topMotives = Object.entries(motiveMap)
+      .map(([motive, count]) => ({
+        motive,
+        count,
+        pct: Math.round((count / totalRequests) * 100)
+      }))
+      .sort((a, b) => b.count - a.count);
+
+    return {
+      totalRequests: filteredPerms.length,
+      topPdvsModifications,
+      topMotives
+    };
+  }, [permissions, periodType, selectedWeek, selectedMonth, selectedPdv, pdvs]);
 
   const momMetrics = analyticsData?.momMetrics || {
     overtime: { current: 0, previous: 0, diff: 0, pctChange: 0, trend: 'EQUAL' },
@@ -187,19 +289,59 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
-            {/* Month Filter */}
-            <div className="flex items-center gap-2 bg-slate-800/90 p-2 rounded-xl border border-slate-700">
-              <Calendar className="w-4 h-4 text-purple-400 ml-1 shrink-0" />
-              <label className="text-xs text-slate-300 font-semibold shrink-0">Mes:</label>
-              <select
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value)}
-                className="bg-slate-900 border border-slate-600 text-white text-xs font-bold rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-purple-500"
+            {/* Period Type Toggle */}
+            <div className="flex bg-slate-800 p-1 rounded-xl border border-slate-700">
+              <button
+                type="button"
+                onClick={() => setPeriodType('MONTH')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                  periodType === 'MONTH' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-400 hover:text-white'
+                }`}
               >
-                <option value="2026-09">Septiembre 2026 (Actual)</option>
-                <option value="2026-08">Agosto 2026 (Anterior)</option>
-              </select>
+                Por Mes
+              </button>
+              <button
+                type="button"
+                onClick={() => setPeriodType('WEEK')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                  periodType === 'WEEK' ? 'bg-purple-600 text-white shadow-xs' : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                Por Semana
+              </button>
             </div>
+
+            {/* Conditional Month or Week Filter */}
+            {periodType === 'MONTH' ? (
+              <div className="flex items-center gap-2 bg-slate-800/90 p-2 rounded-xl border border-slate-700">
+                <Calendar className="w-4 h-4 text-purple-400 ml-1 shrink-0" />
+                <label className="text-xs text-slate-300 font-semibold shrink-0">Mes:</label>
+                <select
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(e.target.value)}
+                  className="bg-slate-900 border border-slate-600 text-white text-xs font-bold rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="2026-09">Septiembre 2026 (Actual)</option>
+                  <option value="2026-08">Agosto 2026 (Anterior)</option>
+                </select>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 bg-slate-800/90 p-2 rounded-xl border border-slate-700">
+                <Calendar className="w-4 h-4 text-purple-400 ml-1 shrink-0" />
+                <label className="text-xs text-slate-300 font-semibold shrink-0">Semana:</label>
+                <select
+                  value={selectedWeek}
+                  onChange={(e) => setSelectedWeek(e.target.value)}
+                  className="bg-slate-900 border border-slate-600 text-white text-xs font-bold rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-purple-500 max-w-56"
+                >
+                  {ALL_WEEKS_2026.map(w => (
+                    <option key={w.start} value={w.start}>
+                      Semana #{w.weekNum} ({w.start} al {w.end})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             {/* Zone Filter (Admin/HR only) */}
             {(isAdmin || isHrAdmin || isAuditorVrx) && (
@@ -217,6 +359,21 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
                 </select>
               </div>
             )}
+
+            {/* PDV Filter */}
+            <div className="flex items-center gap-2 bg-slate-800/90 p-2 rounded-xl border border-slate-700">
+              <Store className="w-4 h-4 text-emerald-400 ml-1 shrink-0" />
+              <select
+                value={selectedPdv}
+                onChange={(e) => setSelectedPdv(e.target.value)}
+                className="bg-slate-900 border border-slate-600 text-white text-xs font-bold rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-emerald-500 max-w-44"
+              >
+                <option value="">Todos los PDVs</option>
+                {availablePdvs.map(p => (
+                  <option key={p.id} value={p.id}>{p.code} - {p.name}</option>
+                ))}
+              </select>
+            </div>
 
             <button
               onClick={exportAnalyticsReport}
@@ -406,6 +563,18 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
               {operationalAlerts.length}
             </span>
           )}
+        </button>
+
+        <button
+          onClick={() => setActiveView('MODIFICATIONS')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl transition ${
+            activeView === 'MODIFICATIONS'
+              ? 'bg-purple-600 text-white shadow-xs'
+              : 'text-slate-600 hover:bg-slate-100'
+          }`}
+        >
+          <FileText className="w-4 h-4" />
+          <span>Solicitudes de Modificación & Causas ({modificationStats.totalRequests})</span>
         </button>
       </div>
 
@@ -659,6 +828,166 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
                 <p className="text-xs text-emerald-700 mt-1">No se detectaron excesos de 42 horas ni sobrecupo dominical en el período evaluado.</p>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* 8. TAB CONTENT: MODIFICATION REQUESTS & REASONS RANKING */}
+      {activeView === 'MODIFICATIONS' && (
+        <div className="space-y-6">
+          {/* Header Card */}
+          <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div>
+              <h3 className="font-black text-sm text-slate-900 flex items-center gap-2">
+                <FileText className="w-4 h-4 text-purple-600" />
+                <span>Control de Novedades: Puntos de Venta con Mayor Demanda de Modificaciones y Ranking de Causas</span>
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Identificación de tiendas críticas por volumen de cambios de horario y análisis de causas raíz en las 8 áreas operativas.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="bg-purple-50 border border-purple-200 rounded-xl px-3.5 py-2 text-center">
+                <div className="text-[10px] uppercase font-bold text-purple-600">Total Solicitudes</div>
+                <div className="text-lg font-black text-purple-950">{modificationStats.totalRequests}</div>
+              </div>
+              <div className="bg-blue-50 border border-blue-200 rounded-xl px-3.5 py-2 text-center">
+                <div className="text-[10px] uppercase font-bold text-blue-600">PDVs con Solicitudes</div>
+                <div className="text-lg font-black text-blue-950">{modificationStats.topPdvsModifications.length}</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Left: Ranking de PDVs con más solicitudes */}
+            <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-extrabold text-sm text-slate-900 flex items-center gap-2">
+                    <Store className="w-4 h-4 text-purple-600" />
+                    <span>PDVs con Mayor Volumen de Modificaciones</span>
+                  </h4>
+                  <p className="text-xs text-slate-400 mt-0.5">Tiendas ordenadas por mayor número de solicitudes radicadas</p>
+                </div>
+                <span className="text-[11px] font-bold text-slate-500">
+                  {modificationStats.topPdvsModifications.length} PDVs
+                </span>
+              </div>
+
+              {modificationStats.topPdvsModifications.length === 0 ? (
+                <div className="p-8 text-center text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                  <CheckCircle2 className="w-8 h-8 mx-auto text-emerald-500 mb-2 opacity-60" />
+                  <div className="font-bold text-xs text-slate-600">Sin Solicitudes de Modificación</div>
+                  <p className="text-[11px] text-slate-400 mt-0.5">No se registran solicitudes de cambio de horario en el período seleccionado.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {modificationStats.topPdvsModifications.map((item, idx) => {
+                    const maxCount = modificationStats.topPdvsModifications[0]?.count || 1;
+                    const pct = Math.round((item.count / maxCount) * 100);
+                    return (
+                      <div key={item.pdvId} className="p-3 bg-slate-50/70 hover:bg-purple-50/50 rounded-xl border border-slate-200/80 transition space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black ${
+                              idx === 0 ? 'bg-amber-400 text-slate-950 shadow-xs' :
+                              idx === 1 ? 'bg-slate-300 text-slate-800' :
+                              idx === 2 ? 'bg-amber-700/20 text-amber-900 font-bold' :
+                              'bg-slate-100 text-slate-500'
+                            }`}>
+                              #{idx + 1}
+                            </span>
+                            <div>
+                              <div className="font-bold text-xs text-slate-900">{item.pdvName}</div>
+                              <div className="text-[10px] text-slate-400">{item.city}</div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-black text-purple-900 bg-purple-100 px-2.5 py-0.5 rounded-full">
+                              {item.count} {item.count === 1 ? 'solicitud' : 'solicitudes'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Progress Bar & Sub-counts */}
+                        <div className="space-y-1">
+                          <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                            <div
+                              className="bg-purple-600 h-full rounded-full transition-all duration-300"
+                              style={{ width: `${pct}%` }}
+                            ></div>
+                          </div>
+                          <div className="flex items-center justify-between text-[10px] text-slate-500">
+                            <span className="text-emerald-600 font-semibold">{item.approved} Aprobadas</span>
+                            <span className="text-amber-600 font-semibold">{item.pending} Pendientes</span>
+                            <span className="text-rose-600 font-semibold">{item.rejected} Rechazadas</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Right: Ranking de Motivos más repetidos */}
+            <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-extrabold text-sm text-slate-900 flex items-center gap-2">
+                    <Tag className="w-4 h-4 text-purple-600" />
+                    <span>Ranking de Motivos Más Repetidos (8 Áreas)</span>
+                  </h4>
+                  <p className="text-xs text-slate-400 mt-0.5">Distribución porcentual por tipología y causal de cambio</p>
+                </div>
+                <span className="text-[11px] font-bold text-slate-500">
+                  8 Tipologías
+                </span>
+              </div>
+
+              <div className="space-y-3">
+                {modificationStats.topMotives.map((item, idx) => {
+                  const colors = [
+                    { bar: 'bg-purple-600', badge: 'bg-purple-100 text-purple-800' },
+                    { bar: 'bg-blue-600', badge: 'bg-blue-100 text-blue-800' },
+                    { bar: 'bg-emerald-600', badge: 'bg-emerald-100 text-emerald-800' },
+                    { bar: 'bg-amber-500', badge: 'bg-amber-100 text-amber-800' },
+                    { bar: 'bg-rose-500', badge: 'bg-rose-100 text-rose-800' },
+                    { bar: 'bg-indigo-500', badge: 'bg-indigo-100 text-indigo-800' },
+                    { bar: 'bg-cyan-500', badge: 'bg-cyan-100 text-cyan-800' },
+                    { bar: 'bg-teal-500', badge: 'bg-teal-100 text-teal-800' }
+                  ];
+                  const c = colors[idx % colors.length];
+
+                  return (
+                    <div key={item.motive} className="p-3 bg-slate-50/70 rounded-xl border border-slate-200/80 space-y-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-2">
+                          <span className="w-5 h-5 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-[10px] font-black">
+                            #{idx + 1}
+                          </span>
+                          <span className="font-bold text-slate-800">{item.motive}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${c.badge}`}>
+                            {item.count} ({item.pct}%)
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-300 ${c.bar}`}
+                          style={{ width: `${Math.max(item.pct, item.count > 0 ? 5 : 0)}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
       )}

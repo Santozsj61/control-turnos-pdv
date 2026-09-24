@@ -8,6 +8,7 @@ export default function Header({ activeTab, setActiveTab, currentUser, onOpenUse
   const isHrAdmin = currentUser?.role === 'HR_ADMIN';
   const isAuditorVrx = currentUser?.role === 'AUDITOR_VRX';
   const isEmployee = currentUser?.role === 'EMPLOYEE';
+  const isPdv = currentUser?.role === 'PDV';
   const isMaintenanceApprover = currentUser?.role === 'MAINTENANCE_APPROVER';
   const isSantiago = currentUser?.fullName?.toLowerCase().includes('santiago') || 
                      currentUser?.username?.toLowerCase() === 'santiago' || 
@@ -25,10 +26,11 @@ export default function Header({ activeTab, setActiveTab, currentUser, onOpenUse
       show: !isHrAdmin 
     },
     { id: 'reconciliation', label: 'Conciliación de Marcaciones', icon: BarChart3, show: !isMaintenanceApprover },
+    { id: 'weekly_justification', label: 'Justificación Semanal', icon: FileText, show: !isMaintenanceApprover },
     { id: 'habitual_schedules', label: 'Horarios Habituales & Auditoría', icon: Clock, show: isAuditorVrx || isAdmin },
     { id: 'analytics', label: isAdmin || isHrAdmin || isAuditorVrx ? 'Dashboard Analítica Nacional' : 'Analítica & Alertas Zona', icon: TrendingUp, show: isAdmin || isHrAdmin || isAuditorVrx || isSupervisor },
-    { id: 'tracking', label: isEmployee ? 'Mi Expediente & Historial' : 'Seguimiento & Hoja de Vida', icon: FileText, show: !isMaintenanceApprover && !isSupervisor && !isHrAdmin && !isEmployee },
-    { id: 'pdvs', label: isEmployee ? 'Mi Punto de Venta' : 'Directorio PDVs & Zonas', icon: Store, show: !isSupervisor && !isEmployee },
+    { id: 'tracking', label: isEmployee ? 'Mi Expediente & Historial' : 'Seguimiento & Hoja de Vida', icon: FileText, show: !isPdv && !isSupervisor && !isHrAdmin && !isEmployee && (isAdmin || isAuditorVrx) },
+    { id: 'pdvs', label: isEmployee ? 'Mi Punto de Venta' : 'Directorio PDVs & Zonas', icon: Store, show: !isPdv && !isSupervisor && !isEmployee && (isAdmin || isHrAdmin || isAuditorVrx) },
     { id: 'network_monitor', label: '📡 Monitor de Red & Nube', icon: Activity, show: canAccessNetwork },
     { id: 'config', label: 'Reglas y Parámetros', icon: Settings, show: isAdmin || isHrAdmin || isAuditorVrx }
   ];

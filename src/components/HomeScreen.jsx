@@ -19,6 +19,7 @@ export default function HomeScreen({ users, pdvs, supervisors, currentUser, onSe
   const [loginUsername, setLoginUsername] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [selectedPdvId, setSelectedPdvId] = useState(effectivePdvs[0]?.id || 'pdv-1');
+  const [selectedSupervisorId, setSelectedSupervisorId] = useState(effectiveSupervisors[0]?.id || 'sup-antioquia-1');
   const [pdvSearch, setPdvSearch] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -103,7 +104,9 @@ export default function HomeScreen({ users, pdvs, supervisors, currentUser, onSe
         setLoginUsername('');
       }
     } else if (profile.id === 'ZONA') {
-      setLoginUsername('Zona');
+      const defaultSup = effectiveSupervisors[0] || { id: 'sup-antioquia-1', name: 'Líder Antioquia 1', zoneName: 'ZONA ANTIOQUIA' };
+      setSelectedSupervisorId(defaultSup.id);
+      setLoginUsername(defaultSup.name);
     } else if (profile.id === 'HR') {
       setLoginUsername('THumano');
     } else if (profile.id === 'VRX') {
@@ -157,6 +160,10 @@ export default function HomeScreen({ users, pdvs, supervisors, currentUser, onSe
 
       if (activeModalProfile.id === 'PDV') {
         payload.pdvId = selectedPdvId;
+      } else if (activeModalProfile.id === 'ZONA') {
+        payload.supervisorId = selectedSupervisorId;
+        const matchedSup = effectiveSupervisors.find(s => s.id === selectedSupervisorId) || effectiveSupervisors[0];
+        if (matchedSup) payload.username = matchedSup.name;
       }
 
       const user = await api.login(payload);
@@ -171,9 +178,18 @@ export default function HomeScreen({ users, pdvs, supervisors, currentUser, onSe
       // Fallback local matching
       const cleanP = loginPassword.trim();
 
-      if (activeModalProfile.id === 'ZONA' && (cleanP === '200101' || cleanP === '888')) {
-        const defaultSup = effectiveSupervisors[0] || { id: 'zone-1', name: 'Alexander Lopez', zoneName: 'ZONA VALLE CENTRO & TULUÁ' };
-        onSelectUser({ id: `user-${defaultSup.id}`, username: 'Zona', fullName: defaultSup.name, role: 'SUPERVISOR', supervisorId: defaultSup.id });
+      if (activeModalProfile.id === 'ZONA' && (cleanP === '200101' || cleanP === '888' || cleanP === 'admin')) {
+        const chosenSup = effectiveSupervisors.find(s => s.id === selectedSupervisorId) || effectiveSupervisors[0];
+        onSelectUser({
+          id: `user-${chosenSup.id}`,
+          username: chosenSup.code || chosenSup.name,
+          fullName: chosenSup.name,
+          zoneName: chosenSup.zoneName || chosenSup.name,
+          role: 'SUPERVISOR',
+          supervisorId: chosenSup.id,
+          position: `LÍDER DE ZONA - ${chosenSup.zoneName || chosenSup.name}`,
+          area: 'OPERACIONES COMERCIALES'
+        });
         handleCloseModal();
       } else if (activeModalProfile.id === 'HR' && (cleanP === '888123' || cleanP === '200102' || cleanP === '888')) {
         onSelectUser({ id: 'user-thumano', username: 'THumano', fullName: 'TALENTO HUMANO (HR)', role: 'HR_ADMIN' });
@@ -457,20 +473,21 @@ export default function HomeScreen({ users, pdvs, supervisors, currentUser, onSe
               {activeModalProfile.id === 'ZONA' && (
                 <div className="space-y-1.5">
                   <label className="block font-bold text-slate-300">
-                    Zona Regional / Líder de Zona
+                    Selecciona tu Zona Regional / Líder de Zona *
                   </label>
                   <select
+                    value={selectedSupervisorId}
                     onChange={(e) => {
                       const supId = e.target.value;
-                      if (!supId) return;
+                      setSelectedSupervisorId(supId);
                       const matched = effectiveSupervisors.find(s => s.id === supId);
                       if (matched) {
                         setLoginUsername(matched.name || matched.zoneName);
                       }
+                      setErrorMsg(null);
                     }}
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white font-bold focus:ring-2 focus:ring-amber-500 focus:outline-hidden cursor-pointer"
                   >
-                    <option value="">-- Seleccionar Zona / Líder Regional (15 Zonas) --</option>
                     {effectiveSupervisors.map(sup => (
                       <option key={sup.id} value={sup.id}>
                         {sup.zoneName} — {sup.name}

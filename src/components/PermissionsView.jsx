@@ -17,8 +17,21 @@ export default function PermissionsView({ currentUser, pdvs, supervisors, onRefr
   const isSupervisor = currentUser.role === 'SUPERVISOR';
   const isAdmin = currentUser.role === 'ADMIN';
   const isEmployee = currentUser.role === 'EMPLOYEE';
+  const isPdv = currentUser.role === 'PDV' || isEmployee;
   const isMaintenanceApprover = currentUser.role === 'MAINTENANCE_APPROVER';
   const canApprove = isSupervisor || isAdmin || isMaintenanceApprover;
+
+  const currentSupervisorObj = supervisors.find(s => 
+    s.name === currentUser.fullName || 
+    currentUser.id?.includes(s.id) || 
+    s.id === currentUser.supervisorId
+  );
+
+  const allowedPdvs = (isAdmin || isMaintenanceApprover)
+    ? pdvs
+    : isSupervisor
+    ? pdvs.filter(p => p.supervisorId === currentSupervisorObj?.id || p.supervisorId === currentUser.supervisorId)
+    : pdvs.filter(p => p.id === currentUser.pdvId || p.code === currentUser.pdvId);
 
   const [permissions, setPermissions] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -31,9 +44,9 @@ export default function PermissionsView({ currentUser, pdvs, supervisors, onRefr
 
   // Form fields for employee request
   const [assignedArea, setAssignedArea] = useState('Líder de Zona');
-  const [requestDate, setRequestDate] = useState('2026-09-02');
-  const [reqStartTime, setReqStartTime] = useState('13:58');
-  const [reqEndTime, setReqEndTime] = useState('20:28');
+  const [requestDate, setRequestDate] = useState('2026-09-24');
+  const [reqStartTime, setReqStartTime] = useState('10:00');
+  const [reqEndTime, setReqEndTime] = useState('20:30');
   const [isDayOffChange, setIsDayOffChange] = useState(false);
   const [reason, setReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -44,7 +57,7 @@ export default function PermissionsView({ currentUser, pdvs, supervisors, onRefr
   const [supervisorNotes, setSupervisorNotes] = useState('');
   const [reviewing, setReviewing] = useState(false);
 
-  const userPdv = pdvs.find(p => p.id === currentUser.pdvId);
+  const userPdv = pdvs.find(p => p.id === currentUser.pdvId || p.code === currentUser.pdvId);
   const mySupervisor = supervisors.find(s => s.id === currentUser.supervisorId || s.id === userPdv?.supervisorId);
 
   // Load collaborators for this PDV (or all employees if admin/supervisor)
@@ -69,18 +82,22 @@ export default function PermissionsView({ currentUser, pdvs, supervisors, onRefr
     setLoading(true);
     try {
       const filters = {};
-      if (isEmployee && currentUser.pdvId) {
+      if (isPdv && currentUser.pdvId) {
         filters.pdvId = currentUser.pdvId;
-      } else if (isEmployee) {
-        filters.userId = currentUser.id;
       } else if (isSupervisor) {
-        const supRecord = supervisors.find(s => s.name === currentUser.fullName || currentUser.id?.includes(s.id));
-        if (supRecord) filters.supervisorId = supRecord.id;
+        if (currentSupervisorObj?.id) filters.supervisorId = currentSupervisorObj.id;
       } else if (isMaintenanceApprover) {
         filters.recipientRole = 'MAINTENANCE_APPROVER';
       }
-      const data = await api.getPermissions(filters).catch(() => []);
-      setPermissions(Array.isArray(data) ? data : []);
+      let data = await api.getPermissions(filters).catch(() => []);
+      if (Array.isArray(data)) {
+        if (isSupervisor && allowedPdvs.length > 0) {
+          data = data.filter(p => allowedPdvs.some(ap => ap.id === p.pdvId || ap.code === p.pdvId || p.supervisorId === currentSupervisorObj?.id));
+        }
+        setPermissions(data);
+      } else {
+        setPermissions([]);
+      }
     } catch (err) {
       console.error('Error fetching permissions from Supabase:', err);
     } finally {
@@ -183,22 +200,22 @@ export default function PermissionsView({ currentUser, pdvs, supervisors, onRefr
             )}
           </div>
           <h2 className="text-xl font-extrabold text-slate-900 mt-1">
-            {isSupervisor ? `Solicitudes de mi Equipo (${currentUser.fullName})` : 'Solicitud de Cambio de Horario / Permiso'}
+            {isSupervisor ? `Solicitudes de Zona: ${currentUser.zoneName || 'Zona Asignada'}` : 'Solicitud de Cambio de Horario / Permiso'}
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
             {isSupervisor
-              ? 'Revisa y autoriza o rechaza los cambios de horario solicitados por los colaboradores de tus PDVs.'
+              ? 'Revisa y autoriza o rechaza los cambios de horario solicitados por los colaboradores de tus PDVs asignados.'
               : `Todo cambio durante el día debe ser previamente autorizado por tu jefe inmediato (${mySupervisor?.name || 'Asignado'}).`}
           </p>
         </div>
 
-        {isEmployee && (
+        {(isPdv || !isSupervisor) && (
           <button
             onClick={() => setShowModal(true)}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-md"
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-md cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            <span>Crear Solicitud de Permiso</span>
+            <span>Solicitar Permiso / Modificación</span>
           </button>
         )}
       </div>

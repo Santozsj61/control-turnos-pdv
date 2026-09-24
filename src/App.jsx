@@ -12,6 +12,7 @@ import PdvDirectoryView from './components/PdvDirectoryView.jsx';
 import ConfigView from './components/ConfigView.jsx';
 import HabitualSchedulesAuditView from './components/HabitualSchedulesAuditView.jsx';
 import NetworkMonitorView from './components/NetworkMonitorView.jsx';
+import WeeklyJustificationView from './components/WeeklyJustificationView.jsx';
 
 import { api } from './services/api.js';
 import { initialSupervisors, initialPDVs, initialUsers } from './data/seedData.js';
@@ -210,6 +211,14 @@ export default function App() {
 
         {activeTab === 'reconciliation' && (
           <ReconciliationView
+            currentUser={currentUser}
+            pdvs={pdvs}
+            supervisors={supervisors}
+          />
+        )}
+
+        {activeTab === 'weekly_justification' && (
+          <WeeklyJustificationView
             currentUser={currentUser}
             pdvs={pdvs}
             supervisors={supervisors}

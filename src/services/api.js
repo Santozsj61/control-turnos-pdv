@@ -265,7 +265,7 @@ export const api = {
       };
     }
 
-    // 2. Líder de Zona (200101 / admin)
+    // 2. Líder de Zona (200101 / 888 / admin)
     if (supervisorId) {
       let sup = null;
       if (isSupabaseConfigured) {
@@ -277,11 +277,12 @@ export const api = {
       if (!sup) {
         sup = initialSupervisors.find(s => s.id === supervisorId || s.name === supervisorId);
       }
-      if (cleanPass === '200101' || cleanPass === 'admin') {
+      if (cleanPass === '200101' || cleanPass === '888' || cleanPass === 'admin') {
         return {
           id: sup ? `user-${sup.id}` : `user-${supervisorId}`,
-          username: sup ? (sup.name || sup.zoneName) : 'Líder de Zona',
-          fullName: sup ? (sup.name || sup.zoneName) : 'LÍDER DE ZONA',
+          username: sup ? (sup.code || sup.name) : 'Líder de Zona',
+          fullName: sup ? (sup.name || sup.zone_name) : 'LÍDER DE ZONA',
+          zoneName: sup ? (sup.zone_name || sup.zoneName || sup.name) : 'ZONA REGIONAL',
           role: 'SUPERVISOR',
           supervisorId: sup ? sup.id : supervisorId,
           position: 'LÍDER DE ZONA REGIONAL',
@@ -1039,7 +1040,7 @@ export const api = {
     };
   },
 
-  getMonthlyReconciliationDashboard: async ({ pdvId, month = '2026-09' } = {}) => {
+  getMonthlyReconciliationDashboard: async ({ pdvId, periodType = 'MONTH', month = '2026-09', weekStart = '2026-09-21' } = {}) => {
     const [pdvs, schedules, punches, users] = await Promise.all([
       api.getPDVs().catch(() => []),
       api.getSchedules().catch(() => []),
@@ -1047,14 +1048,75 @@ export const api = {
       api.getUsers().catch(() => [])
     ]);
 
-    const pdv = pdvs.find(p => p.id === pdvId || p.code === pdvId) || pdvs[0] || { name: 'Punto de Venta' };
-    const monthSchedules = schedules.filter(s => s.pdvId === pdv.id && s.weekStart && s.weekStart.startsWith(month));
-    const pdvPunches = punches.filter(pu => pu.pdvName === pdv.name && pu.entryDate && pu.entryDate.startsWith(month));
+    const pdv = pdvs.find(p => p.id === pdvId || p.code === pdvId) || pdvs[0] || { id: 'pdv-1', name: 'Punto de Venta' };
+    
+    // Calculate weekEnd if period is WEEK
+    let weekEnd = '';
+    if (weekStart) {
+      const d = new Date(weekStart + 'T12:00:00Z');
+      d.setDate(d.getDate() + 6);
+      weekEnd = d.toISOString().split('T')[0];
+    }
+
+    // Filter schedules
+    const targetSchedules = schedules.filter(s => {
+      const matchPdv = s.pdvId === pdv.id || s.pdvId === pdv.code || (pdv.code && s.pdvName && s.pdvName.includes(pdv.code));
+      if (!matchPdv) return false;
+      if (periodType === 'WEEK') {
+        return s.weekStart === weekStart;
+      }
+      return s.weekStart && s.weekStart.startsWith(month);
+    });
+
+    // Also merge localStorage schedules for this week/month if any
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const localKeys = Object.keys(localStorage).filter(k => k.startsWith('control_turnos_schedules_'));
+        localKeys.forEach(k => {
+          const wStart = k.replace('control_turnos_schedules_', '');
+          const matchesPeriod = periodType === 'WEEK' ? wStart === weekStart : wStart.startsWith(month);
+          if (matchesPeriod) {
+            const raw = localStorage.getItem(k);
+            if (raw) {
+              const parsed = JSON.parse(raw);
+              if (Array.isArray(parsed)) {
+                parsed.forEach(item => {
+                  const itemPdvMatch = item.pdvId === pdv.id || item.pdv?.id === pdv.id || item.employee?.pdvId === pdv.id;
+                  if (itemPdvMatch && !targetSchedules.some(ts => ts.userId === item.userId && ts.weekStart === wStart)) {
+                    targetSchedules.push({
+                      userId: item.userId,
+                      pdvId: pdv.id,
+                      weekStart: wStart,
+                      shifts: item.shifts || [],
+                      totalNetHours: item.shifts ? item.shifts.reduce((acc, sh) => acc + (sh.netHours || 0), 0) : 0,
+                      user: item.employee || {}
+                    });
+                  }
+                });
+              }
+            }
+          }
+        });
+      }
+    } catch (e) {}
+
+    // Filter punches (Talento Humano)
+    const pdvPunches = punches.filter(pu => {
+      const matchPdv = pu.pdvId === pdv.id || 
+                       pu.pdvName === pdv.name || 
+                       (pdv.code && pu.pdvName && pu.pdvName.includes(pdv.code)) ||
+                       (pu.pdvCode && pu.pdvCode === pdv.code);
+      if (!matchPdv) return false;
+      if (periodType === 'WEEK') {
+        return pu.entryDate >= weekStart && pu.entryDate <= weekEnd;
+      }
+      return pu.entryDate && pu.entryDate.startsWith(month);
+    });
 
     const scheduledTotals = { overtime: 0, night: 0, sunday: 0, holiday: 0, totalSpecial: 0 };
     const punchTotals = { overtime: 0, night: 0, sunday: 0, holiday: 0, totalSpecial: 0 };
 
-    monthSchedules.forEach(s => {
+    targetSchedules.forEach(s => {
       if (s.totalNetHours > 42) scheduledTotals.overtime += (s.totalNetHours - 42);
       (s.shifts || []).forEach(sh => {
         if (sh.nightHours) scheduledTotals.night += Number(sh.nightHours);
@@ -1087,17 +1149,17 @@ export const api = {
     };
 
     const chartScheduledData = [
-      { name: 'Horas Extras', val: scheduledTotals.overtime, color: '#3b82f6' },
-      { name: 'Recargo Nocturno', val: scheduledTotals.night, color: '#a855f7' },
-      { name: 'Dominicales', val: scheduledTotals.sunday, color: '#10b981' },
-      { name: 'Festivos', val: scheduledTotals.holiday, color: '#f59e0b' }
+      { name: 'Horas Extras', horas: scheduledTotals.overtime, val: scheduledTotals.overtime, fill: '#3b82f6', color: '#3b82f6' },
+      { name: 'Recargo Nocturno', horas: scheduledTotals.night, val: scheduledTotals.night, fill: '#a855f7', color: '#a855f7' },
+      { name: 'Dominicales', horas: scheduledTotals.sunday, val: scheduledTotals.sunday, fill: '#10b981', color: '#10b981' },
+      { name: 'Festivos', horas: scheduledTotals.holiday, val: scheduledTotals.holiday, fill: '#f59e0b', color: '#f59e0b' }
     ];
 
     const chartPunchesData = [
-      { name: 'Horas Extras', val: punchTotals.overtime, color: '#3b82f6' },
-      { name: 'Recargo Nocturno', val: punchTotals.night, color: '#a855f7' },
-      { name: 'Dominicales', val: punchTotals.sunday, color: '#10b981' },
-      { name: 'Festivos', val: punchTotals.holiday, color: '#f59e0b' }
+      { name: 'Horas Extras', horas: punchTotals.overtime, val: punchTotals.overtime, fill: '#3b82f6', color: '#3b82f6' },
+      { name: 'Recargo Nocturno', horas: punchTotals.night, val: punchTotals.night, fill: '#a855f7', color: '#a855f7' },
+      { name: 'Dominicales', horas: punchTotals.sunday, val: punchTotals.sunday, fill: '#10b981', color: '#10b981' },
+      { name: 'Festivos', horas: punchTotals.holiday, val: punchTotals.holiday, fill: '#f59e0b', color: '#f59e0b' }
     ];
 
     const chartComparisonData = [
@@ -1249,7 +1311,7 @@ export const api = {
   // ----------------------------------------------------
   // 10. Dashboard Analytics (Cálculo Nacional & Zonal en Vivo)
   // ----------------------------------------------------
-  getDashboardAnalytics: async ({ month = '2026-09', supervisorId, pdvId } = {}) => {
+  getDashboardAnalytics: async ({ month = '2026-09', weekStart, periodType = 'MONTH', supervisorId, pdvId } = {}) => {
     const [pdvs, supervisors, users, schedules] = await Promise.all([
       api.getPDVs().catch(() => []),
       api.getSupervisors().catch(() => []),
@@ -1267,6 +1329,9 @@ export const api = {
 
     const currentMonthSchedules = schedules.filter(s => {
       const matchPdv = pdvIdSet.size === 0 || pdvIdSet.has(s.pdvId);
+      if (periodType === 'WEEK' && weekStart) {
+        return matchPdv && s.weekStart === weekStart;
+      }
       const matchMonth = s.weekStart && s.weekStart.startsWith(month);
       return matchPdv && matchMonth;
     });

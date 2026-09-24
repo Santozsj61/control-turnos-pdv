@@ -193,6 +193,10 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
       let filteredEmps = emps;
       if (selectedPdvId && selectedPdvId !== 'ALL') {
         filteredEmps = emps.filter(e => e.pdvId === selectedPdvId);
+      } else if (isSupervisor) {
+        filteredEmps = emps.filter(e => allowedPdvs.some(ap => ap.id === e.pdvId || ap.code === e.pdvId));
+      } else if (currentUser?.role === 'PDV') {
+        filteredEmps = emps.filter(e => e.pdvId === currentUser.pdvId || e.pdvId === activeSinglePdv?.id);
       }
       setAllEmployees(filteredEmps);
       setAllHistoricalEmployees(emps);
@@ -240,6 +244,12 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
       // 3. Incorporate any employees found in existingScheds (e.g., uploaded by another user in Supabase)
       existingScheds.forEach(es => {
         const u = es.user || {};
+        if (isSupervisor && !allowedPdvs.some(ap => ap.id === es.pdvId || ap.code === es.pdvId)) {
+          return;
+        }
+        if (currentUser?.role === 'PDV' && es.pdvId !== currentUser.pdvId && es.pdvId !== activeSinglePdv?.id) {
+          return;
+        }
         if (!emps.some(e => e.id === es.userId || (u.document_id && String(e.documentId) === String(u.document_id)))) {
           const newEmp = {
             id: es.userId,
@@ -1214,7 +1224,12 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
     });
   }, [allowedPdvs, allEmployees, scheduleMatrix]);
 
-  const zoneTotalHours = Object.values(scheduleMatrix).reduce((acc, u) => acc + (u.monSatStats?.totalHours || 0), 0);
+  const zoneTotalHours = (isSupervisor || (currentUser?.role === 'PDV'))
+    ? Object.values(scheduleMatrix)
+        .filter(u => allowedPdvs.some(ap => ap.id === u.employee?.pdvId || ap.id === u.pdv?.id))
+        .reduce((acc, u) => acc + (u.monSatStats?.totalHours || 0), 0)
+    : Object.values(scheduleMatrix).reduce((acc, u) => acc + (u.monSatStats?.totalHours || 0), 0);
+
   const zoneOvertimeCount = Object.values(scheduleMatrix).filter(u => u.monSatStats?.exceeds42).length;
   const zoneSundayCount = Object.values(scheduleMatrix).filter(u => (u.monSatStats?.sundayHours || 0) > 0).length;
   const zoneSundayApprovalReqCount = Object.values(scheduleMatrix).filter(u => u.sundayStats?.requiresApproval).length;
@@ -1228,6 +1243,23 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
     // 1. Filter by specific PDV
     if (selectedPdvId && selectedPdvId !== 'ALL') {
       result = result.filter(e => e.pdvId === selectedPdvId);
+    } else if (isSupervisor) {
+      result = result.filter(e => allowedPdvs.some(ap => ap.id === e.pdvId || ap.code === e.pdvId));
+    } else if (currentUser?.role === 'PDV') {
+      result = result.filter(e => e.pdvId === currentUser.pdvId || e.pdvId === activeSinglePdv?.id);
+    }
+
+    // "si esta en blanco no visualizar": For PDV and Supervisor, hide rows without programmed shifts
+    if (currentUser?.role === 'PDV' || isSupervisor) {
+      result = result.filter(e => {
+        const row = scheduleMatrix[e.id];
+        if (!row || !row.shifts || row.shifts.length === 0) return false;
+        return row.shifts.some(s => 
+          s.shiftType && 
+          s.shiftType !== 'NO_PROGRAMADO' && 
+          (s.startTime || s.isDayOff || s.shiftType === 'DESCANSO' || s.shiftType === 'VACACIONES' || s.shiftType === 'INCAPACIDAD' || s.shiftType === 'LICENCIA')
+        );
+      });
     }
 
     // 2. Filter by Weekly Hours
@@ -1731,19 +1763,21 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
           </div>
 
           <div className="flex items-center gap-2">
-            {/* BOTÓN SINCRONIZAR NUBE (Para todos los usuarios para ver cambios en vivo) */}
-            <button
-              type="button"
-              onClick={() => {
-                loadScheduleData();
-                setMessage({ type: 'success', text: '✓ Sincronizado con la base de datos central en la Nube.' });
-              }}
-              className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs px-3.5 py-2 rounded-xl transition shadow-xs cursor-pointer"
-              title="Refrescar y traer las últimas modificaciones guardadas en la nube"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 text-blue-400 ${loading ? 'animate-spin' : ''}`} />
-              <span>Sincronizar Nube</span>
-            </button>
+            {/* BOTÓN SINCRONIZAR NUBE (Oculto para Líder de Zona, opera en tiempo real) */}
+            {!isSupervisor && (
+              <button
+                type="button"
+                onClick={() => {
+                  loadScheduleData();
+                  setMessage({ type: 'success', text: '✓ Sincronizado con la base de datos central en la Nube.' });
+                }}
+                className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs px-3.5 py-2 rounded-xl transition shadow-xs cursor-pointer"
+                title="Refrescar y traer las últimas modificaciones guardadas en la nube"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 text-blue-400 ${loading ? 'animate-spin' : ''}`} />
+                <span>Sincronizar Nube</span>
+              </button>
+            )}
 
             {/* BOTÓN CARGAR PROGRAMACIÓN EXCEL (Exclusivo Auditor VRX & Administrador) */}
             {(isAuditorVrx || isAdmin) && (
