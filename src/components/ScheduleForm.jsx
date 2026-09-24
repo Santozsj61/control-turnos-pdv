@@ -2210,92 +2210,10 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
                         return (
                           <td
                             key={wd.date}
-                            className={`p-2 border-r border-slate-200 text-center relative align-middle ${
+                            className={`p-2 border-r border-slate-200 text-center align-middle ${
                               wd.isSunday ? 'bg-purple-50/30' : ''
                             }`}
                           >
-                            {/* In-Cell Popover Editor */}
-                            {isCellEditing && !isSupervisor && !isHrAdmin ? (
-                              <div className="absolute top-1 left-1 z-30 bg-white p-3 rounded-xl border-2 border-blue-500 shadow-2xl w-64 text-left space-y-2.5">
-                                <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
-                                  <span className="text-[11px] font-extrabold text-slate-800">
-                                    {wd.dayOfWeek} ({wd.formattedDate})
-                                  </span>
-                                  <button
-                                    onClick={() => setEditingCell(null)}
-                                    className="text-xs font-bold text-slate-400 hover:text-slate-600"
-                                  >
-                                    ✕
-                                  </button>
-                                </div>
-
-                                {/* Shift Type Selector */}
-                                <div>
-                                  <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Tipo de Turno / Novedad</label>
-                                  <select
-                                    value={shiftType}
-                                    onChange={(e) => handleAssignShift(emp.id, dayIdx, e.target.value)}
-                                    className="w-full bg-slate-50 border border-slate-300 text-slate-900 text-xs font-bold rounded-lg p-1.5"
-                                  >
-                                    {SHIFT_TYPES.map(st => (
-                                      <option key={st.value} value={st.value}>{st.label}</option>
-                                    ))}
-                                  </select>
-                                </div>
-
-                                {/* Standard Presets Pick */}
-                                {shiftType === 'ORDINARIO' && (
-                                  <div>
-                                    <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">Horarios Frecuentes PDV</label>
-                                    <div className="space-y-1 max-h-32 overflow-y-auto">
-                                      {STANDARD_SHIFT_PRESETS.map((p, pIdx) => (
-                                        <button
-                                          key={pIdx}
-                                          type="button"
-                                          onClick={() => handleAssignShift(emp.id, dayIdx, `${p.start}-${p.end}`)}
-                                          className="w-full text-left text-[10px] font-bold p-1.5 rounded-md hover:bg-blue-50 text-slate-700 hover:text-blue-700 flex items-center justify-between border border-slate-100"
-                                        >
-                                          <span>{p.start} - {p.end}</span>
-                                          <span className="text-[9px] text-slate-400">Aplicar</span>
-                                        </button>
-                                      ))}
-                                    </div>
-
-                                    {/* Custom Time inputs */}
-                                    <div className="pt-2 border-t border-slate-100 grid grid-cols-2 gap-2 text-[10px]">
-                                      <div>
-                                        <label className="font-bold text-slate-600 block">Entrada:</label>
-                                        <input
-                                          type="time"
-                                          value={shift.startTime || '10:00'}
-                                          onChange={(e) => handleCustomTimeChange(emp.id, dayIdx, 'startTime', e.target.value)}
-                                          className="w-full bg-slate-50 border border-slate-300 rounded p-1 font-mono font-bold"
-                                        />
-                                      </div>
-                                      <div>
-                                        <label className="font-bold text-slate-600 block">Salida:</label>
-                                        <input
-                                          type="time"
-                                          value={shift.endTime || '20:30'}
-                                          onChange={(e) => handleCustomTimeChange(emp.id, dayIdx, 'endTime', e.target.value)}
-                                          className="w-full bg-slate-50 border border-slate-300 rounded p-1 font-mono font-bold"
-                                        />
-                                      </div>
-                                    </div>
-                                  </div>
-                                )}
-
-                                <div className="pt-1 flex justify-end">
-                                  <button
-                                    onClick={() => setEditingCell(null)}
-                                    className="bg-blue-600 text-white font-bold text-xs px-3 py-1 rounded-lg"
-                                  >
-                                    Aceptar
-                                  </button>
-                                </div>
-                              </div>
-                            ) : null}
-
                             {/* In-Cell Display Pill */}
                             <button
                               type="button"
@@ -2304,6 +2222,8 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
                               }}
                               disabled={isShiftLocked}
                               className={`w-full p-2 rounded-xl border text-center transition flex flex-col items-center justify-center gap-0.5 ${badgeColor} ${
+                                isCellEditing ? 'ring-2 ring-blue-600 shadow-md bg-blue-100/90 font-bold' : ''
+                              } ${
                                 isShiftLocked ? 'cursor-default opacity-90' : 'cursor-pointer hover:shadow-xs'
                               }`}
                             >
@@ -2397,6 +2317,162 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
           </table>
         </div>
       </div>
+
+      {/* ---------------------------------------------------- */}
+      {/* 5.1 SHIFT CELL EDITOR MODAL (Sin límites de altura ni cortes) */}
+      {/* ---------------------------------------------------- */}
+      {editingCell && !isSupervisor && !isHrAdmin && (() => {
+        const empRow = scheduleMatrix[editingCell.userId];
+        const emp = empRow?.employee || allEmployees.find(e => e.id === editingCell.userId) || {};
+        const shift = empRow?.shifts?.[editingCell.dayIndex] || {};
+        const wd = weekDates[editingCell.dayIndex] || {};
+        const shiftType = shift.shiftType || 'NO_PROGRAMADO';
+
+        return (
+          <div 
+            className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-100"
+            onClick={() => setEditingCell(null)}
+          >
+            <div 
+              className="bg-white rounded-3xl p-6 max-w-lg w-full shadow-2xl border border-slate-200 space-y-4 animate-in zoom-in-95 duration-150"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex items-start justify-between border-b border-slate-100 pb-3">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                      Asignación de Turno
+                    </span>
+                    <span className="text-[10px] font-bold text-slate-400">
+                      {wd.dayOfWeek} ({wd.formattedDate})
+                    </span>
+                  </div>
+                  <h3 className="text-base font-black text-slate-900 mt-1">
+                    {emp.fullName}
+                  </h3>
+                  <p className="text-xs text-slate-500 font-semibold">
+                    {emp.position || 'ASESOR(A) DE IMAGEN'} • <span className="font-mono text-slate-600">CC: {emp.documentId}</span>
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setEditingCell(null)}
+                  className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition text-sm font-bold cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Shift Type Selector */}
+              <div>
+                <label className="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider block mb-1.5">
+                  Tipo de Turno / Novedad
+                </label>
+                <select
+                  value={shiftType}
+                  onChange={(e) => handleAssignShift(editingCell.userId, editingCell.dayIndex, e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-300 text-slate-900 text-xs font-bold rounded-xl p-2.5 focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                >
+                  {SHIFT_TYPES.map(st => (
+                    <option key={st.value} value={st.value}>{st.label} ({st.hours})</option>
+                  ))}
+                </select>
+                <p className="text-[11px] text-slate-500 mt-1">
+                  {SHIFT_TYPES.find(st => st.value === shiftType)?.desc}
+                </p>
+              </div>
+
+              {/* Standard Presets & Custom Times (Displayed completely with no scroll limit) */}
+              {shiftType === 'ORDINARIO' && (
+                <div className="space-y-3 pt-1">
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">
+                        Horarios Frecuentes PDV (1 Clic)
+                      </label>
+                      <span className="text-[10px] text-blue-600 font-bold">Selecciona para aplicar de inmediato</span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-56 overflow-y-auto pr-1">
+                      {STANDARD_SHIFT_PRESETS.map((p, pIdx) => {
+                        const isCurrent = shift.startTime === p.start && shift.endTime === p.end;
+                        return (
+                          <button
+                            key={pIdx}
+                            type="button"
+                            onClick={() => {
+                              handleAssignShift(editingCell.userId, editingCell.dayIndex, `${p.start}-${p.end}`);
+                              setEditingCell(null);
+                            }}
+                            className={`text-left text-xs font-bold p-2.5 rounded-xl border transition flex items-center justify-between cursor-pointer ${
+                              isCurrent 
+                                ? 'bg-blue-600 text-white border-blue-600 shadow-xs' 
+                                : 'bg-slate-50 hover:bg-blue-50 text-slate-800 hover:text-blue-700 border-slate-200'
+                            }`}
+                          >
+                            <div>
+                              <div className="font-extrabold text-xs">{p.start} - {p.end}</div>
+                              <div className={`text-[10px] ${isCurrent ? 'text-blue-100' : 'text-slate-400'}`}>
+                                {p.label.split('|')[0].replace(`${p.start} - ${p.end}`, '').replace('(', '').replace(')', '').trim()}
+                              </div>
+                            </div>
+                            <span className={`text-[10px] font-black px-2 py-0.5 rounded ${
+                              isCurrent ? 'bg-blue-700 text-white' : 'bg-white text-blue-600 border border-blue-200'
+                            }`}>
+                              Aplicar
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Custom Time inputs */}
+                  <div className="pt-2 border-t border-slate-200">
+                    <label className="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider block mb-1.5">
+                      O definir horario manual:
+                    </label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 block mb-0.5">Hora Entrada</label>
+                        <input
+                          type="time"
+                          value={shift.startTime || '10:00'}
+                          onChange={(e) => handleCustomTimeChange(editingCell.userId, editingCell.dayIndex, 'startTime', e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 font-mono font-bold text-xs focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-500 block mb-0.5">Hora Salida</label>
+                        <input
+                          type="time"
+                          value={shift.endTime || '20:30'}
+                          onChange={(e) => handleCustomTimeChange(editingCell.userId, editingCell.dayIndex, 'endTime', e.target.value)}
+                          className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 font-mono font-bold text-xs focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Footer */}
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                <span className="text-xs text-slate-500 font-medium">
+                  {shiftType === 'ORDINARIO' ? `${shift.netHours || 0} hrs netas computadas` : '7.0 hrs computadas'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setEditingCell(null)}
+                  className="bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs px-5 py-2.5 rounded-xl transition shadow-xs cursor-pointer"
+                >
+                  Listo / Guardar
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ---------------------------------------------------- */}
       {/* 6. STATUTORY FOOTNOTES & CONVENTIONS */}
