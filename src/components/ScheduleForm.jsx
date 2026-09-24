@@ -1763,8 +1763,8 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
           </div>
 
           <div className="flex items-center gap-2">
-            {/* BOTÓN SINCRONIZAR NUBE (Oculto para Líder de Zona, opera en tiempo real) */}
-            {!isSupervisor && (
+            {/* BOTÓN SINCRONIZAR NUBE (Exclusivo Perfil Maestro Auditor VRX & Admin) */}
+            {(isAuditorVrx || isAdmin) && (
               <button
                 type="button"
                 onClick={() => {
