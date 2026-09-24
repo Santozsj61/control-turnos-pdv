@@ -460,13 +460,24 @@ export const api = {
       });
     }
     const cleanDoc = String(documentId).trim();
-    const { data: existing } = await supabase.from('users').select('*').eq('document_id', cleanDoc).maybeSingle();
+    const candidateUsername = `emp_${cleanDoc}`;
+    const candidateId = `emp-${cleanDoc}`;
+
+    // 1. Check if user already exists by document_id, username, or candidate id
+    const { data: existingList } = await supabase.from('users')
+      .select('*')
+      .or(`document_id.eq.${cleanDoc},username.eq.${candidateUsername},id.eq.${candidateId}`)
+      .limit(1);
+    const existing = existingList && existingList[0];
+
     if (existing) {
       const { data, error } = await supabase.from('users').update({
         pdv_id: pdvId,
-        full_name: fullName || existing.full_name,
-        position: position || existing.position,
+        full_name: fullName ? fullName.trim().toUpperCase() : existing.full_name,
+        position: position || existing.position || 'ASESOR(A) DE IMAGEN',
         contract_type: contractType || existing.contract_type || 'FIJO',
+        username: existing.username || candidateUsername,
+        document_id: existing.document_id || cleanDoc,
         is_active: true,
         updated_at: new Date().toISOString()
       }).eq('id', existing.id).select().single();
@@ -481,9 +492,12 @@ export const api = {
       };
     }
 
-    const newId = `emp-${Date.now()}`;
+    // 2. Insert brand new collaborator / temporal
+    const defaultPassword = cleanDoc.length >= 4 ? cleanDoc.slice(-4) : '1234';
     const payload = {
-      id: newId,
+      id: candidateId,
+      username: candidateUsername,
+      password: defaultPassword,
       document_id: cleanDoc,
       code: code || `COD-${cleanDoc.slice(-4)}`,
       full_name: fullName.trim().toUpperCase(),
