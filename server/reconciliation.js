@@ -70,6 +70,7 @@ export function runReconciliation({ weekStart, weekEnd, pdvId, supervisorId, doc
       const dateObj = new Date(date + 'T12:00:00Z');
       const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
       const dayName = dayNames[dateObj.getUTCDay()];
+      const isSunday = (dateObj.getUTCDay() === 0) || dayName === 'Domingo';
 
       // Scheduled Values
       const isScheduled = !!shift && !shift.isDayOff;
@@ -176,6 +177,7 @@ export function runReconciliation({ weekStart, weekEnd, pdvId, supervisorId, doc
         supervisorName: empSup ? empSup.name : (empPdv?.supervisorName || 'Sin supervisor'),
         date,
         dayName,
+        isSunday,
         isScheduled,
         scheduledStart,
         scheduledEnd,
@@ -254,8 +256,14 @@ export function runReconciliation({ weekStart, weekEnd, pdvId, supervisorId, doc
 
     const group = pdvMap[row.pdvId];
     group.rows.push(row);
-    group.scheduledHours += row.scheduledNetHours;
-    group.realHours += row.realNetHours;
+    // Exclude Sundays from Monday-to-Saturday total weekly hours
+    if (!row.isSunday) {
+      group.scheduledHours += row.scheduledNetHours;
+      group.realHours += row.realNetHours;
+    } else {
+      group.sundayScheduledHours = (group.sundayScheduledHours || 0) + row.scheduledNetHours;
+      group.sundayRealHours = (group.sundayRealHours || 0) + row.realNetHours;
+    }
     if (row.status === 'OK_MATCH') group.exactCount++;
     if (row.status === 'LATE_ARRIVAL') group.lateCount++;
     if (row.status === 'EARLY_DEPARTURE') group.earlyCount++;
@@ -278,14 +286,22 @@ export function runReconciliation({ weekStart, weekEnd, pdvId, supervisorId, doc
         scheduledHours: +g.scheduledHours.toFixed(2),
         realHours: +g.realHours.toFixed(2),
         hoursDiff: +(g.realHours - g.scheduledHours).toFixed(2),
+        sundayScheduledHours: +(g.sundayScheduledHours || 0).toFixed(2),
+        sundayRealHours: +(g.sundayRealHours || 0).toFixed(2),
         complianceRate: g.rows.length > 0 ? Math.round((g.exactCount / g.rows.length) * 100) : 100
       };
     });
 
-  // Global Summary Metrics
-  const totalScheduledHours = +comparisonRows.reduce((sum, r) => sum + r.scheduledNetHours, 0).toFixed(2);
-  const totalRealHours = +comparisonRows.reduce((sum, r) => sum + r.realNetHours, 0).toFixed(2);
+  // Global Summary Metrics (Monday to Saturday only, excluding Sundays)
+  const nonSundayRows = comparisonRows.filter(r => !r.isSunday);
+  const sundayRows = comparisonRows.filter(r => r.isSunday);
+
+  const totalScheduledHours = +nonSundayRows.reduce((sum, r) => sum + r.scheduledNetHours, 0).toFixed(2);
+  const totalRealHours = +nonSundayRows.reduce((sum, r) => sum + r.realNetHours, 0).toFixed(2);
   const totalHoursDifference = +(totalRealHours - totalScheduledHours).toFixed(2);
+
+  const sundayScheduledHours = +sundayRows.reduce((sum, r) => sum + r.scheduledNetHours, 0).toFixed(2);
+  const sundayRealHours = +sundayRows.reduce((sum, r) => sum + r.realNetHours, 0).toFixed(2);
 
   const stats = {
     totalRows: comparisonRows.length,
@@ -298,7 +314,9 @@ export function runReconciliation({ weekStart, weekEnd, pdvId, supervisorId, doc
     permissionsApproved: comparisonRows.filter(r => r.hasPermission).length,
     totalScheduledHours,
     totalRealHours,
-    totalHoursDifference
+    totalHoursDifference,
+    sundayScheduledHours,
+    sundayRealHours
   };
 
   return { stats, pdvSummaries, rows: comparisonRows };

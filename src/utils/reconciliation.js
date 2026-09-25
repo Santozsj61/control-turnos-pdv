@@ -214,6 +214,7 @@ export function runReconciliation({
       const dateObj = new Date(date + 'T12:00:00Z');
       const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
       const dayName = dayNames[dateObj.getUTCDay()];
+      const isSunday = (dateObj.getUTCDay() === 0) || dayName === 'Domingo';
 
       // 1. Shift Classification & Scheduled Values
       const shiftTypeUpper = String(shift?.shiftType || (shift?.isDayOff ? 'DESCANSO' : 'ORDINARIO')).toUpperCase();
@@ -414,6 +415,7 @@ export function runReconciliation({
         isUnscheduledWorker: !!emp.isUnscheduledWorker,
         date,
         dayName,
+        isSunday,
         isScheduled,
         isNovelty7h,
         scheduleTypeLabel,
@@ -486,6 +488,8 @@ export function runReconciliation({
         scheduledHours: 0,
         realHours: 0,
         hoursDiff: 0,
+        sundayScheduledHours: 0,
+        sundayRealHours: 0,
         exactCount: 0,
         lateCount: 0,
         earlyCount: 0,
@@ -498,8 +502,14 @@ export function runReconciliation({
 
     const group = pdvMap[row.pdvId];
     group.rows.push(row);
-    group.scheduledHours += row.scheduledNetHours;
-    group.realHours += row.realNetHours;
+    // Exclude Sundays from Monday-to-Saturday total weekly hours
+    if (!row.isSunday) {
+      group.scheduledHours += row.scheduledNetHours;
+      group.realHours += row.realNetHours;
+    } else {
+      group.sundayScheduledHours = (group.sundayScheduledHours || 0) + row.scheduledNetHours;
+      group.sundayRealHours = (group.sundayRealHours || 0) + row.realNetHours;
+    }
     if (row.status === 'OK_MATCH') group.exactCount++;
     if (row.status === 'LATE_ARRIVAL') group.lateCount++;
     if (row.status === 'EARLY_DEPARTURE') group.earlyCount++;
@@ -522,13 +532,22 @@ export function runReconciliation({
         scheduledHours: +g.scheduledHours.toFixed(2),
         realHours: +g.realHours.toFixed(2),
         hoursDiff: +(g.realHours - g.scheduledHours).toFixed(2),
+        sundayScheduledHours: +(g.sundayScheduledHours || 0).toFixed(2),
+        sundayRealHours: +(g.sundayRealHours || 0).toFixed(2),
         complianceRate: g.rows.length > 0 ? Math.round((g.exactCount / g.rows.length) * 100) : 100
       };
     });
 
-  const totalScheduledHours = +comparisonRows.reduce((sum, r) => sum + r.scheduledNetHours, 0).toFixed(2);
-  const totalRealHours = +comparisonRows.reduce((sum, r) => sum + r.realNetHours, 0).toFixed(2);
+  // Exclude Sundays from the Monday-to-Saturday weekly total hours comparison
+  const nonSundayRows = comparisonRows.filter(r => !r.isSunday);
+  const sundayRows = comparisonRows.filter(r => r.isSunday);
+
+  const totalScheduledHours = +nonSundayRows.reduce((sum, r) => sum + r.scheduledNetHours, 0).toFixed(2);
+  const totalRealHours = +nonSundayRows.reduce((sum, r) => sum + r.realNetHours, 0).toFixed(2);
   const totalHoursDifference = +(totalRealHours - totalScheduledHours).toFixed(2);
+
+  const sundayScheduledHours = +sundayRows.reduce((sum, r) => sum + r.scheduledNetHours, 0).toFixed(2);
+  const sundayRealHours = +sundayRows.reduce((sum, r) => sum + r.realNetHours, 0).toFixed(2);
 
   const stats = {
     totalRows: comparisonRows.length,
@@ -542,7 +561,9 @@ export function runReconciliation({
     permissionsApproved: comparisonRows.filter(r => r.hasPermission).length,
     totalScheduledHours,
     totalRealHours,
-    totalHoursDifference
+    totalHoursDifference,
+    sundayScheduledHours,
+    sundayRealHours
   };
 
   // 8. Compute Resumen Comparativo de Programación vs Marcaciones

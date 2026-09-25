@@ -413,8 +413,12 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
       else if (r.status === 'ABSENT') absences++;
       else if (r.status === 'UNSCHEDULED_WORK') unscheduledPunches++;
       if (r.hasPermission) permissionsApproved++;
-      totalScheduledHours += (Number(r.scheduledNetHours) || 0);
-      totalRealHours += (Number(r.realNetHours) || 0);
+
+      const isSunday = r.isSunday ?? (r.dayName === 'Domingo' || (r.date && new Date(r.date + 'T12:00:00Z').getUTCDay() === 0));
+      if (!isSunday) {
+        totalScheduledHours += (Number(r.scheduledNetHours) || 0);
+        totalRealHours += (Number(r.realNetHours) || 0);
+      }
     }
 
     const totalHoursDifference = Math.round((totalRealHours - totalScheduledHours) * 10) / 10;
@@ -492,6 +496,8 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
           totalScheduledHours: 0,
           totalRealHours: 0,
           diffHours: 0,
+          sundayScheduledHours: 0,
+          sundayRealHours: 0,
           lateCount: 0,
           earlyCount: 0,
           absenceCount: 0,
@@ -502,8 +508,17 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
       const item = map.get(key);
       if (r.date) item.daysMap[r.date] = r;
       if (r.dayName) item.daysMap[r.dayName.toLowerCase()] = r;
-      item.totalScheduledHours += (Number(r.scheduledNetHours) || 0);
-      item.totalRealHours += (Number(r.realNetHours) || 0);
+
+      const isSunday = r.isSunday ?? (r.dayName === 'Domingo' || (r.date && new Date(r.date + 'T12:00:00Z').getUTCDay() === 0));
+      // Exclude Sundays from Monday-to-Saturday total weekly hours
+      if (!isSunday) {
+        item.totalScheduledHours += (Number(r.scheduledNetHours) || 0);
+        item.totalRealHours += (Number(r.realNetHours) || 0);
+      } else {
+        item.sundayScheduledHours += (Number(r.scheduledNetHours) || 0);
+        item.sundayRealHours += (Number(r.realNetHours) || 0);
+      }
+
       if (r.status === 'LATE_ARRIVAL') item.lateCount++;
       else if (r.status === 'EARLY_DEPARTURE') item.earlyCount++;
       else if (r.status === 'ABSENT') item.absenceCount++;
@@ -516,6 +531,8 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
       item.totalScheduledHours = Math.round(item.totalScheduledHours * 10) / 10;
       item.totalRealHours = Math.round(item.totalRealHours * 10) / 10;
       item.diffHours = Math.round((item.totalRealHours - item.totalScheduledHours) * 10) / 10;
+      item.sundayScheduledHours = Math.round(item.sundayScheduledHours * 10) / 10;
+      item.sundayRealHours = Math.round(item.sundayRealHours * 10) / 10;
     });
     list.sort((a, b) => a.fullName.localeCompare(b.fullName));
     return list;
@@ -1355,13 +1372,18 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
         </div>
 
         <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
-          <div className="text-[11px] font-bold text-blue-700 uppercase tracking-wider">Balance Horas</div>
+          <div className="text-[11px] font-bold text-blue-700 uppercase tracking-wider">Balance Horas (Lun-Sáb)</div>
           <div className="text-xl font-black text-blue-700 mt-1">
             {stats.totalRealHours}h <span className="text-xs text-slate-400 font-normal">/ {stats.totalScheduledHours}h</span>
           </div>
           <div className="text-[10px] text-blue-600 font-bold mt-0.5">
             Dif: {stats.totalHoursDifference > 0 ? `+${stats.totalHoursDifference}h` : `${stats.totalHoursDifference}h`}
           </div>
+          {stats.sundayRealHours > 0 && (
+            <div className="text-[9px] text-amber-600 font-semibold mt-0.5">
+              Dominical: {stats.sundayRealHours}h (separadas)
+            </div>
+          )}
         </div>
       </div>
 
@@ -1617,15 +1639,18 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                       <th className="py-2.5 px-2.5 w-[16%] min-w-[145px] max-w-[175px] sticky left-0 z-10 bg-slate-900">
                         Colaborador
                       </th>
-                      {weekDays.map(w => (
-                        <th key={w.date} className="py-2 px-1 text-center w-[10.5%] min-w-[90px] max-w-[120px]">
-                          <div className="font-extrabold text-[11px] leading-tight text-white">{w.dayName.slice(0, 3)}</div>
-                          <div className="text-[9px] text-slate-400 font-medium leading-tight">{w.shortLabel.split(' ')[1]}</div>
-                        </th>
-                      ))}
+                      {weekDays.map(w => {
+                        const isSun = w.dayIndex === 6 || w.dayName.toLowerCase().includes('dom');
+                        return (
+                          <th key={w.date} className={`py-2 px-1 text-center w-[10.5%] min-w-[90px] max-w-[120px] ${isSun ? 'bg-slate-950 border-x border-slate-800' : ''}`}>
+                            <div className={`font-extrabold text-[11px] leading-tight ${isSun ? 'text-amber-400' : 'text-white'}`}>{w.dayName.slice(0, 3)}</div>
+                            <div className="text-[9px] text-slate-400 font-medium leading-tight">{w.shortLabel.split(' ')[1]}</div>
+                          </th>
+                        );
+                      })}
                       <th className="py-2 px-1.5 text-center w-[10.5%] min-w-[85px] max-w-[110px] bg-slate-800">
                         <div className="font-extrabold text-[11px] leading-tight text-white">Balance</div>
-                        <div className="text-[9px] text-slate-400 font-medium leading-tight">Semanal</div>
+                        <div className="text-[8.5px] text-amber-300 font-bold leading-tight">Lun - Sáb</div>
                       </th>
                     </tr>
                   </thead>
@@ -1800,10 +1825,10 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                           );
                         })}
 
-                        {/* Balance Semanal Column */}
+                        {/* Balance Semanal Column (Lun - Sáb) */}
                         <td className="py-1 px-1 text-center align-middle bg-slate-50/50 w-[10.5%] min-w-[85px] max-w-[110px]">
                           <div className="p-1.5 bg-slate-900 text-white rounded-xl space-y-0.5">
-                            <div className="text-[8px] text-slate-400 font-bold uppercase leading-tight">Prog / Real</div>
+                            <div className="text-[8px] text-amber-300 font-bold uppercase leading-tight">Lun - Sáb</div>
                             <div className="text-[10.5px] font-black leading-tight">
                               {collab.totalRealHours}h <span className="text-slate-400 text-[8.5px] font-normal">/ {collab.totalScheduledHours}h</span>
                             </div>
@@ -1814,6 +1839,11 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                             }`}>
                               {collab.diffHours > 0 ? `+${collab.diffHours}h` : collab.diffHours < 0 ? `${collab.diffHours}h` : '0h'}
                             </div>
+                            {(collab.sundayRealHours > 0 || collab.sundayScheduledHours > 0) && (
+                              <div className="text-[7.5px] text-amber-300 font-bold leading-tight pt-0.5 border-t border-slate-700/60" title="Horas dominicales (liquidación separada de Lun a Sáb)">
+                                Dom: {collab.sundayRealHours}h{collab.sundayScheduledHours > 0 ? ` / ${collab.sundayScheduledHours}h` : ''}
+                              </div>
+                            )}
                             {(collab.lateCount > 0 || collab.earlyCount > 0 || collab.absenceCount > 0 || collab.unscheduledCount > 0) && (
                               <div className="pt-0.5 flex flex-wrap items-center justify-center gap-0.5 text-[7.5px] font-bold">
                                 {collab.lateCount > 0 && <span className="bg-amber-500/30 text-amber-200 px-1 rounded">{collab.lateCount}T</span>}
