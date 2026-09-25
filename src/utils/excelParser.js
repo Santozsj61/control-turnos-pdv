@@ -69,15 +69,15 @@ function normalizeTime(rawVal) {
 export function parsePunchExcel(data) {
   let workbook;
   if (data instanceof ArrayBuffer || ArrayBuffer.isView(data)) {
-    workbook = XLSX.read(data, { type: 'array', cellDates: false });
+    workbook = XLSX.read(data, { type: 'array', cellDates: false, raw: true });
   } else {
-    workbook = XLSX.read(data, { type: 'binary', cellDates: false });
+    workbook = XLSX.read(data, { type: 'binary', cellDates: false, raw: true });
   }
   
   const sheetName = workbook.SheetNames[0];
   const worksheet = workbook.Sheets[sheetName];
   
-  const rawRows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+  const rawRows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '', raw: true });
   if (!rawRows || rawRows.length < 2) {
     throw new Error('El archivo Excel está vacío o no contiene encabezados válidos.');
   }

@@ -808,13 +808,27 @@ export const api = {
       const q = new URLSearchParams(filters).toString();
       return fetchLocal(`/api/punches${q ? '?' + q : ''}`);
     }
-    let query = supabase.from('punch_records').select('*');
-    if (filters.batchId) query = query.eq('batch_id', filters.batchId);
-    if (filters.documentId) query = query.eq('document_id', filters.documentId);
-    if (filters.date) query = query.eq('entry_date', filters.date);
-    const { data, error } = await query;
-    if (error) throw new Error(error.message);
-    return (data || []).map(r => ({
+    let allData = [];
+    let page = 0;
+    const pageSize = 1000;
+    while (true) {
+      let query = supabase.from('punch_records').select('*').range(page * pageSize, (page + 1) * pageSize - 1);
+      if (filters.batchId) query = query.eq('batch_id', filters.batchId);
+      if (filters.documentId) query = query.eq('document_id', filters.documentId);
+      if (filters.date) query = query.eq('entry_date', filters.date);
+      if (filters.weekStart) {
+        const d = new Date(filters.weekStart + 'T12:00:00Z');
+        const dEnd = new Date(d.getTime() + 6 * 86400000);
+        query = query.gte('entry_date', filters.weekStart).lte('entry_date', dEnd.toISOString().split('T')[0]);
+      }
+      const { data, error } = await query;
+      if (error) throw new Error(error.message);
+      if (!data || data.length === 0) break;
+      allData.push(...data);
+      if (data.length < pageSize) break;
+      page++;
+    }
+    return allData.map(r => ({
       id: r.id,
       batchId: r.batch_id,
       documentId: r.document_id,
@@ -852,24 +866,53 @@ export const api = {
     const { error: batchErr } = await supabase.from('punch_batches').insert(batchPayload);
     if (batchErr) throw new Error(batchErr.message);
 
-    const punchRows = parsedRecords.map((r, i) => ({
-      id: `punch-${batchId}-${i + 1}`,
-      batch_id: batchId,
-      document_id: r.documentId,
-      code: r.code,
-      full_name: r.fullName,
-      position: r.position,
-      pdv_name: r.pdvName || '',
-      supervisor_name: r.supervisorName || '',
-      entry_date: r.entryDate,
-      entry_time: r.entryTime,
-      exit_date: r.exitDate,
-      exit_time: r.exitTime,
-      real_calculations: r.realCalculations || {}
-    }));
+    // Enrich punches with real PDVs and supervisors
+    const [users, pdvs, schedules, sups] = await Promise.all([
+      api.getUsers().catch(() => []),
+      api.getPDVs().catch(() => []),
+      api.getSchedules().catch(() => []),
+      api.getSupervisors().catch(() => [])
+    ]);
 
-    const { error: punchErr } = await supabase.from('punch_records').insert(punchRows);
-    if (punchErr) throw new Error(punchErr.message);
+    const userByDoc = new Map(users.map(u => [String(u.documentId || u.document_id).trim(), u]));
+    const schedByUser = new Map(schedules.map(s => [s.userId || s.user_id, s]));
+    const pdvById = new Map(pdvs.map(p => [p.id, p]));
+    const supById = new Map(sups.map(s => [s.id, s]));
+
+    const punchRows = parsedRecords.map((r, i) => {
+      const doc = String(r.documentId).trim();
+      const u = userByDoc.get(doc) || userByDoc.get(doc.replace(/^0+/, ''));
+      const s = u ? schedByUser.get(u.id) : null;
+      let pdvObj = null;
+      if (s && s.pdvId) pdvObj = pdvById.get(s.pdvId);
+      else if (u && u.pdvId) pdvObj = pdvById.get(u.pdvId);
+
+      const pdvName = r.pdvName || (pdvObj ? pdvObj.name : '');
+      const supervisorName = r.supervisorName || (pdvObj ? supById.get(pdvObj.supervisorId)?.name : '') || 'Líder Regional';
+
+      return {
+        id: `punch-${batchId}-${i + 1}`,
+        batch_id: batchId,
+        document_id: r.documentId,
+        code: r.code || u?.code || `COD-${doc.slice(-4)}`,
+        full_name: r.fullName,
+        position: r.position,
+        pdv_name: pdvName,
+        supervisor_name: supervisorName,
+        entry_date: r.entryDate,
+        entry_time: r.entryTime,
+        exit_date: r.exitDate || r.entryDate,
+        exit_time: r.exitTime || '-',
+        real_calculations: r.realCalculations || {}
+      };
+    });
+
+    const CHUNK_SIZE = 250;
+    for (let c = 0; c < punchRows.length; c += CHUNK_SIZE) {
+      const chunk = punchRows.slice(c, c + CHUNK_SIZE);
+      const { error: punchErr } = await supabase.from('punch_records').insert(chunk);
+      if (punchErr) throw new Error(punchErr.message);
+    }
 
     return { batch: batchPayload, recordCount: punchRows.length };
   },
