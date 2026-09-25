@@ -1,8 +1,17 @@
 // Colombian Labor Law & Company Policy Work Hour Calculator
 
 export function timeToMinutes(timeStr) {
-  if (!timeStr) return 0;
-  const parts = timeStr.trim().split(':');
+  if (timeStr === undefined || timeStr === null || timeStr === '') return 0;
+  if (typeof timeStr === 'number') {
+    if (timeStr >= 0 && timeStr <= 1.05) return Math.round(timeStr * 24 * 60);
+    return Math.round(timeStr);
+  }
+  const str = String(timeStr).trim();
+  if (!str.includes(':') && !isNaN(str) && str !== '') {
+    const num = parseFloat(str);
+    if (num >= 0 && num <= 1.05) return Math.round(num * 24 * 60);
+  }
+  const parts = str.split(':');
   const h = parseInt(parts[0], 10) || 0;
   const m = parseInt(parts[1], 10) || 0;
   return h * 60 + m;

@@ -64,17 +64,26 @@ export function cleanNormalizeStr(s) {
  */
 export function formatExcelTime(val) {
   if (val === undefined || val === null || val === '') return '';
-  if (typeof val === 'number') {
-    const totalMinutes = Math.round(val * 24 * 60);
-    const h = Math.floor(totalMinutes / 60) % 24;
-    const m = totalMinutes % 60;
-    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+
+  // 1. Si es un string decimal (ej: "0.41666666666666674" o "0.8333333333333333") o número directo
+  let num = typeof val === 'number' ? val : (typeof val === 'string' && !isNaN(val) && val.trim() !== '' && !val.includes(':') ? parseFloat(val) : null);
+
+  if (num !== null && !isNaN(num)) {
+    if (num >= 0 && num <= 1.05) {
+      const totalMinutes = Math.round(num * 24 * 60);
+      const h = Math.floor(totalMinutes / 60) % 24;
+      const m = totalMinutes % 60;
+      return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    }
   }
+
+  // 2. Si ya viene con formato HH:MM o similar
   const str = String(val).trim();
   const timeMatch = str.match(/(\d{1,2}):(\d{2})/);
   if (timeMatch) {
     return `${String(timeMatch[1]).padStart(2, '0')}:${String(timeMatch[2]).padStart(2, '0')}`;
   }
+
   return str;
 }
 

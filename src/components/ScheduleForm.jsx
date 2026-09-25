@@ -2334,7 +2334,7 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
                               {shiftType === 'ORDINARIO' ? (
                                 <>
                                   <div className="font-extrabold text-[11px] leading-tight text-slate-900">
-                                    {shift.startTime || '--:--'} - {shift.endTime || '--:--'}
+                                    {formatExcelTime(shift.startTime) || '--:--'} - {formatExcelTime(shift.endTime) || '--:--'}
                                   </div>
                                   <div className="text-[9px] font-bold text-slate-500 flex items-center gap-1">
                                     <span>{shift.netHours || 0} hrs</span>
@@ -2553,7 +2553,7 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
                         <label className="text-[10px] font-bold text-slate-500 block mb-0.5">Hora Entrada</label>
                         <input
                           type="time"
-                          value={shift.startTime || '10:00'}
+                          value={formatExcelTime(shift.startTime) || '10:00'}
                           onChange={(e) => handleCustomTimeChange(editingCell.userId, editingCell.dayIndex, 'startTime', e.target.value)}
                           className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 font-mono font-bold text-xs focus:ring-2 focus:ring-blue-500"
                         />
@@ -2562,7 +2562,7 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
                         <label className="text-[10px] font-bold text-slate-500 block mb-0.5">Hora Salida</label>
                         <input
                           type="time"
-                          value={shift.endTime || '20:30'}
+                          value={formatExcelTime(shift.endTime) || '20:30'}
                           onChange={(e) => handleCustomTimeChange(editingCell.userId, editingCell.dayIndex, 'endTime', e.target.value)}
                           className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2 font-mono font-bold text-xs focus:ring-2 focus:ring-blue-500"
                         />
