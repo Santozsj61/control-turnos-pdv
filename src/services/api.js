@@ -253,6 +253,21 @@ export const api = {
     const cleanUser = String(username || '').trim().toLowerCase();
     const cleanPass = String(password || pin || '').trim();
 
+    // 0. Auditoría & Control VRX (ÚNICA CONTRASEÑA ESTRICTAMENTE AUTORIZADA: 0814)
+    if (cleanUser === 'vrx' || cleanUser === 'auditor' || cleanUser === 'auditorvrx') {
+      if (cleanPass === '0814') {
+        return {
+          id: 'user-vrx',
+          username: 'AuditorVRX',
+          fullName: 'AUDITORÍA DE ASISTENCIA VRX',
+          role: 'AUDITOR_VRX',
+          position: 'AUDITOR NACIONAL DE CONTROL HORARIO',
+          area: 'AUDITORÍA Y CONTROL INTERNO'
+        };
+      }
+      throw new Error('Contraseña de Auditor incorrecta (única clave autorizada: 0814)');
+    }
+
     // 1. Admin General (888 / admin)
     if ((cleanUser === 'administrador' || cleanUser === 'admin') && (cleanPass === '888' || cleanPass === 'admin')) {
       return {

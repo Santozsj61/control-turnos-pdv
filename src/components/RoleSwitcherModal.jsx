@@ -114,9 +114,13 @@ export default function RoleSwitcherModal({ isOpen, onClose, users, pdvs, superv
       } else if (cleanU === 'thumano' && cleanP === '200102') {
         onSelectUser({ id: 'user-thumano', fullName: 'TALENTO HUMANO (HR)', role: 'HR_ADMIN' });
         onClose();
-      } else if (cleanU === 'vrx' && cleanP === '0814') {
-        onSelectUser({ id: 'user-vrx', fullName: 'AUDITORÍA & CONTROL (VRX)', role: 'AUDITOR_VRX' });
-        onClose();
+      } else if (cleanU === 'vrx') {
+        if (cleanP === '0814') {
+          onSelectUser({ id: 'user-vrx', fullName: 'AUDITORÍA & CONTROL (VRX)', role: 'AUDITOR_VRX' });
+          onClose();
+        } else {
+          setErrorMsg('Contraseña de Auditor incorrecta (única clave autorizada: 0814).');
+        }
       } else {
         setErrorMsg('Error de conexión o credenciales inválidas.');
       }
