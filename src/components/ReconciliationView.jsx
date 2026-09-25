@@ -78,6 +78,7 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
   const [reconciliationData, setReconciliationData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadingNovelties, setUploadingNovelties] = useState(false);
   const [uploadMsg, setUploadMsg] = useState(null);
   const [selectedRowDetail, setSelectedRowDetail] = useState(null);
 
@@ -243,6 +244,32 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
       setUploadMsg({ type: 'error', text: err.message || 'Error de conexión durante la carga' });
     } finally {
       setUploading(false);
+      e.target.value = '';
+    }
+  }
+
+  // Handle novelties report upload (Exclusive for Admin, Talento Humano & Auditor VRX)
+  async function handleNoveltiesUpload(e) {
+    if (!isAdmin && !isHrAdmin && !isAuditorVrx) {
+      setUploadMsg({ type: 'error', text: 'Acceso Denegado: Solo el Administrador, Talento Humano o Auditor VRX puede cargar novedades.' });
+      return;
+    }
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingNovelties(true);
+    setUploadMsg(null);
+    try {
+      const res = await api.uploadNoveltiesFile(file);
+      setUploadMsg({
+        type: 'success',
+        text: `Reporte de Novedades procesado con éxito: ${res.count} novedades asociadas a programaciones (7 horas de ley reconocidas automáticamente).`
+      });
+      fetchReconciliation();
+    } catch (err) {
+      setUploadMsg({ type: 'error', text: err.message || 'Error al procesar el archivo de novedades.' });
+    } finally {
+      setUploadingNovelties(false);
       e.target.value = '';
     }
   }
@@ -562,19 +589,34 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
 
         {/* Upload & Export Actions based on Security Role */}
         <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
-          {(isAdmin || isHrAdmin) ? (
-            /* File Upload Input */
-            <label className="flex-1 lg:flex-none flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2.5 rounded-xl cursor-pointer transition shadow-xs" title="Cargar archivo Excel con las marcaciones semanales">
-              <Upload className="w-4 h-4 text-amber-400" />
-              <span>{uploading ? 'Procesando...' : 'Subir Archivo Excel'}</span>
-              <input
-                type="file"
-                accept=".xlsx,.xls,.csv"
-                disabled={uploading}
-                onChange={handleFileUpload}
-                className="hidden"
-              />
-            </label>
+          {(isAdmin || isHrAdmin || isAuditorVrx) ? (
+            <>
+              {/* File Upload Input - Marcaciones Biométricas */}
+              <label className="flex-1 lg:flex-none flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2.5 rounded-xl cursor-pointer transition shadow-xs" title="Cargar archivo Excel con las marcaciones semanales">
+                <Upload className="w-4 h-4 text-amber-400" />
+                <span>{uploading ? 'Procesando Marcaciones...' : 'Subir Archivo Excel'}</span>
+                <input
+                  type="file"
+                  accept=".xlsx,.xls,.csv"
+                  disabled={uploading}
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+              </label>
+
+              {/* File Upload Input - Reporte de Novedades */}
+              <label className="flex-1 lg:flex-none flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl cursor-pointer transition shadow-xs" title="Cargar reporte de novedades (Vacaciones, Incapacidades, Licencias, etc.) para asociar 7h a colaboradores por cédula">
+                <FileSpreadsheet className="w-4 h-4 text-amber-300" />
+                <span>{uploadingNovelties ? 'Cargando Novedades...' : 'Subir Reporte Novedades'}</span>
+                <input
+                  type="file"
+                  accept=".xlsx,.xls,.csv"
+                  disabled={uploadingNovelties}
+                  onChange={handleNoveltiesUpload}
+                  className="hidden"
+                />
+              </label>
+            </>
           ) : isSupervisor ? (
             <div className="bg-amber-50 border border-amber-300 text-amber-900 px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2">
               <span>👔 Vista de Zona:</span>

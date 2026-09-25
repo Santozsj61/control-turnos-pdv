@@ -1,8 +1,9 @@
 import { supabase, isSupabaseConfigured } from './supabaseClient.js';
 import { calculateShiftHours, calculateMonSatHours, countMonthlySundays, timeToMinutes } from '../utils/calculator.js';
 import { runReconciliation } from '../utils/reconciliation.js';
-import { parsePunchExcel } from '../utils/excelParser.js';
+import { parsePunchExcel, parseNoveltiesReport } from '../utils/excelParser.js';
 import { initialSupervisors, initialPDVs, initialUsers } from '../data/seedData.js';
+import { initialNovelties } from '../data/initialNovelties.js';
 
 // Fallback helper for local dev server if Supabase keys aren't set yet
 async function fetchLocal(url, options = {}) {
@@ -935,6 +936,60 @@ export const api = {
   // ----------------------------------------------------
   // 8. Reconciliation & Auditor VRX Engine
   // ----------------------------------------------------
+  getNovelties: async () => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        const stored = localStorage.getItem('control_turnos_novelties');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+        // Initialize default seed novelties
+        localStorage.setItem('control_turnos_novelties', JSON.stringify(initialNovelties));
+        return initialNovelties;
+      } catch (e) {
+        console.error('Error reading novelties:', e);
+      }
+    }
+    return initialNovelties;
+  },
+
+  uploadNoveltiesFile: async (file) => {
+    let parsedNovelties = [];
+    if (file.name.endsWith('.csv') || file.type?.includes('csv') || file.type?.includes('text')) {
+      const text = await file.text();
+      parsedNovelties = parseNoveltiesReport(text);
+    } else {
+      const arrayBuffer = await file.arrayBuffer();
+      parsedNovelties = parseNoveltiesReport(arrayBuffer);
+    }
+
+    if (!parsedNovelties || parsedNovelties.length === 0) {
+      throw new Error('No se encontraron registros de novedades válidos en el archivo.');
+    }
+
+    // Persist to localStorage
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        const existingRaw = localStorage.getItem('control_turnos_novelties');
+        const existing = existingRaw ? JSON.parse(existingRaw) : initialNovelties;
+        const mergedMap = new Map();
+        existing.forEach(n => mergedMap.set(`${n.documentId}-${n.startDate}-${n.endDate}`, n));
+        parsedNovelties.forEach(n => mergedMap.set(`${n.documentId}-${n.startDate}-${n.endDate}`, n));
+        const combined = Array.from(mergedMap.values());
+        localStorage.setItem('control_turnos_novelties', JSON.stringify(combined));
+      } catch (e) {
+        console.error('Error saving novelties:', e);
+      }
+    }
+
+    return {
+      success: true,
+      count: parsedNovelties.length,
+      novelties: parsedNovelties
+    };
+  },
+
   getReconciliation: async ({ weekStart, pdvId, supervisorId, documentId }) => {
     if (!isSupabaseConfigured) {
       const q = new URLSearchParams({
@@ -946,13 +1001,14 @@ export const api = {
       return fetchLocal(`/api/reconciliation${q ? '?' + q : ''}`);
     }
 
-    const [users, pdvs, supervisors, schedules, punches, config] = await Promise.all([
+    const [users, pdvs, supervisors, schedules, punches, config, novelties] = await Promise.all([
       api.getUsers(),
       api.getPDVs(),
       api.getSupervisors(),
       api.getSchedules({ weekStart, pdvId, supervisorId }),
       api.getPunchRecords(),
-      api.getConfig()
+      api.getConfig(),
+      api.getNovelties()
     ]);
 
     return runReconciliation({
@@ -961,6 +1017,7 @@ export const api = {
       supervisors,
       allSchedules: schedules,
       allPunches: punches,
+      novelties,
       config,
       weekStart,
       pdvId,
