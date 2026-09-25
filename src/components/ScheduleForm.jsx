@@ -14,7 +14,8 @@ import {
   CURRENT_WEEK_NUMBER, 
   formatExcelTime, 
   detectWeekFromHeaders, 
-  cleanNormalizeStr 
+  cleanNormalizeStr,
+  findPdvByCodeOrName 
 } from '../utils/weeks.js';
 import { calculateShiftHours, calculateMonSatHours, countMonthlySundays } from '../utils/calculator.js';
 import { api } from '../services/api.js';
@@ -770,9 +771,14 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
               (nameVal && e.fullName.toUpperCase().includes(nameVal))
             );
 
+            // Match PDV from file row, or fall back to selected PDV
+            const matchedPdv = findPdvByCodeOrName(pdvVal, pdvs) || 
+              (selectedPdvId !== 'ALL' ? allowedPdvs.find(p => p.id === selectedPdvId) : null) || 
+              allowedPdvs[0] || 
+              { id: 'pdv-1', name: 'PDV Principal' };
+
             // If not found in current loaded scope, find or associate
             if (!emp && (docVal || nameVal)) {
-              const matchedPdv = pdvs.find(p => p.name?.toLowerCase().includes(pdvVal.toLowerCase()) || p.code === pdvVal || p.id === pdvVal) || allowedPdvs[0] || { id: 'pdv-1', name: 'PDV Principal' };
               emp = {
                 id: `emp-doc-${docVal || Date.now()}`,
                 fullName: nameVal || `COLABORADOR ${docVal}`,
@@ -783,6 +789,8 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
                 contractType: 'FIJO'
               };
               updatedEmployees.push(emp);
+            } else if (emp && pdvVal && matchedPdv) {
+              emp.pdvId = matchedPdv.id;
             }
 
             if (!emp) continue;
@@ -821,7 +829,7 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
               return parseShiftCellString(cellVal, wd);
             });
 
-            const empPdv = pdvs.find(p => p.id === emp.pdvId) || allowedPdvs.find(p => p.id === emp.pdvId) || {};
+            const empPdv = pdvs.find(p => p.id === emp.pdvId) || allowedPdvs.find(p => p.id === emp.pdvId) || matchedPdv || {};
 
             const monSatStats = calculateMonSatHours(dayShifts, 42);
             const sundayStats = countMonthlySundays([], emp.id, activeWeekStart.substring(0, 7), dayShifts);
@@ -829,6 +837,7 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
             newMatrix[emp.id] = {
               userId: emp.id,
               employee: emp,
+              pdvId: emp.pdvId || matchedPdv.id,
               pdv: empPdv,
               isSubmitted: true,
               submittedAt: new Date().toISOString(),
@@ -858,11 +867,12 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
             const targetPdvId = selectedPdvId !== 'ALL' ? selectedPdvId : (allowedPdvs[0]?.id || 'pdv-1');
             if (api.isConfigured) {
               await api.saveBatchPdvSchedules({
-                pdvId: targetPdvId,
+                pdvId: selectedPdvId,
                 weekStart: activeWeekStart,
                 weekEnd: weekDates[6].date,
                 schedules: Object.values(newMatrix).map(u => ({
                   userId: u.userId,
+                  pdvId: u.pdvId || u.employee?.pdvId || targetPdvId,
                   documentId: u.employee?.documentId,
                   fullName: u.employee?.fullName,
                   position: u.employee?.position,
@@ -876,12 +886,13 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                  pdvId: targetPdvId,
+                  pdvId: selectedPdvId,
                   weekStart: activeWeekStart,
                   weekEnd: weekDates[6].date,
                   forceAdmin: true,
                   schedules: Object.values(newMatrix).map(u => ({
                     userId: u.userId,
+                    pdvId: u.pdvId || u.employee?.pdvId || targetPdvId,
                     documentId: u.employee?.documentId,
                     fullName: u.employee?.fullName,
                     position: u.employee?.position,

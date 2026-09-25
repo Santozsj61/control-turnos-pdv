@@ -168,3 +168,55 @@ export function detectWeekFromHeaders(headers) {
 
   return null;
 }
+
+/**
+ * Busca de forma inteligente un PDV por código o nombre dentro de la lista de PDVs.
+ * Soporta códigos como 'Q073 - Yumbo', 'Q146 Palmira', 'QST001', 'FQ02', etc.
+ */
+export function findPdvByCodeOrName(rawPdv, pdvsList) {
+  if (!rawPdv || !pdvsList || !Array.isArray(pdvsList) || pdvsList.length === 0) return null;
+  const clean = String(rawPdv).trim();
+  if (!clean) return null;
+
+  // 1. Coincidencia exacta por ID o por Código
+  const exact = pdvsList.find(p => p.id === clean || p.code === clean || (p.code && p.code.toLowerCase() === clean.toLowerCase()));
+  if (exact) return exact;
+
+  // 2. Coincidencia exacta por Nombre
+  const exactName = pdvsList.find(p => p.name && p.name.toLowerCase() === clean.toLowerCase());
+  if (exactName) return exactName;
+
+  // 3. Extraer prefijo y número (ej: "Q073 - Yumbo", "Q146 Palmira", "QST001", "FQ02", "N10")
+  const m = clean.match(/^(QST|FQ|Q|N)\s*0*(\d+)/i);
+  if (m) {
+    const pref = m[1].toUpperCase();
+    const num = parseInt(m[2], 10);
+    // Buscar coincidencia de prefijo y número
+    const foundPrefNum = pdvsList.find(p => {
+      const pm = (p.code || p.name || '').match(/^(QST|FQ|Q|N)\s*0*(\d+)/i);
+      return pm && pm[1].toUpperCase() === pref && parseInt(pm[2], 10) === num;
+    });
+    if (foundPrefNum) return foundPrefNum;
+
+    // Buscar coincidencia de solo número si el prefijo no es crítico
+    const foundNum = pdvsList.find(p => {
+      const pm = (p.code || p.name || '').match(/^(QST|FQ|Q|N)\s*0*(\d+)/i);
+      return pm && parseInt(pm[2], 10) === num;
+    });
+    if (foundNum) return foundNum;
+  }
+
+  // 4. Coincidencia normalizada sin caracteres especiales
+  const cleanNorm = clean.toLowerCase().replace(/[^a-z0-9]/g, '');
+  if (cleanNorm) {
+    const foundNorm = pdvsList.find(p => {
+      const pNorm = (p.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      const pCodeNorm = (p.code || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      return (pNorm && (pNorm.includes(cleanNorm) || cleanNorm.includes(pNorm))) ||
+             (pCodeNorm && (pCodeNorm.includes(cleanNorm) || cleanNorm.includes(pCodeNorm)));
+    });
+    if (foundNorm) return foundNorm;
+  }
+
+  return null;
+}

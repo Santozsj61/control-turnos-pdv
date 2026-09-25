@@ -578,6 +578,9 @@ export const api = {
       const { userId, shifts, notes } = item;
       if (!userId || !shifts) continue;
 
+      // Extract specific PDV ID for the employee if available in batch upload, otherwise fallback to safePdvId
+      const empPdvId = item.pdvId || item.pdv_id || item.employee?.pdvId || item.employee?.pdv_id || item.pdv?.id || safePdvId;
+
       // 1. Ensure user exists in users table so foreign key constraint (schedules_user_id_fkey) is always satisfied
       try {
         const docId = item.documentId || (String(userId).startsWith('emp-doc-') ? String(userId).replace('emp-doc-', '') : '1000000000');
@@ -588,7 +591,7 @@ export const api = {
           full_name: fullName,
           document_id: docId,
           role: 'EMPLOYEE',
-          pdv_id: safePdvId,
+          pdv_id: empPdvId,
           position: item.position || 'ASESOR(A) DE IMAGEN',
           contract_type: item.contractType || 'FIJO',
           is_active: true
@@ -604,7 +607,7 @@ export const api = {
           .select('*, pdvs(name)')
           .eq('user_id', userId)
           .eq('week_start', weekStart)
-          .neq('pdv_id', safePdvId);
+          .neq('pdv_id', empPdvId);
         
         if (otherSched && otherSched.length > 0) {
           throw new Error(`⚠️ Restricción de Cédula Única: El colaborador ya tiene programación registrada en la semana ${weekStart} en otro PDV.`);
@@ -650,7 +653,7 @@ export const api = {
       const schedPayload = {
         id: `sched-${userId}-${weekStart}`,
         user_id: userId,
-        pdv_id: safePdvId,
+        pdv_id: empPdvId,
         week_start: weekStart,
         week_end: weekEnd || shifts[shifts.length - 1]?.date || weekStart,
         is_submitted: true,
