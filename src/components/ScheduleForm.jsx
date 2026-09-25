@@ -225,16 +225,6 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
         }
       } catch (e) {}
 
-      // Filter by selected PDV if not 'ALL'
-      let filteredEmps = emps;
-      if (selectedPdvId && selectedPdvId !== 'ALL') {
-        filteredEmps = emps.filter(e => e.pdvId === selectedPdvId);
-      } else if (isSupervisor) {
-        filteredEmps = emps.filter(e => allowedPdvs.some(ap => ap.id === e.pdvId || ap.code === e.pdvId));
-      } else if (currentUser?.role === 'PDV') {
-        filteredEmps = emps.filter(e => e.pdvId === currentUser.pdvId || e.pdvId === activeSinglePdv?.id);
-      }
-      setAllEmployees(filteredEmps);
       setAllHistoricalEmployees(emps);
 
       // 2. Fetch Schedules (Supabase cloud first, then local fallback)
@@ -242,7 +232,6 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
       try {
         if (api.isConfigured) {
           const filters = { weekStart: selectedWeekStart };
-          if (selectedPdvId && selectedPdvId !== 'ALL') filters.pdvId = selectedPdvId;
           const supScheds = await api.getSchedules(filters);
           if (Array.isArray(supScheds) && supScheds.length > 0) {
             existingScheds = supScheds;
@@ -277,38 +266,56 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
         }
       } catch (e) {}
 
-      // 3. Incorporate any employees found in existingScheds (e.g., uploaded by another user in Supabase)
+      // 3. Incorporate any employees found in existingScheds who are not in emps
       existingScheds.forEach(es => {
         const u = es.user || {};
-        if (isSupervisor && !allowedPdvs.some(ap => ap.id === es.pdvId || ap.code === es.pdvId)) {
-          return;
-        }
-        if (currentUser?.role === 'PDV' && es.pdvId !== currentUser.pdvId && es.pdvId !== activeSinglePdv?.id) {
-          return;
-        }
         if (!emps.some(e => e.id === es.userId || (u.document_id && String(e.documentId) === String(u.document_id)))) {
+          const doc = u.document_id || (es.userId.startsWith('emp-') ? es.userId.replace('emp-', '') : '1000000000');
           const newEmp = {
-            id: es.userId,
-            fullName: u.full_name || `COLABORADOR ${es.userId}`,
-            documentId: u.document_id || (es.userId.startsWith('emp-doc-') ? es.userId.replace('emp-doc-', '') : '1000000000'),
+            id: es.userId.startsWith('emp-') ? es.userId : `emp-${doc}`,
+            fullName: u.full_name || `COLABORADOR ${doc}`,
+            documentId: doc,
             position: u.position || 'ASESOR(A) DE IMAGEN',
             role: 'EMPLOYEE',
-            pdvId: es.pdvId || selectedPdvId || 'pdv-1',
+            pdvId: u.pdv_id || es.pdvId || 'pdv-1',
             contractType: u.contract_type || 'FIJO'
           };
           emps.push(newEmp);
-          if (!filteredEmps.some(fe => fe.id === newEmp.id)) {
-            filteredEmps.push(newEmp);
-          }
         }
       });
+      setAllHistoricalEmployees(emps);
+
+      // 4. Resolve active employees for this specific week and scope
+      // Regla de movilidad semanal:
+      // - Si un colaborador tiene programación registrada para esta semana en un PDV, pertenece a ese PDV esa semana.
+      // - Si no tiene programación en otro PDV, pertenece a su PDV de origen.
+      const targetPdv = (selectedPdvId && selectedPdvId !== 'ALL') ? selectedPdvId : (currentUser?.role === 'PDV' ? (currentUser.pdvId || activeSinglePdv?.id) : null);
+
+      let filteredEmps = emps;
+      if (targetPdv) {
+        filteredEmps = emps.filter(e => {
+          const empSched = existingScheds.find(s => s.userId === e.id || (e.documentId && s.user?.document_id && String(s.user.document_id) === String(e.documentId)));
+          if (empSched) {
+            return empSched.pdvId === targetPdv;
+          }
+          return e.pdvId === targetPdv;
+        });
+      } else if (isSupervisor) {
+        filteredEmps = emps.filter(e => {
+          const empSched = existingScheds.find(s => s.userId === e.id || (e.documentId && s.user?.document_id && String(e.documentId) === String(s.user.document_id)));
+          const activePdvId = empSched ? empSched.pdvId : e.pdvId;
+          return allowedPdvs.some(ap => ap.id === activePdvId || ap.code === activePdvId);
+        });
+      }
+      setAllEmployees(filteredEmps);
 
       const weekDates = getDatesForWeek(selectedWeekStart);
       const newMatrix = {};
 
       for (const emp of filteredEmps) {
         const found = existingScheds.find(s => s.userId === emp.id || (emp.documentId && s.user?.document_id && String(s.user.document_id) === String(emp.documentId)));
-        const empPdv = pdvs.find(p => p.id === emp.pdvId) || allowedPdvs.find(p => p.id === emp.pdvId) || {};
+        const weekPdvId = found?.pdvId || emp.pdvId || targetPdv || 'pdv-1';
+        const empPdv = pdvs.find(p => p.id === weekPdvId) || allowedPdvs.find(p => p.id === weekPdvId) || {};
         let userShifts = [];
         let isSubmitted = false;
         let submittedAt = null;
@@ -339,16 +346,10 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
             };
           });
         } else {
-          // If this is an employee uploaded from an Excel file, and they have NO schedule for this week:
-          // DO NOT show them in this week! (They remain strictly anchored to the week they were uploaded)
-          const isCustomEmp = emp.id?.startsWith('emp-doc-') || emp.isCustom;
-          if (isCustomEmp) {
-            continue;
-          }
-
-          // Unprogrammed regular store employee: start with empty/no programado, NOT fake work hours
           isSubmitted = false;
-          userShifts = weekDates.map((wd) => ({
+          submittedAt = null;
+          notes = '';
+          userShifts = weekDates.map(wd => ({
             ...wd,
             shiftType: 'NO_PROGRAMADO',
             isDayOff: false,
@@ -362,12 +363,13 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
           }));
         }
 
-        const monSatStats = calculateMonSatHours(userShifts, 42);
+        const monSatStats = calculateMonSatHours(userShifts, emp.weeklyMaxHours || 42);
         const sundayStats = countMonthlySundays([], emp.id, selectedWeekStart.substring(0, 7), userShifts);
 
         newMatrix[emp.id] = {
           userId: emp.id,
           employee: emp,
+          pdvId: weekPdvId,
           pdv: empPdv,
           isSubmitted,
           submittedAt,
@@ -764,11 +766,15 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
             const nameVal = nameKey ? String(row[nameKey]).trim().toUpperCase() : '';
             const pdvVal = pdvKey ? String(row[pdvKey]).trim() : '';
 
-            // Match existing employee
-            let emp = allEmployees.find(e => 
+            // Match existing employee across historical base or loaded employees
+            let emp = (allHistoricalEmployees || []).find(e => 
               (docVal && String(e.documentId).trim() === docVal) || 
               (docVal && String(e.code).trim() === docVal) ||
-              (nameVal && e.fullName.toUpperCase().includes(nameVal))
+              (nameVal && e.fullName?.toUpperCase().includes(nameVal))
+            ) || (allEmployees || []).find(e => 
+              (docVal && String(e.documentId).trim() === docVal) || 
+              (docVal && String(e.code).trim() === docVal) ||
+              (nameVal && e.fullName?.toUpperCase().includes(nameVal))
             );
 
             // Match PDV from file row, or fall back to selected PDV
@@ -777,10 +783,10 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
               allowedPdvs[0] || 
               { id: 'pdv-1', name: 'PDV Principal' };
 
-            // If not found in current loaded scope, find or associate
+            // If not found in loaded scope, create standardized employee object without duplicates
             if (!emp && (docVal || nameVal)) {
               emp = {
-                id: `emp-doc-${docVal || Date.now()}`,
+                id: `emp-${docVal || Date.now()}`,
                 fullName: nameVal || `COLABORADOR ${docVal}`,
                 documentId: docVal || '1000000000',
                 position: 'ASESOR(A) DE IMAGEN',
@@ -789,8 +795,6 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
                 contractType: 'FIJO'
               };
               updatedEmployees.push(emp);
-            } else if (emp && pdvVal && matchedPdv) {
-              emp.pdvId = matchedPdv.id;
             }
 
             if (!emp) continue;
@@ -829,7 +833,7 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
               return parseShiftCellString(cellVal, wd);
             });
 
-            const empPdv = pdvs.find(p => p.id === emp.pdvId) || allowedPdvs.find(p => p.id === emp.pdvId) || matchedPdv || {};
+            const empPdv = matchedPdv || pdvs.find(p => p.id === emp.pdvId) || allowedPdvs.find(p => p.id === emp.pdvId) || {};
 
             const monSatStats = calculateMonSatHours(dayShifts, 42);
             const sundayStats = countMonthlySundays([], emp.id, activeWeekStart.substring(0, 7), dayShifts);
@@ -837,7 +841,7 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
             newMatrix[emp.id] = {
               userId: emp.id,
               employee: emp,
-              pdvId: emp.pdvId || matchedPdv.id,
+              pdvId: matchedPdv.id,
               pdv: empPdv,
               isSubmitted: true,
               submittedAt: new Date().toISOString(),
@@ -1331,18 +1335,87 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
   const zoneSundayApprovalReqCount = Object.values(scheduleMatrix).filter(u => u.sundayStats?.requiresApproval).length;
 
   // -----------------------------------------------------------------
+  // DETECCIÓN INTELIGENTE DE TURNOS REPETITIVOS (SUGERENCIAS DINÁMICAS)
+  // -----------------------------------------------------------------
+  const detectedShiftSuggestions = useMemo(() => {
+    const counts = {};
+
+    // 1. Recorrer scheduleMatrix para contar frecuencias de turnos reales programados
+    Object.values(scheduleMatrix || {}).forEach(row => {
+      if (!row || !Array.isArray(row.shifts)) return;
+      row.shifts.forEach(s => {
+        if (s && s.shiftType === 'ORDINARIO' && s.startTime && s.endTime && !s.isDayOff) {
+          const st = String(s.startTime).trim();
+          const et = String(s.endTime).trim();
+          if (st && et && st.includes(':') && et.includes(':')) {
+            const key = `${st}-${et}`;
+            counts[key] = (counts[key] || 0) + 1;
+          }
+        }
+      });
+    });
+
+    // 2. Ordenar por frecuencia descendente
+    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+
+    // 3. Convertir a sugerencias dinámicas con cálculo de jornada y almuerzo
+    const dynamicPresets = sorted.map(([key, count]) => {
+      const [start, end] = key.split('-');
+      const calc = calculateShiftHours(start, end, selectedWeekStart);
+      const lunchTxt = calc.lunchHours > 0 ? ` | Almuerzo ${calc.lunchHours}h` : ' | Sin Almuerzo';
+      return {
+        start,
+        end,
+        count,
+        isRepetitive: true,
+        label: `${start} - ${end} (${calc.netHours}h Netas${lunchTxt})`,
+        badge: `Repetido ${count}x`
+      };
+    });
+
+    // 4. Si hay turnos repetitivos detectados, reemplazan a los por defecto
+    if (dynamicPresets.length > 0) {
+      const topSuggestions = dynamicPresets.slice(0, 8);
+      if (topSuggestions.length < 4) {
+        STANDARD_SHIFT_PRESETS.forEach(def => {
+          if (!topSuggestions.some(r => r.start === def.start && r.end === def.end)) {
+            topSuggestions.push({ ...def, count: 0, isRepetitive: false });
+          }
+        });
+      }
+      return topSuggestions;
+    }
+
+    // 5. Fallback a los estándares si no se han cargado turnos en la semana
+    return STANDARD_SHIFT_PRESETS.map(p => ({ ...p, count: 0, isRepetitive: false }));
+  }, [scheduleMatrix, selectedWeekStart]);
+
+  // -----------------------------------------------------------------
   // FILTERING & SORTING PIPELINE
   // -----------------------------------------------------------------
   const filteredAndSortedEmployees = useMemo(() => {
     let result = [...allEmployees];
 
-    // 1. Filter by specific PDV
+    // 1. Filter by specific PDV (considerando asignación de turno de la semana activa o PDV de origen)
     if (selectedPdvId && selectedPdvId !== 'ALL') {
-      result = result.filter(e => e.pdvId === selectedPdvId);
+      result = result.filter(e => {
+        const row = scheduleMatrix[e.id];
+        const assignedPdvId = row?.pdvId || row?.pdv?.id || e.pdvId;
+        return assignedPdvId === selectedPdvId;
+      });
     } else if (isSupervisor) {
-      result = result.filter(e => allowedPdvs.some(ap => ap.id === e.pdvId || ap.code === e.pdvId));
+      result = result.filter(e => {
+        const row = scheduleMatrix[e.id];
+        const assignedPdvId = row?.pdvId || row?.pdv?.id || e.pdvId;
+        return allowedPdvs.some(ap => ap.id === assignedPdvId || ap.code === assignedPdvId);
+      });
     } else if (currentUser?.role === 'PDV') {
-      result = result.filter(e => e.pdvId === currentUser.pdvId || e.pdvId === activeSinglePdv?.id);
+      const myPdv = currentUser.pdvId || activeSinglePdv?.id;
+      result = result.filter(e => {
+        const row = scheduleMatrix[e.id];
+        const assignedPdvId = row?.pdvId || row?.pdv?.id || e.pdvId;
+        return assignedPdvId === myPdv;
+      });
     }
 
     // "si esta en blanco no visualizar": For Supervisor or locked schedule, hide empty rows.
@@ -2087,6 +2160,26 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
         </form>
       )}
 
+      {/* Barra de Sugerencias de Turnos Repetitivos Detectados en el PDV */}
+      {detectedShiftSuggestions.some(s => s.isRepetitive) && (
+        <div className="bg-amber-50/80 border border-amber-200/90 rounded-2xl px-4 py-2.5 mb-3 flex items-center justify-between flex-wrap gap-2 text-xs shadow-2xs">
+          <div className="flex items-center gap-2 font-bold text-amber-950">
+            <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
+            <span>Turnos repetitivos sugeridos para este PDV:</span>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            {detectedShiftSuggestions.filter(s => s.isRepetitive).slice(0, 6).map((p, i) => (
+              <span key={i} className="bg-white border border-amber-300 text-slate-800 font-extrabold px-2.5 py-1 rounded-xl shadow-2xs text-xs flex items-center gap-1.5">
+                <span>{p.start} - {p.end}</span>
+                <span className="text-[10px] font-black bg-amber-100 text-amber-800 px-1.5 py-0.2 rounded-full border border-amber-200">
+                  {p.count}x
+                </span>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* ---------------------------------------------------- */}
       {/* 5. MAIN HORIZONTAL SCHEDULE MATRIX (Lunes a Domingo) */}
       {/* ---------------------------------------------------- */}
@@ -2399,13 +2492,14 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
                 <div className="space-y-3 pt-1">
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
-                      <label className="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider">
-                        Horarios Frecuentes PDV (1 Clic)
+                      <label className="text-[11px] font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                        {detectedShiftSuggestions.some(s => s.isRepetitive) ? 'Sugerencias de Turnos Repetitivos Detectados' : 'Horarios Frecuentes PDV (1 Clic)'}
                       </label>
                       <span className="text-[10px] text-blue-600 font-bold">Selecciona para aplicar de inmediato</span>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-56 overflow-y-auto pr-1">
-                      {STANDARD_SHIFT_PRESETS.map((p, pIdx) => {
+                      {detectedShiftSuggestions.map((p, pIdx) => {
                         const isCurrent = shift.startTime === p.start && shift.endTime === p.end;
                         return (
                           <button
@@ -2418,12 +2512,23 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
                             className={`text-left text-xs font-bold p-2.5 rounded-xl border transition flex items-center justify-between cursor-pointer ${
                               isCurrent 
                                 ? 'bg-blue-600 text-white border-blue-600 shadow-xs' 
-                                : 'bg-slate-50 hover:bg-blue-50 text-slate-800 hover:text-blue-700 border-slate-200'
+                                : p.isRepetitive 
+                                  ? 'bg-amber-50/70 hover:bg-amber-100 text-slate-800 hover:text-amber-950 border-amber-300 shadow-2xs' 
+                                  : 'bg-slate-50 hover:bg-blue-50 text-slate-800 hover:text-blue-700 border-slate-200'
                             }`}
                           >
                             <div>
-                              <div className="font-extrabold text-xs">{p.start} - {p.end}</div>
-                              <div className={`text-[10px] ${isCurrent ? 'text-blue-100' : 'text-slate-400'}`}>
+                              <div className="font-extrabold text-xs flex items-center gap-1.5">
+                                <span>{p.start} - {p.end}</span>
+                                {p.isRepetitive && (
+                                  <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-bold ${
+                                    isCurrent ? 'bg-blue-800 text-blue-100' : 'bg-amber-200 text-amber-900 border border-amber-300'
+                                  }`}>
+                                    {p.count}x
+                                  </span>
+                                )}
+                              </div>
+                              <div className={`text-[10px] ${isCurrent ? 'text-blue-100' : 'text-slate-500'}`}>
                                 {p.label.split('|')[0].replace(`${p.start} - ${p.end}`, '').replace('(', '').replace(')', '').trim()}
                               </div>
                             </div>

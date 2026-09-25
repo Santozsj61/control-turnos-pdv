@@ -581,31 +581,43 @@ export const api = {
       // Extract specific PDV ID for the employee if available in batch upload, otherwise fallback to safePdvId
       const empPdvId = item.pdvId || item.pdv_id || item.employee?.pdvId || item.employee?.pdv_id || item.pdv?.id || safePdvId;
 
-      // 1. Ensure user exists in users table so foreign key constraint (schedules_user_id_fkey) is always satisfied
+      // 1. Ensure user exists in users table so foreign key constraint (schedules_user_id_fkey) is always satisfied.
+      // Do NOT overwrite user's base pdv_id if they already exist, preserving their PDV de origen.
+      const rawUserId = String(userId || '');
+      const docId = String(item.documentId || (rawUserId.startsWith('emp-doc-') ? rawUserId.replace('emp-doc-', '') : (rawUserId.startsWith('emp-') ? rawUserId.replace('emp-', '') : ''))).trim();
+      const normalizedUserId = (rawUserId.startsWith('emp-') && !rawUserId.startsWith('emp-doc-')) ? rawUserId : (docId ? `emp-${docId}` : rawUserId);
+
       try {
-        const docId = item.documentId || (String(userId).startsWith('emp-doc-') ? String(userId).replace('emp-doc-', '') : '1000000000');
-        const fullName = item.fullName || item.employeeName || `COLABORADOR ${docId}`;
-        const userPayload = {
-          id: userId,
-          username: `user_${String(userId).replace(/[^a-zA-Z0-9_-]/g, '_')}`,
-          full_name: fullName,
-          document_id: docId,
-          role: 'EMPLOYEE',
-          pdv_id: empPdvId,
-          position: item.position || 'ASESOR(A) DE IMAGEN',
-          contract_type: item.contractType || 'FIJO',
-          is_active: true
-        };
-        await supabase.from('users').upsert(userPayload, { onConflict: 'id' });
+        const { data: existingUser } = await supabase.from('users')
+          .select('id, pdv_id')
+          .or(`id.eq.${normalizedUserId}${docId ? `,document_id.eq.${docId}` : ''}`)
+          .limit(1)
+          .maybeSingle();
+
+        if (!existingUser) {
+          const fullName = item.fullName || item.employeeName || `COLABORADOR ${docId || normalizedUserId}`;
+          const userPayload = {
+            id: normalizedUserId,
+            username: `emp_${docId || normalizedUserId}`,
+            full_name: fullName,
+            document_id: docId || '1000000000',
+            role: 'EMPLOYEE',
+            pdv_id: empPdvId,
+            position: item.position || 'ASESOR(A) DE IMAGEN',
+            contract_type: item.contractType || 'FIJO',
+            is_active: true
+          };
+          await supabase.from('users').insert(userPayload);
+        }
       } catch (uErr) {
-        console.warn('Could not auto-upsert user for schedule FK:', uErr);
+        console.warn('Could not auto-check user for schedule FK:', uErr);
       }
 
       // Unique Cedula check across other PDVs for this week
       try {
         const { data: otherSched } = await supabase.from('schedules')
           .select('*, pdvs(name)')
-          .eq('user_id', userId)
+          .eq('user_id', normalizedUserId)
           .eq('week_start', weekStart)
           .neq('pdv_id', empPdvId);
         
@@ -651,8 +663,8 @@ export const api = {
       const totalLunchHours = +calculatedShifts.reduce((sum, s) => sum + (s.lunchHours || 0), 0).toFixed(2);
 
       const schedPayload = {
-        id: `sched-${userId}-${weekStart}`,
-        user_id: userId,
+        id: `sched-${normalizedUserId}-${weekStart}`,
+        user_id: normalizedUserId,
         pdv_id: empPdvId,
         week_start: weekStart,
         week_end: weekEnd || shifts[shifts.length - 1]?.date || weekStart,
