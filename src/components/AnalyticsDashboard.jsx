@@ -58,8 +58,8 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
   );
 
   const [periodType, setPeriodType] = useState('MONTH'); // 'MONTH' | 'WEEK'
-  const [selectedMonth, setSelectedMonth] = useState('2026-09');
-  const [selectedWeek, setSelectedWeek] = useState('2026-09-21');
+  const [selectedMonth, setSelectedMonth] = useState('2026-06');
+  const [selectedWeek, setSelectedWeek] = useState('2026-06-29');
   const [selectedZone, setSelectedZone] = useState(
     isSupervisor ? (currentSupervisorObj?.id || '') : ''
   );
@@ -109,13 +109,14 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
   // Statistics for Schedule Modifications and Most Repeated Motives
   const modificationStats = useMemo(() => {
     let filteredPerms = permissions;
-    if (periodType === 'WEEK' && selectedWeek) {
+    if (periodType === 'WEEK' && selectedWeek && /^\d{4}-\d{2}-\d{2}$/.test(selectedWeek)) {
       const d = new Date(selectedWeek + 'T12:00:00Z');
-      const dEnd = new Date(d);
-      dEnd.setDate(dEnd.getDate() + 6);
-      const startStr = selectedWeek;
-      const endStr = dEnd.toISOString().split('T')[0];
-      filteredPerms = permissions.filter(p => p.date >= startStr && p.date <= endStr);
+      if (!isNaN(d.getTime())) {
+        const dEnd = new Date(d.getTime() + 6 * 86400000);
+        const startStr = selectedWeek;
+        const endStr = dEnd.toISOString().split('T')[0];
+        filteredPerms = permissions.filter(p => p.date >= startStr && p.date <= endStr);
+      }
     } else if (periodType === 'MONTH' && selectedMonth) {
       filteredPerms = permissions.filter(p => p.date && p.date.startsWith(selectedMonth));
     }
@@ -252,16 +253,20 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
     if (!analyticsData) return;
     const wb = XLSX.utils.book_new();
 
-    // Sheet 1: MoM Summary
+    const periodLabel = periodType === 'WEEK' ? `Semana (${selectedWeek})` : `Mes Actual (${selectedMonth})`;
+    const prevPeriodLabel = periodType === 'WEEK' ? 'Semana Anterior' : 'Mes Anterior';
+    const periodFileStr = periodType === 'WEEK' ? `Semana_${selectedWeek}` : selectedMonth;
+
+    // Sheet 1: Summary
     const summaryData = [
-      { 'Concepto': 'Horas Extras (HE)', 'Mes Actual (Sep 2026)': momMetrics.overtime.current, 'Mes Anterior (Ago 2026)': momMetrics.overtime.previous, 'Variación MoM (hrs)': momMetrics.overtime.diff, 'Variación %': `${momMetrics.overtime.pctChange}%` },
-      { 'Concepto': 'Recargo Nocturno (RN)', 'Mes Actual (Sep 2026)': momMetrics.night.current, 'Mes Anterior (Ago 2026)': momMetrics.night.previous, 'Variación MoM (hrs)': momMetrics.night.diff, 'Variación %': `${momMetrics.night.pctChange}%` },
-      { 'Concepto': 'Dominicales (DOM)', 'Mes Actual (Sep 2026)': momMetrics.sunday.current, 'Mes Anterior (Ago 2026)': momMetrics.sunday.previous, 'Variación MoM (hrs)': momMetrics.sunday.diff, 'Variación %': `${momMetrics.sunday.pctChange}%` },
-      { 'Concepto': 'Festivos (FEST)', 'Mes Actual (Sep 2026)': momMetrics.holiday.current, 'Mes Anterior (Ago 2026)': momMetrics.holiday.previous, 'Variación MoM (hrs)': momMetrics.holiday.diff, 'Variación %': `${momMetrics.holiday.pctChange}%` },
-      { 'Concepto': 'Total Suplementario', 'Mes Actual (Sep 2026)': momMetrics.totalSpecial.current, 'Mes Anterior (Ago 2026)': momMetrics.totalSpecial.previous, 'Variación MoM (hrs)': momMetrics.totalSpecial.diff, 'Variación %': `${momMetrics.totalSpecial.pctChange}%` }
+      { 'Concepto': 'Horas Extras (HE)', [periodLabel]: momMetrics.overtime.current, [prevPeriodLabel]: momMetrics.overtime.previous, 'Variación (hrs)': momMetrics.overtime.diff, 'Variación %': `${momMetrics.overtime.pctChange}%` },
+      { 'Concepto': 'Recargo Nocturno (RN)', [periodLabel]: momMetrics.night.current, [prevPeriodLabel]: momMetrics.night.previous, 'Variación (hrs)': momMetrics.night.diff, 'Variación %': `${momMetrics.night.pctChange}%` },
+      { 'Concepto': 'Dominicales (DOM)', [periodLabel]: momMetrics.sunday.current, [prevPeriodLabel]: momMetrics.sunday.previous, 'Variación (hrs)': momMetrics.sunday.diff, 'Variación %': `${momMetrics.sunday.pctChange}%` },
+      { 'Concepto': 'Festivos (FEST)', [periodLabel]: momMetrics.holiday.current, [prevPeriodLabel]: momMetrics.holiday.previous, 'Variación (hrs)': momMetrics.holiday.diff, 'Variación %': `${momMetrics.holiday.pctChange}%` },
+      { 'Concepto': 'Total Suplementario', [periodLabel]: momMetrics.totalSpecial.current, [prevPeriodLabel]: momMetrics.totalSpecial.previous, 'Variación (hrs)': momMetrics.totalSpecial.diff, 'Variación %': `${momMetrics.totalSpecial.pctChange}%` }
     ];
     const ws1 = XLSX.utils.json_to_sheet(summaryData);
-    XLSX.utils.book_append_sheet(wb, ws1, 'Resumen MoM');
+    XLSX.utils.book_append_sheet(wb, ws1, periodType === 'WEEK' ? 'Resumen Semanal' : 'Resumen MoM');
 
     // Sheet 2: Top PDVs
     const specialData = topPdvsSpecial.map(p => ({
@@ -273,8 +278,8 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
       'Dominicales (DOM)': p.sundayHours,
       'Festivos (FEST)': p.holidayHours || 0,
       'Total Suplementario': p.totalSpecialHours,
-      'Mes Anterior': p.prevSpecialHours || 0,
-      'Variación % MoM': `${p.momChangePct || 0}%`
+      [prevPeriodLabel]: p.prevSpecialHours || 0,
+      'Variación %': `${p.momChangePct || 0}%`
     }));
     const ws2 = XLSX.utils.json_to_sheet(specialData);
     XLSX.utils.book_append_sheet(wb, ws2, 'Detalle por PDV');
@@ -287,14 +292,14 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
       'Horas Programadas': z.scheduledHours,
       'Horas Reales': z.realHours,
       'Horas Suplementarias': z.specialHours,
-      'Mes Anterior': z.prevSpecialHours || 0,
-      'Variación % MoM': `${z.momChangePct || 0}%`,
+      [prevPeriodLabel]: z.prevSpecialHours || 0,
+      'Variación %': `${z.momChangePct || 0}%`,
       'Cumplimiento Operativo': `${z.complianceRate}%`
     }));
     const ws3 = XLSX.utils.json_to_sheet(zonesData);
     XLSX.utils.book_append_sheet(wb, ws3, 'Ranking Zonas');
 
-    XLSX.writeFile(wb, `Reporte_Liquidacion_Tiempo_Suplementario_${selectedMonth}.xlsx`);
+    XLSX.writeFile(wb, `Reporte_Liquidacion_Tiempo_Suplementario_${periodFileStr}.xlsx`);
   }
 
   return (
@@ -350,8 +355,16 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
                   onChange={(e) => setSelectedMonth(e.target.value)}
                   className="bg-slate-900 border border-slate-600 text-white text-xs font-bold rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-purple-500"
                 >
-                  <option value="2026-09">Septiembre 2026 (Actual)</option>
-                  <option value="2026-08">Agosto 2026 (Anterior)</option>
+                  <option value="2026-10">Octubre 2026</option>
+                  <option value="2026-09">Septiembre 2026</option>
+                  <option value="2026-08">Agosto 2026</option>
+                  <option value="2026-07">Julio 2026</option>
+                  <option value="2026-06">Junio 2026 (Semana 27 cargada 📊)</option>
+                  <option value="2026-05">Mayo 2026</option>
+                  <option value="2026-04">Abril 2026</option>
+                  <option value="2026-03">Marzo 2026</option>
+                  <option value="2026-02">Febrero 2026</option>
+                  <option value="2026-01">Enero 2026</option>
                 </select>
               </div>
             ) : (
@@ -361,11 +374,11 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
                 <select
                   value={selectedWeek}
                   onChange={(e) => setSelectedWeek(e.target.value)}
-                  className="bg-slate-900 border border-slate-600 text-white text-xs font-bold rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-purple-500 max-w-56"
+                  className="bg-slate-900 border border-slate-600 text-white text-xs font-bold rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-purple-500 max-w-xs md:max-w-sm"
                 >
                   {ALL_WEEKS_2026.map(w => (
-                    <option key={w.start} value={w.start}>
-                      Semana #{w.weekNum} ({w.start} al {w.end})
+                    <option key={w.weekStart} value={w.weekStart}>
+                      {w.label}
                     </option>
                   ))}
                 </select>
@@ -431,7 +444,7 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
           <div>
             <div className="text-2xl font-black text-slate-900">{momMetrics.overtime.current} hrs</div>
             <div className="text-[11px] text-slate-500 mt-0.5 flex items-center justify-between">
-              <span>Mes Anterior: <strong>{momMetrics.overtime.previous} hrs</strong></span>
+              <span>{periodType === 'WEEK' ? 'Semana Anterior:' : 'Mes Anterior:'} <strong>{momMetrics.overtime.previous} hrs</strong></span>
               <span className={momMetrics.overtime.diff > 0 ? 'text-rose-600 font-bold' : 'text-emerald-600 font-bold'}>
                 {momMetrics.overtime.diff > 0 ? `+${momMetrics.overtime.diff} hrs` : `${momMetrics.overtime.diff} hrs`}
               </span>
@@ -453,7 +466,7 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
           <div>
             <div className="text-2xl font-black text-slate-900">{momMetrics.night.current} hrs</div>
             <div className="text-[11px] text-slate-500 mt-0.5 flex items-center justify-between">
-              <span>Mes Anterior: <strong>{momMetrics.night.previous} hrs</strong></span>
+              <span>{periodType === 'WEEK' ? 'Semana Anterior:' : 'Mes Anterior:'} <strong>{momMetrics.night.previous} hrs</strong></span>
               <span className={momMetrics.night.diff > 0 ? 'text-rose-600 font-bold' : 'text-emerald-600 font-bold'}>
                 {momMetrics.night.diff > 0 ? `+${momMetrics.night.diff} hrs` : `${momMetrics.night.diff} hrs`}
               </span>
@@ -475,7 +488,7 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
           <div>
             <div className="text-2xl font-black text-slate-900">{momMetrics.sunday.current} hrs</div>
             <div className="text-[11px] text-slate-500 mt-0.5 flex items-center justify-between">
-              <span>Mes Anterior: <strong>{momMetrics.sunday.previous} hrs</strong></span>
+              <span>{periodType === 'WEEK' ? 'Semana Anterior:' : 'Mes Anterior:'} <strong>{momMetrics.sunday.previous} hrs</strong></span>
               <span className={momMetrics.sunday.diff > 0 ? 'text-rose-600 font-bold' : 'text-emerald-600 font-bold'}>
                 {momMetrics.sunday.diff > 0 ? `+${momMetrics.sunday.diff} hrs` : `${momMetrics.sunday.diff} hrs`}
               </span>
@@ -497,7 +510,7 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
           <div>
             <div className="text-2xl font-black text-slate-900">{momMetrics.holiday.current} hrs</div>
             <div className="text-[11px] text-slate-500 mt-0.5 flex items-center justify-between">
-              <span>Mes Anterior: <strong>{momMetrics.holiday.previous} hrs</strong></span>
+              <span>{periodType === 'WEEK' ? 'Semana Anterior:' : 'Mes Anterior:'} <strong>{momMetrics.holiday.previous} hrs</strong></span>
               <span className={momMetrics.holiday.diff > 0 ? 'text-rose-600 font-bold' : 'text-emerald-600 font-bold'}>
                 {momMetrics.holiday.diff > 0 ? `+${momMetrics.holiday.diff} hrs` : `${momMetrics.holiday.diff} hrs`}
               </span>
@@ -522,7 +535,9 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
 
         <div className="flex items-center gap-4 bg-slate-800/70 p-3 rounded-xl border border-slate-700 text-xs">
           <div>
-            <span className="text-slate-400 block text-[10px]">Agosto 2026:</span>
+            <span className="text-slate-400 block text-[10px]">
+              {periodType === 'WEEK' ? 'Semana Anterior:' : (analyticsData?.previousPeriodLabel || 'Periodo Anterior:')}
+            </span>
             <span className="font-black text-slate-200">{momMetrics.totalSpecial.previous} hrs</span>
           </div>
           <div className="h-6 w-px bg-slate-700"></div>
@@ -615,10 +630,10 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
             <div>
               <h3 className="font-extrabold text-sm text-slate-900 flex items-center gap-2">
                 <BarChart3 className="w-4 h-4 text-purple-600" />
-                <span>Evolución MoM por Tipo de Horas Suplementarias</span>
+                <span>Evolución {periodType === 'WEEK' ? 'Semanal' : 'MoM'} por Tipo de Horas Suplementarias</span>
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                Comparativo mes anterior (Agosto) vs mes actual (Septiembre)
+                {periodType === 'WEEK' ? 'Comparativo semana seleccionada vs semana anterior' : 'Comparativo del periodo actual vs periodo anterior'}
               </p>
             </div>
 
@@ -646,10 +661,10 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
             <div>
               <h3 className="font-extrabold text-sm text-slate-900 flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-blue-600" />
-                <span>Horas Programadas vs Reales por Semana</span>
+                <span>{periodType === 'WEEK' ? 'Distribución Diaria de Horas (Lunes a Domingo)' : 'Horas Programadas vs Reales por Semana'}</span>
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                Desempeño semanal de cumplimiento respecto a las 42 horas legales
+                {periodType === 'WEEK' ? 'Desglose de horas trabajadas por cada día de la semana seleccionada' : 'Desempeño semanal de cumplimiento respecto a las 42 horas legales'}
               </p>
             </div>
 
@@ -663,8 +678,8 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
                     contentStyle={{ borderRadius: 12, border: '1px solid #e2e8f0' }}
                   />
                   <Legend wrapperStyle={{ fontSize: 11 }} />
-                  <Area type="monotone" dataKey="currentMonthReal" name="Real Septiembre" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.2} />
-                  <Area type="monotone" dataKey="currentMonthProg" name="Programado Septiembre" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.1} />
+                  <Area type="monotone" dataKey="currentMonthReal" name={periodType === 'WEEK' ? 'Horas Totales Día' : 'Real Mes'} stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.2} />
+                  <Area type="monotone" dataKey="currentMonthProg" name={periodType === 'WEEK' ? 'Horas Programadas' : 'Programado Mes'} stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.1} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
@@ -678,7 +693,7 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
           <div className="p-4 border-b border-slate-100 flex items-center justify-between">
             <div>
               <h3 className="font-black text-sm text-slate-900">Ranking de Puntos de Venta con Mayor Liquidación de Horas Suplementarias</h3>
-              <p className="text-xs text-slate-500">Desglose por concepto y variación porcentual respecto al mes anterior</p>
+              <p className="text-xs text-slate-500">Desglose por concepto y variación porcentual respecto al periodo anterior</p>
             </div>
           </div>
 
@@ -694,8 +709,8 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
                   <th className="p-3 text-center">Dominicales</th>
                   <th className="p-3 text-center">Festivos</th>
                   <th className="p-3 text-center bg-purple-950 text-purple-200">Total Suplementario</th>
-                  <th className="p-3 text-center">Mes Anterior</th>
-                  <th className="p-3 text-center">Variación MoM</th>
+                  <th className="p-3 text-center">{periodType === 'WEEK' ? 'Semana Anterior' : 'Mes Anterior'}</th>
+                  <th className="p-3 text-center">{periodType === 'WEEK' ? 'Variación WoW' : 'Variación MoM'}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
@@ -756,8 +771,8 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
                   <th className="p-3 text-center">Horas Prog.</th>
                   <th className="p-3 text-center">Horas Reales</th>
                   <th className="p-3 text-center bg-purple-950 text-purple-200">Horas Suplementarias</th>
-                  <th className="p-3 text-center">Mes Anterior</th>
-                  <th className="p-3 text-center">Variación MoM</th>
+                  <th className="p-3 text-center">{periodType === 'WEEK' ? 'Semana Anterior' : 'Mes Anterior'}</th>
+                  <th className="p-3 text-center">{periodType === 'WEEK' ? 'Variación WoW' : 'Variación MoM'}</th>
                   <th className="p-3 text-center">Cumplimiento</th>
                 </tr>
               </thead>
