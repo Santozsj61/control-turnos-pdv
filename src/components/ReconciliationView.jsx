@@ -1607,21 +1607,22 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
             </div>
           ) : (
             <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs border-collapse">
+              <div className="overflow-x-auto w-full">
+                <table className="w-full text-left text-xs border-collapse table-fixed">
                   <thead>
-                    <tr className="bg-slate-900 text-slate-200 uppercase tracking-wider text-[10px] font-extrabold border-b border-slate-800">
-                      <th className="py-3 px-4 min-w-[220px] sticky left-0 z-10 bg-slate-900">
+                    <tr className="bg-slate-900 text-slate-200 uppercase tracking-wider text-[9px] sm:text-[10px] font-extrabold border-b border-slate-800">
+                      <th className="py-2.5 px-2.5 w-[16%] min-w-[145px] max-w-[175px] sticky left-0 z-10 bg-slate-900">
                         Colaborador
                       </th>
                       {weekDays.map(w => (
-                        <th key={w.date} className="py-3 px-2.5 text-center min-w-[155px]">
-                          <div>{w.dayName}</div>
-                          <div className="text-[9px] text-slate-400 font-normal">{w.shortLabel}</div>
+                        <th key={w.date} className="py-2 px-1 text-center w-[10.5%] min-w-[90px] max-w-[120px]">
+                          <div className="font-extrabold text-[11px] leading-tight text-white">{w.dayName.slice(0, 3)}</div>
+                          <div className="text-[9px] text-slate-400 font-medium leading-tight">{w.shortLabel.split(' ')[1]}</div>
                         </th>
                       ))}
-                      <th className="py-3 px-3 text-center min-w-[140px] bg-slate-800">
-                        Balance Semanal
+                      <th className="py-2 px-1.5 text-center w-[10.5%] min-w-[85px] max-w-[110px] bg-slate-800">
+                        <div className="font-extrabold text-[11px] leading-tight text-white">Balance</div>
+                        <div className="text-[9px] text-slate-400 font-medium leading-tight">Semanal</div>
                       </th>
                     </tr>
                   </thead>
@@ -1629,18 +1630,24 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                     {horizontalPersonList.map((collab, idx) => (
                       <tr key={collab.key || idx} className="hover:bg-slate-50/80 transition">
                         {/* Colaborador Column */}
-                        <td className="py-3 px-4 sticky left-0 z-10 bg-white shadow-xs">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <span className="font-extrabold text-slate-900 text-xs">{collab.fullName}</span>
+                        <td className="py-2 px-2.5 sticky left-0 z-10 bg-white shadow-xs w-[16%] min-w-[145px] max-w-[175px]">
+                          <div className="flex items-center gap-1 flex-wrap">
+                            <span className="font-extrabold text-slate-900 text-[11px] leading-snug truncate max-w-full block" title={collab.fullName}>
+                              {collab.fullName}
+                            </span>
                             {collab.isUnscheduledWorker && (
-                              <span className="bg-purple-100 text-purple-800 text-[9px] font-black px-1.5 py-0.5 rounded-md">
-                                No Programado
+                              <span className="bg-purple-100 text-purple-800 text-[8px] font-black px-1 py-0.2 rounded">
+                                No Prog
                               </span>
                             )}
                           </div>
-                          <div className="text-[10px] text-slate-500 font-mono">CC: {collab.documentId}</div>
-                          <div className="text-[10px] text-blue-700 font-semibold">{collab.position}</div>
-                          <div className="text-[9px] text-slate-400 truncate max-w-[200px] mt-0.5">{collab.pdvName}</div>
+                          <div className="text-[9px] text-slate-500 font-mono leading-tight mt-0.5">CC: {collab.documentId}</div>
+                          <div className="text-[9px] text-blue-700 font-semibold truncate leading-tight mt-0.5" title={collab.position}>
+                            {collab.position}
+                          </div>
+                          <div className="text-[8.5px] text-slate-400 truncate leading-tight mt-0.5" title={collab.pdvName}>
+                            {collab.pdvName}
+                          </div>
                         </td>
 
                         {/* 7 Days Columns */}
@@ -1648,8 +1655,8 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                           const dayRow = collab.daysMap[w.date] || collab.daysMap[w.dayName.toLowerCase()];
                           if (!dayRow) {
                             return (
-                              <td key={w.date} className="py-2.5 px-2 text-center text-slate-300">
-                                <span className="text-[11px]">-</span>
+                              <td key={w.date} className="py-1 px-0.5 text-center text-slate-300 w-[10.5%] min-w-[90px] max-w-[120px]">
+                                <span className="text-[10px]">-</span>
                               </td>
                             );
                           }
@@ -1660,14 +1667,29 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                           const isAbsent = dayRow.status === 'ABSENT';
                           const isDayOff = dayRow.status === 'DAY_OFF' || (!dayRow.isScheduled && !dayRow.hasPunch);
 
+                          const diffFormatted = dayRow.hoursDiff > 0 
+                            ? `+${(+dayRow.hoursDiff).toFixed(1)}h` 
+                            : dayRow.hoursDiff < 0 
+                            ? `${(+dayRow.hoursDiff).toFixed(1)}h` 
+                            : '0h';
+
+                          const statusBadgeLabel = 
+                            dayRow.status === 'OK_MATCH' ? 'OK' : 
+                            dayRow.status === 'LATE_ARRIVAL' ? 'Tarde' : 
+                            dayRow.status === 'EARLY_DEPARTURE' ? 'Sal. Ant' : 
+                            dayRow.status === 'ABSENT' ? 'Ausente' : 
+                            dayRow.status === 'UNSCHEDULED_WORK' ? 'No Prog' :
+                            dayRow.status === 'OVERTIME' ? 'Extra' :
+                            dayRow.status === 'DAY_OFF' ? 'Desc' : 'Novedad';
+
                           return (
                             <td
                               key={w.date}
-                              className="py-2 px-1.5 align-top"
+                              className="py-1 px-0.5 align-top w-[10.5%] min-w-[90px] max-w-[120px]"
                               onClick={() => setSelectedRowDetail(dayRow)}
                             >
                               <div
-                                className={`p-2 rounded-xl border text-[11px] cursor-pointer transition hover:shadow-xs space-y-1.5 ${
+                                className={`p-1.5 rounded-lg border text-[10px] cursor-pointer transition hover:shadow-xs space-y-1 ${
                                   isUnscheduled
                                     ? 'bg-purple-50/90 border-purple-300'
                                     : isAbsent
@@ -1679,14 +1701,14 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                                     : dayRow.hasPermission
                                     ? 'bg-emerald-50/70 border-emerald-200'
                                     : isDayOff
-                                    ? 'bg-slate-50 border-slate-200 text-slate-500'
+                                    ? 'bg-slate-50/70 border-slate-200/80 text-slate-500'
                                     : 'bg-white border-slate-200'
                                 }`}
-                                title="Click para ver detalle completo de marcación"
+                                title="Click para ver detalle completo"
                               >
                                 {/* Cronograma Programado */}
-                                <div className="flex items-center justify-between gap-1 text-[10px]">
-                                  <span className="font-semibold text-slate-600 flex items-center gap-1 truncate">
+                                <div className="flex items-center justify-between gap-0.5 text-[9px] leading-tight">
+                                  <span className="font-semibold text-slate-600 truncate flex items-center gap-0.5">
                                     <Calendar className="w-2.5 h-2.5 text-blue-500 shrink-0" />
                                     {dayRow.isScheduled ? `${dayRow.scheduledStart}-${dayRow.scheduledEnd}` : 'Descanso'}
                                   </span>
@@ -1694,8 +1716,8 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                                 </div>
 
                                 {/* Marcación Real */}
-                                <div className="flex items-center justify-between gap-1 text-[10px]">
-                                  <span className={`font-black flex items-center gap-1 truncate ${
+                                <div className="flex items-center justify-between gap-0.5 text-[9px] leading-tight">
+                                  <span className={`font-black truncate flex items-center gap-0.5 ${
                                     dayRow.hasPunch ? (isUnscheduled ? 'text-purple-900' : 'text-blue-900') : isDayOff ? 'text-slate-400' : 'text-rose-600'
                                   }`}>
                                     <Clock className="w-2.5 h-2.5 text-slate-400 shrink-0" />
@@ -1707,28 +1729,28 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                                 </div>
 
                                 {/* Mini Footer Diferencia / Novedad */}
-                                {(dayRow.isScheduled || dayRow.hasPunch) && (
-                                  <div className="pt-1 border-t border-slate-200/60 flex items-center justify-between text-[9px]">
+                                {(dayRow.isScheduled || dayRow.hasPunch) ? (
+                                  <div className="pt-0.5 border-t border-slate-200/60 flex items-center justify-between text-[8px] leading-tight">
                                     <span className={`font-black ${
                                       dayRow.hoursDiff > 0 ? 'text-blue-700' : dayRow.hoursDiff < 0 ? 'text-rose-600' : 'text-emerald-600'
                                     }`}>
-                                      {dayRow.hoursDiff > 0 ? `+${dayRow.hoursDiff}h` : dayRow.hoursDiff < 0 ? `${dayRow.hoursDiff}h` : '0h'}
+                                      {diffFormatted}
                                     </span>
-                                    <span className={`px-1.5 py-0.2 rounded font-extrabold uppercase ${
-                                      dayRow.statusColor === 'green' ? 'bg-emerald-100 text-emerald-800' :
-                                      dayRow.statusColor === 'yellow' ? 'bg-amber-100 text-amber-800' :
-                                      dayRow.statusColor === 'orange' ? 'bg-orange-100 text-orange-800' :
-                                      dayRow.statusColor === 'red' ? 'bg-rose-100 text-rose-800' :
-                                      dayRow.statusColor === 'purple' ? 'bg-purple-100 text-purple-800' :
-                                      'bg-slate-100 text-slate-600'
+                                    <span className={`px-1 py-0.2 rounded font-black uppercase tracking-tight text-[8px] ${
+                                      dayRow.status === 'OK_MATCH' ? 'bg-emerald-100 text-emerald-800' :
+                                      dayRow.status === 'LATE_ARRIVAL' ? 'bg-amber-100 text-amber-800' :
+                                      dayRow.status === 'EARLY_DEPARTURE' ? 'bg-orange-100 text-orange-800' :
+                                      dayRow.status === 'ABSENT' ? 'bg-rose-100 text-rose-800' :
+                                      dayRow.status === 'UNSCHEDULED_WORK' ? 'bg-purple-100 text-purple-800' :
+                                      dayRow.status === 'OVERTIME' ? 'bg-blue-100 text-blue-800' :
+                                      'bg-amber-100 text-amber-800'
                                     }`}>
-                                      {dayRow.status === 'OK_MATCH' ? 'OK' : 
-                                       dayRow.status === 'LATE_ARRIVAL' ? 'Tarde' : 
-                                       dayRow.status === 'EARLY_DEPARTURE' ? 'Sal. Ant' : 
-                                       dayRow.status === 'ABSENT' ? 'Ausente' : 
-                                       dayRow.status === 'UNSCHEDULED_WORK' ? 'No Prog' :
-                                       dayRow.status === 'DAY_OFF' ? 'Desc' : dayRow.statusLabel}
+                                      {statusBadgeLabel}
                                     </span>
+                                  </div>
+                                ) : (
+                                  <div className="pt-0.5 border-t border-slate-200/40 text-center text-[8px]">
+                                    <span className="text-slate-400 font-medium">Libre</span>
                                   </div>
                                 )}
                               </div>
@@ -1737,24 +1759,25 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                         })}
 
                         {/* Balance Semanal Column */}
-                        <td className="py-2.5 px-3 text-center align-middle bg-slate-50/50">
-                          <div className="p-2.5 bg-slate-900 text-white rounded-xl space-y-1">
-                            <div className="text-[9px] text-slate-400 font-bold uppercase">Prog vs Real</div>
-                            <div className="text-xs font-black">
-                              {collab.totalRealHours}h <span className="text-slate-400 text-[10px] font-normal">/ {collab.totalScheduledHours}h</span>
+                        <td className="py-1 px-1 text-center align-middle bg-slate-50/50 w-[10.5%] min-w-[85px] max-w-[110px]">
+                          <div className="p-1.5 bg-slate-900 text-white rounded-xl space-y-0.5">
+                            <div className="text-[8px] text-slate-400 font-bold uppercase leading-tight">Prog / Real</div>
+                            <div className="text-[10.5px] font-black leading-tight">
+                              {collab.totalRealHours}h <span className="text-slate-400 text-[8.5px] font-normal">/ {collab.totalScheduledHours}h</span>
                             </div>
-                            <div className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded ${
+                            <div className={`text-[8.5px] font-extrabold px-1 py-0.2 rounded inline-block ${
                               collab.diffHours > 0 ? 'bg-blue-600 text-white' :
                               collab.diffHours < 0 ? 'bg-rose-600 text-white' :
                               'bg-emerald-600 text-white'
                             }`}>
-                              {collab.diffHours > 0 ? `+${collab.diffHours}h extra` : collab.diffHours < 0 ? `${collab.diffHours}h` : 'Exacto (0h)'}
+                              {collab.diffHours > 0 ? `+${collab.diffHours}h` : collab.diffHours < 0 ? `${collab.diffHours}h` : '0h'}
                             </div>
-                            {(collab.lateCount > 0 || collab.earlyCount > 0 || collab.absenceCount > 0) && (
-                              <div className="pt-1 flex flex-wrap items-center justify-center gap-1 text-[8px] font-bold">
-                                {collab.lateCount > 0 && <span className="bg-amber-500/30 text-amber-200 px-1 py-0.2 rounded">{collab.lateCount}T</span>}
-                                {collab.earlyCount > 0 && <span className="bg-orange-500/30 text-orange-200 px-1 py-0.2 rounded">{collab.earlyCount}SA</span>}
-                                {collab.absenceCount > 0 && <span className="bg-rose-500/30 text-rose-200 px-1 py-0.2 rounded">{collab.absenceCount}A</span>}
+                            {(collab.lateCount > 0 || collab.earlyCount > 0 || collab.absenceCount > 0 || collab.unscheduledCount > 0) && (
+                              <div className="pt-0.5 flex flex-wrap items-center justify-center gap-0.5 text-[7.5px] font-bold">
+                                {collab.lateCount > 0 && <span className="bg-amber-500/30 text-amber-200 px-1 rounded">{collab.lateCount}T</span>}
+                                {collab.earlyCount > 0 && <span className="bg-orange-500/30 text-orange-200 px-1 rounded">{collab.earlyCount}SA</span>}
+                                {collab.absenceCount > 0 && <span className="bg-rose-500/30 text-rose-200 px-1 rounded">{collab.absenceCount}A</span>}
+                                {collab.unscheduledCount > 0 && <span className="bg-purple-500/30 text-purple-200 px-1 rounded">{collab.unscheduledCount}NP</span>}
                               </div>
                             )}
                           </div>
