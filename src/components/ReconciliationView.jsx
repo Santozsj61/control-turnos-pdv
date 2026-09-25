@@ -441,6 +441,7 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
       if (statusFilter === 'MATCH' && r.status !== 'OK_MATCH') return false;
       if (statusFilter === 'PERMISSION' && !r.hasPermission) return false;
       if (statusFilter === 'UNSCHEDULED' && r.status !== 'UNSCHEDULED_WORK') return false;
+      if (statusFilter === 'AUTO_FILLED' && !r.autoFilledExit && !r.autoFilledEntry) return false;
     }
     if (searchTerm) {
       const q = searchTerm.toLowerCase();
@@ -1451,6 +1452,7 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
           >
             <option value="ALL">Mostrar Todos ({rows.length})</option>
             <option value="DISCREPANCIES">Solo Discrepancias / Novedades</option>
+            <option value="AUTO_FILLED">Solo Autocompletadas con Cronograma ({stats.autoFilledCount || 0})</option>
             <option value="UNSCHEDULED">Solo No Programados / Sin Turno ({stats.unscheduledPunches || 0})</option>
             <option value="LATE">Solo Llegadas Tarde</option>
             <option value="EARLY">Solo Salidas Anticipadas</option>
@@ -1583,17 +1585,18 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
             </div>
 
             {/* Legend */}
-            <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold">
-              <span className="flex items-center gap-1 bg-white border border-slate-200 px-2 py-1 rounded-lg text-slate-700">
+            <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-bold">
+              <span className="flex items-center gap-1 bg-white border border-slate-200 px-2 py-0.5 rounded-lg text-slate-700">
                 <Calendar className="w-3 h-3 text-blue-600" /> Prog = Programado
               </span>
-              <span className="flex items-center gap-1 bg-white border border-slate-200 px-2 py-1 rounded-lg text-slate-700">
+              <span className="flex items-center gap-1 bg-white border border-slate-200 px-2 py-0.5 rounded-lg text-slate-700">
                 <Clock className="w-3 h-3 text-slate-600" /> Real = Reloj Biométrico
               </span>
-              <span className="bg-emerald-100 text-emerald-800 px-2 py-1 rounded-lg">OK Cumple</span>
-              <span className="bg-amber-100 text-amber-800 px-2 py-1 rounded-lg">Llegada Tarde</span>
-              <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded-lg">Salida Anticipada</span>
-              <span className="bg-rose-100 text-rose-800 px-2 py-1 rounded-lg">Ausencia / Sin Marcación</span>
+              <span className="bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-lg">OK Cumple</span>
+              <span className="bg-indigo-100 text-indigo-900 border border-indigo-200 px-2 py-0.5 rounded-lg font-black">Ent/Sal Autocompletada (*)</span>
+              <span className="bg-blue-100 text-blue-900 border border-blue-200 px-2 py-0.5 rounded-lg font-black">Desc/Incap/Vac/Lic (7h)</span>
+              <span className="bg-purple-100 text-purple-800 px-2 py-0.5 rounded-lg">No Prog (0h)</span>
+              <span className="bg-rose-100 text-rose-800 px-2 py-0.5 rounded-lg">Ausencia</span>
             </div>
           </div>
 
@@ -1662,6 +1665,7 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                           }
 
                           const isUnscheduled = dayRow.status === 'UNSCHEDULED_WORK';
+                          const isAutoFilled = dayRow.autoFilledExit || dayRow.autoFilledEntry;
                           const isLate = dayRow.status === 'LATE_ARRIVAL';
                           const isEarly = dayRow.status === 'EARLY_DEPARTURE';
                           const isAbsent = dayRow.status === 'ABSENT';
@@ -1674,6 +1678,12 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                             : '0h';
 
                           const statusBadgeLabel = 
+                            isAutoFilled ? (dayRow.autoFilledExit ? 'Sal. Prog*' : 'Ent. Prog*') :
+                            dayRow.isNovelty7h && !dayRow.hasPunch ? (
+                              dayRow.status === 'DAY_OFF' ? 'Desc (7h)' :
+                              dayRow.status === 'INCAPACITY' ? 'Incap (7h)' :
+                              dayRow.status === 'VACATION' ? 'Vac (7h)' : 'Lic (7h)'
+                            ) :
                             dayRow.status === 'OK_MATCH' ? 'OK' : 
                             dayRow.status === 'LATE_ARRIVAL' ? 'Tarde' : 
                             dayRow.status === 'EARLY_DEPARTURE' ? 'Sal. Ant' : 
@@ -1692,6 +1702,8 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                                 className={`p-1.5 rounded-lg border text-[10px] cursor-pointer transition hover:shadow-xs space-y-1 ${
                                   isUnscheduled
                                     ? 'bg-purple-50/90 border-purple-300'
+                                    : isAutoFilled
+                                    ? 'bg-indigo-50/90 border-indigo-300 ring-1 ring-indigo-200'
                                     : isAbsent
                                     ? 'bg-rose-50/80 border-rose-200'
                                     : isLate
@@ -1700,6 +1712,8 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                                     ? 'bg-orange-50/80 border-orange-200'
                                     : dayRow.hasPermission
                                     ? 'bg-emerald-50/70 border-emerald-200'
+                                    : dayRow.isNovelty7h
+                                    ? 'bg-sky-50/60 border-sky-200/80 text-slate-700'
                                     : isDayOff
                                     ? 'bg-slate-50/70 border-slate-200/80 text-slate-500'
                                     : 'bg-white border-slate-200'
@@ -1708,9 +1722,9 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                               >
                                 {/* Cronograma Programado */}
                                 <div className="flex items-center justify-between gap-0.5 text-[9px] leading-tight">
-                                  <span className="font-semibold text-slate-600 truncate flex items-center gap-0.5">
+                                  <span className="font-semibold text-slate-600 truncate flex items-center gap-0.5" title={dayRow.isNovelty7h ? `${dayRow.scheduleTypeLabel} (7h Ley)` : (dayRow.isScheduled ? `${dayRow.scheduledStart}-${dayRow.scheduledEnd}` : 'Sin Turno')}>
                                     <Calendar className="w-2.5 h-2.5 text-blue-500 shrink-0" />
-                                    {dayRow.isScheduled ? `${dayRow.scheduledStart}-${dayRow.scheduledEnd}` : 'Descanso'}
+                                    {dayRow.isNovelty7h ? dayRow.scheduleTypeLabel : (dayRow.isScheduled ? `${dayRow.scheduledStart}-${dayRow.scheduledEnd}` : 'Sin Turno')}
                                   </span>
                                   <span className="font-bold text-slate-500 shrink-0">{dayRow.scheduledNetHours || 0}h</span>
                                 </div>
@@ -1718,25 +1732,53 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                                 {/* Marcación Real */}
                                 <div className="flex items-center justify-between gap-0.5 text-[9px] leading-tight">
                                   <span className={`font-black truncate flex items-center gap-0.5 ${
-                                    dayRow.hasPunch ? (isUnscheduled ? 'text-purple-900' : 'text-blue-900') : isDayOff ? 'text-slate-400' : 'text-rose-600'
+                                    isAutoFilled
+                                      ? 'text-indigo-900'
+                                      : dayRow.hasPunch
+                                      ? (isUnscheduled ? 'text-purple-900' : 'text-blue-900')
+                                      : dayRow.isNovelty7h
+                                      ? 'text-slate-600 font-medium'
+                                      : isDayOff
+                                      ? 'text-slate-400 font-normal'
+                                      : 'text-rose-600'
                                   }`}>
-                                    <Clock className="w-2.5 h-2.5 text-slate-400 shrink-0" />
-                                    {dayRow.hasPunch ? `${dayRow.realStart}-${dayRow.realEnd || '?'}` : isDayOff ? 'Sin Turno' : 'Sin Marc.'}
+                                    <Clock className={`w-2.5 h-2.5 shrink-0 ${isAutoFilled ? 'text-indigo-600' : 'text-slate-400'}`} />
+                                    {dayRow.hasPunch ? (
+                                      <span className="truncate">
+                                        <span className={dayRow.autoFilledEntry ? 'text-indigo-700 font-black underline decoration-indigo-400' : ''}>
+                                          {dayRow.autoFilledEntry ? `*${dayRow.realStart}` : (dayRow.realStart || '--:--')}
+                                        </span>
+                                        <span className="text-slate-300 mx-0.5">-</span>
+                                        <span className={dayRow.autoFilledExit ? 'text-indigo-700 font-black underline decoration-indigo-400' : ''}>
+                                          {dayRow.autoFilledExit ? `${dayRow.realEnd}*` : (dayRow.realEnd || '--:--')}
+                                        </span>
+                                      </span>
+                                    ) : dayRow.isNovelty7h ? (
+                                      <span className="truncate">{dayRow.scheduleTypeLabel}</span>
+                                    ) : isDayOff ? (
+                                      'Sin Turno'
+                                    ) : (
+                                      'Sin Marc.'
+                                    )}
                                   </span>
-                                  <span className={`font-bold shrink-0 ${dayRow.hasPunch ? 'text-slate-900' : 'text-slate-400'}`}>
+                                  <span className={`font-bold shrink-0 ${
+                                    isAutoFilled ? 'text-indigo-950 font-black' : (dayRow.hasPunch || dayRow.isNovelty7h) ? 'text-slate-900' : 'text-slate-400'
+                                  }`}>
                                     {dayRow.realNetHours || 0}h
                                   </span>
                                 </div>
 
                                 {/* Mini Footer Diferencia / Novedad */}
-                                {(dayRow.isScheduled || dayRow.hasPunch) ? (
+                                {(dayRow.isScheduled || dayRow.hasPunch || dayRow.isNovelty7h) ? (
                                   <div className="pt-0.5 border-t border-slate-200/60 flex items-center justify-between text-[8px] leading-tight">
                                     <span className={`font-black ${
                                       dayRow.hoursDiff > 0 ? 'text-blue-700' : dayRow.hoursDiff < 0 ? 'text-rose-600' : 'text-emerald-600'
                                     }`}>
                                       {diffFormatted}
                                     </span>
-                                    <span className={`px-1 py-0.2 rounded font-black uppercase tracking-tight text-[8px] ${
+                                    <span className={`px-1 py-0.2 rounded font-black uppercase tracking-tight text-[7.5px] truncate max-w-[62px] ${
+                                      isAutoFilled ? 'bg-indigo-100 text-indigo-800 border border-indigo-300/80' :
+                                      dayRow.isNovelty7h && !dayRow.hasPunch ? 'bg-sky-100 text-sky-800 border border-sky-200' :
                                       dayRow.status === 'OK_MATCH' ? 'bg-emerald-100 text-emerald-800' :
                                       dayRow.status === 'LATE_ARRIVAL' ? 'bg-amber-100 text-amber-800' :
                                       dayRow.status === 'EARLY_DEPARTURE' ? 'bg-orange-100 text-orange-800' :
@@ -1744,7 +1786,7 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                                       dayRow.status === 'UNSCHEDULED_WORK' ? 'bg-purple-100 text-purple-800' :
                                       dayRow.status === 'OVERTIME' ? 'bg-blue-100 text-blue-800' :
                                       'bg-amber-100 text-amber-800'
-                                    }`}>
+                                    }`} title={statusBadgeLabel}>
                                       {statusBadgeLabel}
                                     </span>
                                   </div>
@@ -2362,7 +2404,14 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div className="bg-slate-50 p-3 rounded-xl border border-slate-200">
                 <span className="font-bold text-slate-500 uppercase text-[10px] block mb-1">📅 Programado</span>
-                <div><strong>Horario:</strong> {selectedRowDetail.scheduledStart || 'Descanso'} - {selectedRowDetail.scheduledEnd}</div>
+                <div>
+                  <strong>Horario:</strong>{' '}
+                  {selectedRowDetail.isNovelty7h 
+                    ? `${selectedRowDetail.scheduleTypeLabel} (7.0h de Ley)` 
+                    : selectedRowDetail.isScheduled 
+                    ? `${selectedRowDetail.scheduledStart} - ${selectedRowDetail.scheduledEnd}` 
+                    : 'Sin Turno Programado'}
+                </div>
                 <div><strong>Horas Netas:</strong> {selectedRowDetail.scheduledNetHours} hrs</div>
                 <div><strong>Almuerzo:</strong> {selectedRowDetail.scheduledLunchHours > 0 ? '1:30' : '0:00'}</div>
                 {selectedRowDetail.hasPermission && (
@@ -2379,13 +2428,42 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
 
               <div className="bg-blue-50/70 p-3 rounded-xl border border-blue-200">
                 <span className="font-bold text-blue-700 uppercase text-[10px] block mb-1">⏱️ Marcación Real</span>
-                <div><strong>Entrada:</strong> {selectedRowDetail.realStart || 'Sin Marcación'}</div>
-                <div><strong>Salida:</strong> {selectedRowDetail.realEnd || 'Sin Marcación'}</div>
+                <div>
+                  <strong>Entrada:</strong>{' '}
+                  {selectedRowDetail.autoFilledEntry ? (
+                    <span className="text-indigo-700 font-bold bg-indigo-100/80 px-1 rounded">
+                      *{selectedRowDetail.realStart} (Prog)
+                    </span>
+                  ) : (
+                    selectedRowDetail.realStart || 'Sin Marcación'
+                  )}
+                </div>
+                <div>
+                  <strong>Salida:</strong>{' '}
+                  {selectedRowDetail.autoFilledExit ? (
+                    <span className="text-indigo-700 font-bold bg-indigo-100/80 px-1 rounded">
+                      {selectedRowDetail.realEnd}* (Prog)
+                    </span>
+                  ) : (
+                    selectedRowDetail.realEnd || 'Sin Marcación'
+                  )}
+                </div>
                 <div><strong>Horas Netas Reales:</strong> {selectedRowDetail.realNetHours} hrs</div>
                 <div><strong>Almuerzo Aplicado:</strong> {selectedRowDetail.realLunchHours > 0 ? '1:30' : '0:00'}</div>
                 <div className="text-[10px] text-slate-500 mt-1">{selectedRowDetail.realLunchReason}</div>
               </div>
             </div>
+
+            {(selectedRowDetail.autoFilledExit || selectedRowDetail.autoFilledEntry) && (
+              <div className="p-2.5 bg-indigo-50 border border-indigo-200 rounded-xl text-xs text-indigo-900 flex items-start gap-2">
+                <span className="text-sm">ℹ️</span>
+                <div>
+                  <strong className="font-bold block">Marcación Autocompletada:</strong>
+                  {selectedRowDetail.autoFilledExit && `La salida no fue registrada en el biométrico; se tomó automáticamente la salida programada (${selectedRowDetail.scheduledEnd}) para el cálculo de horas.`}
+                  {selectedRowDetail.autoFilledEntry && `La entrada no fue registrada en el biométrico; se tomó automáticamente la entrada programada (${selectedRowDetail.scheduledStart}) para el cálculo de horas.`}
+                </div>
+              </div>
+            )}
 
             <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-1">
               <span className="font-bold text-slate-700">Discrepancias / Observaciones:</span>

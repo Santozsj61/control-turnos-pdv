@@ -1,4 +1,4 @@
-import { timeToMinutes } from './calculator.js';
+import { timeToMinutes, calculateShiftHours } from './calculator.js';
 
 function cleanName(str) {
   if (!str) return '';
@@ -215,26 +215,96 @@ export function runReconciliation({
       const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
       const dayName = dayNames[dateObj.getUTCDay()];
 
-      // Scheduled Values
-      const isScheduled = !!shift && !shift.isDayOff;
-      const scheduledStart = isScheduled ? (shift.startTime || '') : '';
-      const scheduledEnd = isScheduled ? (shift.endTime || '') : '';
-      const scheduledNetHours = isScheduled ? (shift.netHours || 0) : 0;
-      const scheduledLunchHours = isScheduled ? (shift.lunchHours || 0) : 0;
-      const hasPermission = isScheduled && !!shift.hasApprovedPermission;
+      // 1. Shift Classification & Scheduled Values
+      const shiftTypeUpper = String(shift?.shiftType || (shift?.isDayOff ? 'DESCANSO' : 'ORDINARIO')).toUpperCase();
+      const isDescanso = shiftTypeUpper.includes('DESCANSO') || (shift?.isDayOff && !shiftTypeUpper.includes('NO_PROGRAMADO'));
+      const isIncapacidad = shiftTypeUpper.includes('INCAPACIDAD');
+      const isVacaciones = shiftTypeUpper.includes('VACACION');
+      const isLicencia = shiftTypeUpper.includes('LICENCIA') || shiftTypeUpper.includes('PERMISO');
+      const isNoProgramado = shiftTypeUpper.includes('NO_PROGRAMADO') || (!shift && !primaryPunch);
+
+      const isNovelty7h = isDescanso || isIncapacidad || isVacaciones || isLicencia;
+
+      let isScheduled = false;
+      let scheduledStart = '';
+      let scheduledEnd = '';
+      let scheduledNetHours = 0;
+      let scheduledLunchHours = 0;
+      let scheduleTypeLabel = 'Ordinario';
+
+      if (shift) {
+        if (isNovelty7h) {
+          isScheduled = true;
+          scheduledNetHours = 7;
+          scheduledLunchHours = 0;
+          scheduledStart = '';
+          scheduledEnd = '';
+          scheduleTypeLabel = isDescanso ? 'Descanso' : isIncapacidad ? 'Incapacidad' : isVacaciones ? 'Vacaciones' : 'Licencia';
+        } else if (isNoProgramado) {
+          isScheduled = false;
+          scheduledNetHours = 0;
+          scheduledLunchHours = 0;
+          scheduleTypeLabel = 'Sin Turno';
+        } else {
+          // Ordinary shift
+          isScheduled = !shift.isDayOff;
+          scheduledStart = isScheduled ? (shift.startTime || '') : '';
+          scheduledEnd = isScheduled ? (shift.endTime || '') : '';
+          scheduledNetHours = isScheduled ? (Number(shift.netHours) || 0) : 0;
+          scheduledLunchHours = isScheduled ? (Number(shift.lunchHours) || 0) : 0;
+          scheduleTypeLabel = isScheduled ? `${scheduledStart}-${scheduledEnd}` : 'Descanso';
+        }
+      }
+
+      const hasPermission = isScheduled && !!shift?.hasApprovedPermission;
       const permissionNote = shift?.permissionReason || '';
 
-      // Real Punch Values
-      const punchEntryTime = primaryPunch?.entryTime || primaryPunch?.entry_time;
-      const punchExitTime = primaryPunch?.exitTime || primaryPunch?.exit_time;
-      const punchCalcs = primaryPunch?.realCalculations || primaryPunch?.real_calculations;
+      // 2. Real Punch Values & Automatic Completion from Schedule
+      const rawPunchEntry = primaryPunch?.entryTime || primaryPunch?.entry_time;
+      const rawPunchExit = primaryPunch?.exitTime || primaryPunch?.exit_time;
+      let punchCalcs = primaryPunch?.realCalculations || primaryPunch?.real_calculations;
 
-      const hasPunch = !!primaryPunch && !!punchEntryTime;
-      const realStart = hasPunch ? punchEntryTime.substring(0, 5) : '';
-      const realEnd = hasPunch && punchExitTime && punchExitTime !== '-' ? punchExitTime.substring(0, 5) : '';
-      const realNetHours = hasPunch ? (punchCalcs?.netHours || 0) : 0;
-      const realLunchHours = hasPunch ? (punchCalcs?.lunchHours || 0) : 0;
-      const realLunchReason = hasPunch ? (punchCalcs?.lunchReason || '') : '';
+      const hasRawEntry = !!rawPunchEntry && rawPunchEntry !== '-' && String(rawPunchEntry).trim() !== '';
+      const hasRawExit = !!rawPunchExit && rawPunchExit !== '-' && String(rawPunchExit).trim() !== '';
+      const hasAnyPunch = hasRawEntry || hasRawExit;
+
+      let realStart = hasRawEntry ? String(rawPunchEntry).substring(0, 5) : '';
+      let realEnd = hasRawExit ? String(rawPunchExit).substring(0, 5) : '';
+      let autoFilledEntry = false;
+      let autoFilledExit = false;
+
+      // Auto-fill missing exit or entry from schedule if the other one is present and schedule exists
+      if (hasRawEntry && !hasRawExit && scheduledEnd) {
+        realEnd = scheduledEnd;
+        autoFilledExit = true;
+        const autoCalcs = calculateShiftHours(realStart, realEnd, date);
+        punchCalcs = autoCalcs;
+      } else if (!hasRawEntry && hasRawExit && scheduledStart) {
+        realStart = scheduledStart;
+        autoFilledEntry = true;
+        const autoCalcs = calculateShiftHours(realStart, realEnd, date);
+        punchCalcs = autoCalcs;
+      }
+
+      let realNetHours = 0;
+      let realLunchHours = 0;
+      let realLunchReason = '';
+
+      if (punchCalcs && typeof punchCalcs.netHours === 'number') {
+        realNetHours = punchCalcs.netHours;
+        realLunchHours = punchCalcs.lunchHours || 0;
+        realLunchReason = punchCalcs.lunchReason || '';
+      } else if (realStart && realEnd) {
+        const fallbackCalcs = calculateShiftHours(realStart, realEnd, date);
+        realNetHours = fallbackCalcs.netHours || 0;
+        realLunchHours = fallbackCalcs.lunchHours || 0;
+        realLunchReason = fallbackCalcs.lunchReason || '';
+      }
+
+      // If on novelty 7h (descanso, incapacidad, vacaciones, licencia) and has no punches: recognized as 7 hours!
+      if (!hasAnyPunch && isNovelty7h) {
+        realNetHours = 7;
+      }
 
       // Discrepancy Analysis
       let status = 'OK_MATCH';
@@ -246,45 +316,67 @@ export function runReconciliation({
       let exitDiffMinutes = 0;
       let hoursDiff = +(realNetHours - scheduledNetHours).toFixed(2);
 
-      if (isScheduled && !hasPunch) {
-        status = 'ABSENT';
-        statusLabel = 'Ausencia (Sin Marcación)';
-        statusColor = 'red';
-        issues.push('Turno programado pero no se registra marcación en reloj biométrico.');
-      } else if (!isScheduled && hasPunch) {
+      if (autoFilledExit) {
+        issues.push(`Salida biométrica no registrada: autocompletada con horario programado (${scheduledEnd}).`);
+      }
+      if (autoFilledEntry) {
+        issues.push(`Entrada biométrica no registrada: autocompletada con horario programado (${scheduledStart}).`);
+      }
+
+      if (isNovelty7h && !hasAnyPunch) {
+        status = isDescanso ? 'DAY_OFF' : isIncapacidad ? 'INCAPACITY' : isVacaciones ? 'VACATION' : 'LEAVE';
+        statusLabel = isDescanso ? 'Descanso (7h)' : isIncapacidad ? 'Incapacidad (7h)' : isVacaciones ? 'Vacaciones (7h)' : 'Licencia (7h)';
+        statusColor = isDescanso ? 'slate' : isIncapacidad ? 'amber' : isVacaciones ? 'emerald' : 'blue';
+        hoursDiff = 0;
+      } else if (isNovelty7h && hasAnyPunch) {
+        status = 'UNSCHEDULED_WORK';
+        statusLabel = `${scheduleTypeLabel} Laborado`;
+        statusColor = 'purple';
+        issues.push(`El colaborador laboró en su día de ${scheduleTypeLabel.toLowerCase()}.`);
+      } else if (!isScheduled && !hasAnyPunch) {
+        status = 'DAY_OFF';
+        statusLabel = 'Sin Turno Programado';
+        statusColor = 'gray';
+        hoursDiff = 0;
+      } else if (!isScheduled && hasAnyPunch) {
         status = 'UNSCHEDULED_WORK';
         statusLabel = 'Marcación No Programada / Sin Turno';
         statusColor = 'purple';
         issues.push('El colaborador laboró sin tener turno programado en la malla o fuera de programación.');
-      } else if (!isScheduled && !hasPunch) {
-        status = 'DAY_OFF';
-        statusLabel = 'Día de Descanso';
-        statusColor = 'gray';
-      } else if (isScheduled && hasPunch) {
+      } else if (isScheduled && !hasAnyPunch) {
+        status = 'ABSENT';
+        statusLabel = 'Ausencia (Sin Marcación)';
+        statusColor = 'red';
+        issues.push('Turno programado pero no se registra marcación en reloj biométrico.');
+      } else if (isScheduled && hasAnyPunch) {
         const schedStartMin = timeToMinutes(scheduledStart);
         const schedEndMin = timeToMinutes(scheduledEnd);
         const realStartMin = timeToMinutes(realStart);
         const realEndMin = realEnd ? timeToMinutes(realEnd) : null;
 
-        entryDiffMinutes = realStartMin - schedStartMin;
-        if (entryDiffMinutes > lateTolerance) {
-          issues.push(`Llegada tarde: +${entryDiffMinutes} min de retraso.`);
-        } else if (entryDiffMinutes < -15) {
-          issues.push(`Ingreso anticipado: ${Math.abs(entryDiffMinutes)} min antes.`);
+        if (scheduledStart && realStart && !autoFilledEntry) {
+          entryDiffMinutes = realStartMin - schedStartMin;
+          if (entryDiffMinutes > lateTolerance) {
+            issues.push(`Llegada tarde: +${entryDiffMinutes} min de retraso.`);
+          } else if (entryDiffMinutes < -15) {
+            issues.push(`Ingreso anticipado: ${Math.abs(entryDiffMinutes)} min antes.`);
+          }
         }
 
-        if (realEndMin !== null) {
+        if (scheduledEnd && realEndMin !== null && !autoFilledExit) {
           exitDiffMinutes = realEndMin - schedEndMin;
           if (exitDiffMinutes < -earlyTolerance) {
             issues.push(`Salida anticipada: ${Math.abs(exitDiffMinutes)} min antes de la hora.`);
           } else if (exitDiffMinutes > 15) {
             issues.push(`Salida posterior: +${exitDiffMinutes} min adicionales.`);
           }
-        } else {
-          issues.push('Falta marcación de salida en reloj biométrico.');
         }
 
-        if (issues.length === 0) {
+        if (autoFilledExit || autoFilledEntry) {
+          status = 'AUTO_FILLED';
+          statusLabel = autoFilledExit ? 'Salida Autocompletada' : 'Entrada Autocompletada';
+          statusColor = 'indigo';
+        } else if (issues.length === 0) {
           status = 'OK_MATCH';
           statusLabel = 'Cumplimiento Exacto';
           statusColor = 'green';
@@ -323,18 +415,24 @@ export function runReconciliation({
         date,
         dayName,
         isScheduled,
+        isNovelty7h,
+        scheduleTypeLabel,
         scheduledStart,
         scheduledEnd,
         scheduledNetHours,
         scheduledLunchHours,
         hasPermission,
         permissionNote,
-        hasPunch,
+        hasPunch: hasAnyPunch,
+        rawPunchEntry: hasRawEntry ? rawPunchEntry : null,
+        rawPunchExit: hasRawExit ? rawPunchExit : null,
         realStart,
         realEnd,
         realNetHours,
         realLunchHours,
         realLunchReason,
+        autoFilledEntry,
+        autoFilledExit,
         entryDiffMinutes,
         exitDiffMinutes,
         hoursDiff,
@@ -440,6 +538,7 @@ export function runReconciliation({
     earlyDepartures: comparisonRows.filter(r => r.status === 'EARLY_DEPARTURE').length,
     absences: comparisonRows.filter(r => r.status === 'ABSENT').length,
     unscheduledPunches: comparisonRows.filter(r => r.status === 'UNSCHEDULED_WORK').length,
+    autoFilledCount: comparisonRows.filter(r => r.autoFilledExit || r.autoFilledEntry).length,
     permissionsApproved: comparisonRows.filter(r => r.hasPermission).length,
     totalScheduledHours,
     totalRealHours,
