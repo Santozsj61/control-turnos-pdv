@@ -21,10 +21,26 @@ export function runReconciliation({
   weekEnd,
   pdvId,
   supervisorId,
-  documentId
+  documentId,
+  novelties = []
 }) {
   const lateTolerance = config.lateToleranceMinutes || config.late_tolerance_minutes || 10;
   const earlyTolerance = config.earlyExitToleranceMinutes || config.early_exit_tolerance_minutes || 10;
+
+  // Novelties mapping & storage retrieval
+  let effectiveNovelties = Array.isArray(novelties) && novelties.length > 0 ? novelties : [];
+  if (effectiveNovelties.length === 0 && typeof window !== 'undefined' && window.localStorage) {
+    try {
+      const stored = localStorage.getItem('control_turnos_novelties');
+      if (stored) effectiveNovelties = JSON.parse(stored);
+    } catch (e) {}
+  }
+  const noveltiesByDoc = new Map();
+  effectiveNovelties.forEach(nov => {
+    const doc = String(nov.documentId || '').trim();
+    if (!noveltiesByDoc.has(doc)) noveltiesByDoc.set(doc, []);
+    noveltiesByDoc.get(doc).push(nov);
+  });
 
   // 1. Build lookup maps for users
   const userById = new Map(users.map(u => [u.id, u]));
@@ -133,7 +149,36 @@ export function runReconciliation({
     }
   });
 
-  let allTargetEmployees = [...baseEmployees, ...unscheduledEmployees];
+  // Add employees from novelties if not already registered
+  const existingDocs = new Set(baseEmployees.map(u => String(u.documentId || u.document_id || '').trim()));
+  unscheduledEmployees.forEach(u => existingDocs.add(String(u.documentId).trim()));
+
+  const noveltyEmployees = [];
+  effectiveNovelties.forEach(nov => {
+    const nDoc = String(nov.documentId || '').trim();
+    if (nDoc && !existingDocs.has(nDoc)) {
+      existingDocs.add(nDoc);
+      const masterU = userByDoc.get(nDoc);
+      noveltyEmployees.push({
+        id: masterU ? masterU.id : `nov-emp-${nDoc}`,
+        documentId: nDoc,
+        document_id: nDoc,
+        code: masterU?.code || `NOV-${nDoc.slice(-4)}`,
+        fullName: masterU?.fullName || nov.fullName || `Colaborador ${nDoc}`,
+        full_name: masterU?.fullName || nov.fullName || `Colaborador ${nDoc}`,
+        position: masterU?.position || 'COLABORADOR',
+        pdvId: masterU?.pdvId || masterU?.pdv_id || 'pdv-unassigned',
+        pdv_id: masterU?.pdvId || masterU?.pdv_id || 'pdv-unassigned',
+        pdvName: masterU ? (pdvs.find(p => p.id === (masterU.pdvId || masterU.pdv_id))?.name || 'PDV') : 'Novedad Registrada',
+        supervisorName: masterU?.supervisorName || 'Gestión Humana',
+        supervisorId: masterU?.supervisorId || masterU?.supervisor_id || '',
+        role: 'EMPLOYEE',
+        hasCorporateNovelty: true
+      });
+    }
+  });
+
+  let allTargetEmployees = [...baseEmployees, ...unscheduledEmployees, ...noveltyEmployees];
 
   // Apply Filters
   if (pdvId) {
@@ -201,8 +246,12 @@ export function runReconciliation({
       }
     });
 
-    // Skip if employee has no schedule and no punches in this week
-    if (!empSchedule && empPunches.length === 0) continue;
+    // Novelties for this employee
+    const empNovs = noveltiesByDoc.get(empDoc) || [];
+
+    // Skip if employee has no schedule, no punches and no novelties in this week (unless specifically filtered by PDV)
+    const isFilteredPdv = !!pdvId;
+    if (!empSchedule && empPunches.length === 0 && empNovs.length === 0 && !isFilteredPdv) continue;
 
     const targetDates = dates.length > 0 ? dates : Array.from(new Set([...Object.keys(shiftsByDate), ...Object.keys(punchesByDate)])).sort();
 
@@ -216,15 +265,22 @@ export function runReconciliation({
       const dayName = dayNames[dateObj.getUTCDay()];
       const isSunday = (dateObj.getUTCDay() === 0) || dayName === 'Domingo';
 
+      // Check active novelty for this employee on this date
+      const activeNov = empNovs.find(n => {
+        const sDate = n.startDate || n.initialDate || n.fechaInicial;
+        const eDate = n.endDate || n.finalDate || n.fechaFinal;
+        return sDate && eDate && sDate <= date && date <= eDate;
+      });
+
       // 1. Shift Classification & Scheduled Values
-      const shiftTypeUpper = String(shift?.shiftType || (shift?.isDayOff ? 'DESCANSO' : 'ORDINARIO')).toUpperCase();
-      const isDescanso = shiftTypeUpper.includes('DESCANSO') || (shift?.isDayOff && !shiftTypeUpper.includes('NO_PROGRAMADO'));
+      const shiftTypeUpper = String(activeNov?.shiftType || shift?.shiftType || (shift?.isDayOff ? 'DESCANSO' : (activeNov ? 'NOVEDAD' : 'ORDINARIO'))).toUpperCase();
+      const isDescanso = !activeNov && (shiftTypeUpper.includes('DESCANSO') || (shift?.isDayOff && !shiftTypeUpper.includes('NO_PROGRAMADO')));
       const isIncapacidad = shiftTypeUpper.includes('INCAPACIDAD');
       const isVacaciones = shiftTypeUpper.includes('VACACION');
-      const isLicencia = shiftTypeUpper.includes('LICENCIA') || shiftTypeUpper.includes('PERMISO');
-      const isNoProgramado = shiftTypeUpper.includes('NO_PROGRAMADO') || (!shift && !primaryPunch);
+      const isLicencia = shiftTypeUpper.includes('LICENCIA') || shiftTypeUpper.includes('PERMISO') || shiftTypeUpper.includes('FAMILIA');
+      const isNoProgramado = !activeNov && (shiftTypeUpper.includes('NO_PROGRAMADO') || (!shift && !primaryPunch));
 
-      const isNovelty7h = isDescanso || isIncapacidad || isVacaciones || isLicencia;
+      const isNovelty7h = !!activeNov || isDescanso || isIncapacidad || isVacaciones || isLicencia;
 
       let isScheduled = false;
       let scheduledStart = '';
@@ -233,7 +289,14 @@ export function runReconciliation({
       let scheduledLunchHours = 0;
       let scheduleTypeLabel = 'Ordinario';
 
-      if (shift) {
+      if (activeNov) {
+        isScheduled = true;
+        scheduledNetHours = 7;
+        scheduledLunchHours = 0;
+        scheduledStart = '';
+        scheduledEnd = '';
+        scheduleTypeLabel = activeNov.label || activeNov.concept || (isVacaciones ? 'Vacaciones' : isIncapacidad ? 'Incapacidad' : 'Licencia');
+      } else if (shift) {
         if (isNovelty7h) {
           isScheduled = true;
           scheduledNetHours = 7;
@@ -325,8 +388,8 @@ export function runReconciliation({
       }
 
       if (isNovelty7h && !hasAnyPunch) {
-        status = isDescanso ? 'DAY_OFF' : isIncapacidad ? 'INCAPACITY' : isVacaciones ? 'VACATION' : 'LEAVE';
-        statusLabel = isDescanso ? 'Descanso (7h)' : isIncapacidad ? 'Incapacidad (7h)' : isVacaciones ? 'Vacaciones (7h)' : 'Licencia (7h)';
+        status = activeNov ? (activeNov.shiftType || 'NOVELTY') : (isDescanso ? 'DAY_OFF' : isIncapacidad ? 'INCAPACITY' : isVacaciones ? 'VACATION' : 'LEAVE');
+        statusLabel = activeNov ? `${activeNov.label || 'Novedad'} (7h)` : (isDescanso ? 'Descanso (7h)' : isIncapacidad ? 'Incapacidad (7h)' : isVacaciones ? 'Vacaciones (7h)' : 'Licencia (7h)');
         statusColor = isDescanso ? 'slate' : isIncapacidad ? 'amber' : isVacaciones ? 'emerald' : 'blue';
         hoursDiff = 0;
       } else if (isNovelty7h && hasAnyPunch) {
@@ -335,10 +398,11 @@ export function runReconciliation({
         statusColor = 'purple';
         issues.push(`El colaborador laboró en su día de ${scheduleTypeLabel.toLowerCase()}.`);
       } else if (!isScheduled && !hasAnyPunch) {
-        status = 'DAY_OFF';
-        statusLabel = 'Sin Turno Programado';
-        statusColor = 'gray';
+        status = 'NO_SHOW';
+        statusLabel = 'No se presentó';
+        statusColor = 'rose';
         hoursDiff = 0;
+        issues.push('Colaborador sin programación, sin marcación y sin novedades registradas.');
       } else if (!isScheduled && hasAnyPunch) {
         status = 'UNSCHEDULED_WORK';
         statusLabel = 'Marcación No Programada / Sin Turno';
@@ -346,7 +410,7 @@ export function runReconciliation({
         issues.push('El colaborador laboró sin tener turno programado en la malla o fuera de programación.');
       } else if (isScheduled && !hasAnyPunch) {
         status = 'ABSENT';
-        statusLabel = 'Ausencia (Sin Marcación)';
+        statusLabel = 'No se presentó (Turno Programado)';
         statusColor = 'red';
         issues.push('Turno programado pero no se registra marcación en reloj biométrico.');
       } else if (isScheduled && hasAnyPunch) {
@@ -441,6 +505,13 @@ export function runReconciliation({
         status,
         statusLabel,
         statusColor,
+        activeNovelty: activeNov ? {
+          concept: activeNov.concept || activeNov.rawConcept,
+          label: activeNov.label,
+          shiftType: activeNov.shiftType,
+          startDate: activeNov.startDate,
+          endDate: activeNov.endDate
+        } : null,
         issues,
         correctionRequested: !!shift?.correctionRequested,
         correctionReason: shift?.correctionReason || '',
@@ -470,6 +541,7 @@ export function runReconciliation({
       lateCount: 0,
       earlyCount: 0,
       absenceCount: 0,
+      noShowCount: 0,
       unscheduledCount: 0,
       permissionCount: 0,
       rows: []
@@ -494,6 +566,7 @@ export function runReconciliation({
         lateCount: 0,
         earlyCount: 0,
         absenceCount: 0,
+        noShowCount: 0,
         unscheduledCount: 0,
         permissionCount: 0,
         rows: []
@@ -514,6 +587,7 @@ export function runReconciliation({
     if (row.status === 'LATE_ARRIVAL') group.lateCount++;
     if (row.status === 'EARLY_DEPARTURE') group.earlyCount++;
     if (row.status === 'ABSENT') group.absenceCount++;
+    if (row.status === 'NO_SHOW') group.noShowCount = (group.noShowCount || 0) + 1;
     if (row.status === 'UNSCHEDULED_WORK') group.unscheduledCount++;
     if (row.hasPermission) group.permissionCount++;
   });
@@ -556,6 +630,7 @@ export function runReconciliation({
     lateArrivals: comparisonRows.filter(r => r.status === 'LATE_ARRIVAL').length,
     earlyDepartures: comparisonRows.filter(r => r.status === 'EARLY_DEPARTURE').length,
     absences: comparisonRows.filter(r => r.status === 'ABSENT').length,
+    noShows: comparisonRows.filter(r => r.status === 'NO_SHOW').length,
     unscheduledPunches: comparisonRows.filter(r => r.status === 'UNSCHEDULED_WORK').length,
     autoFilledCount: comparisonRows.filter(r => r.autoFilledExit || r.autoFilledEntry).length,
     permissionsApproved: comparisonRows.filter(r => r.hasPermission).length,

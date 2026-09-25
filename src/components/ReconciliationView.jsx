@@ -442,6 +442,7 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
       if (statusFilter === 'LATE' && r.status !== 'LATE_ARRIVAL') return false;
       if (statusFilter === 'EARLY' && r.status !== 'EARLY_DEPARTURE') return false;
       if (statusFilter === 'ABSENT' && r.status !== 'ABSENT') return false;
+      if (statusFilter === 'NO_SHOW' && r.status !== 'NO_SHOW') return false;
       if (statusFilter === 'MATCH' && r.status !== 'OK_MATCH') return false;
       if (statusFilter === 'PERMISSION' && !r.hasPermission) return false;
       if (statusFilter === 'UNSCHEDULED' && r.status !== 'UNSCHEDULED_WORK') return false;
@@ -501,6 +502,7 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
           lateCount: 0,
           earlyCount: 0,
           absenceCount: 0,
+          noShowCount: 0,
           unscheduledCount: 0,
           okCount: 0
         });
@@ -522,6 +524,7 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
       if (r.status === 'LATE_ARRIVAL') item.lateCount++;
       else if (r.status === 'EARLY_DEPARTURE') item.earlyCount++;
       else if (r.status === 'ABSENT') item.absenceCount++;
+      else if (r.status === 'NO_SHOW') item.noShowCount++;
       else if (r.status === 'UNSCHEDULED_WORK') item.unscheduledCount++;
       else if (r.status === 'OK_MATCH') item.okCount++;
     }
@@ -1366,9 +1369,11 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
         </div>
 
         <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
-          <div className="text-[11px] font-bold text-rose-600 uppercase tracking-wider">Ausencias</div>
-          <div className="text-2xl font-black text-rose-600 mt-1">{stats.absences}</div>
-          <div className="text-[10px] text-rose-600 font-medium mt-0.5">Sin marcación</div>
+          <div className="text-[11px] font-bold text-rose-600 uppercase tracking-wider">No se presentó / Ausencias</div>
+          <div className="text-2xl font-black text-rose-600 mt-1">{(stats.noShows || 0) + (stats.absences || 0)}</div>
+          <div className="text-[10px] text-rose-600 font-medium mt-0.5">
+            {stats.noShows ? `${stats.noShows} no se presentó · ` : ''}{stats.absences || 0} turnos ausentes
+          </div>
         </div>
 
         <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
@@ -1476,9 +1481,10 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
             <option value="DISCREPANCIES">Solo Discrepancias / Novedades</option>
             <option value="AUTO_FILLED">Solo Autocompletadas con Cronograma ({stats.autoFilledCount || 0})</option>
             <option value="UNSCHEDULED">Solo No Programados / Sin Turno ({stats.unscheduledPunches || 0})</option>
+            <option value="NO_SHOW">Solo No se presentó ({stats.noShows || 0})</option>
             <option value="LATE">Solo Llegadas Tarde</option>
             <option value="EARLY">Solo Salidas Anticipadas</option>
-            <option value="ABSENT">Solo Ausencias</option>
+            <option value="ABSENT">Solo Ausencias (Turnos Programados)</option>
             <option value="MATCH">Solo Cumplimiento Exacto</option>
             <option value="PERMISSION">Solo con Permiso Aprobado</option>
           </select>
@@ -1694,7 +1700,8 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                           const isLate = dayRow.status === 'LATE_ARRIVAL';
                           const isEarly = dayRow.status === 'EARLY_DEPARTURE';
                           const isAbsent = dayRow.status === 'ABSENT';
-                          const isDayOff = dayRow.status === 'DAY_OFF' || (!dayRow.isScheduled && !dayRow.hasPunch);
+                          const isNoShow = dayRow.status === 'NO_SHOW';
+                          const isDayOff = dayRow.status === 'DAY_OFF' || (!dayRow.isScheduled && !dayRow.hasPunch && !isNoShow);
 
                           const diffFormatted = dayRow.hoursDiff > 0 
                             ? `+${(+dayRow.hoursDiff).toFixed(1)}h` 
@@ -1707,12 +1714,14 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                             dayRow.isNovelty7h && !dayRow.hasPunch ? (
                               dayRow.status === 'DAY_OFF' ? 'Desc (7h)' :
                               dayRow.status === 'INCAPACITY' ? 'Incap (7h)' :
-                              dayRow.status === 'VACATION' ? 'Vac (7h)' : 'Lic (7h)'
+                              dayRow.status === 'VACATION' ? 'Vac (7h)' :
+                              dayRow.status === 'PERMISO' ? 'Perm (7h)' : 'Lic (7h)'
                             ) :
                             dayRow.status === 'OK_MATCH' ? 'OK' : 
                             dayRow.status === 'LATE_ARRIVAL' ? 'Tarde' : 
                             dayRow.status === 'EARLY_DEPARTURE' ? 'Sal. Ant' : 
                             dayRow.status === 'ABSENT' ? 'Ausente' : 
+                            dayRow.status === 'NO_SHOW' ? 'No se presentó' :
                             dayRow.status === 'UNSCHEDULED_WORK' ? 'No Prog' :
                             dayRow.status === 'OVERTIME' ? 'Extra' :
                             dayRow.status === 'DAY_OFF' ? 'Desc' : 'Novedad';
@@ -1725,7 +1734,9 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                             >
                               <div
                                 className={`p-1.5 rounded-lg border text-[10px] cursor-pointer transition hover:shadow-xs space-y-1 ${
-                                  isUnscheduled
+                                  isNoShow
+                                    ? 'bg-rose-50/90 border-rose-300 ring-1 ring-rose-200'
+                                    : isUnscheduled
                                     ? 'bg-purple-50/90 border-purple-300'
                                     : isAutoFilled
                                     ? 'bg-indigo-50/90 border-indigo-300 ring-1 ring-indigo-200'
@@ -1747,9 +1758,9 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                               >
                                 {/* Cronograma Programado */}
                                 <div className="flex items-center justify-between gap-0.5 text-[9px] leading-tight">
-                                  <span className="font-semibold text-slate-600 truncate flex items-center gap-0.5" title={dayRow.isNovelty7h ? `${dayRow.scheduleTypeLabel} (7h Ley)` : (dayRow.isScheduled ? `${dayRow.scheduledStart}-${dayRow.scheduledEnd}` : 'Sin Turno')}>
+                                  <span className="font-semibold text-slate-600 truncate flex items-center gap-0.5" title={dayRow.isNovelty7h ? `${dayRow.scheduleTypeLabel} (7h Ley)` : (dayRow.isScheduled ? `${dayRow.scheduledStart}-${dayRow.scheduledEnd}` : (isNoShow ? 'Sin Programar' : 'Sin Turno'))}>
                                     <Calendar className="w-2.5 h-2.5 text-blue-500 shrink-0" />
-                                    {dayRow.isNovelty7h ? dayRow.scheduleTypeLabel : (dayRow.isScheduled ? `${dayRow.scheduledStart}-${dayRow.scheduledEnd}` : 'Sin Turno')}
+                                    {dayRow.isNovelty7h ? dayRow.scheduleTypeLabel : (dayRow.isScheduled ? `${dayRow.scheduledStart}-${dayRow.scheduledEnd}` : (isNoShow ? 'Sin Programar' : 'Sin Turno'))}
                                   </span>
                                   <span className="font-bold text-slate-500 shrink-0">{dayRow.scheduledNetHours || 0}h</span>
                                 </div>
@@ -1759,6 +1770,8 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                                   <span className={`font-black truncate flex items-center gap-0.5 ${
                                     isAutoFilled
                                       ? 'text-indigo-900'
+                                      : isNoShow
+                                      ? 'text-rose-700 font-bold'
                                       : dayRow.hasPunch
                                       ? (isUnscheduled ? 'text-purple-900' : 'text-blue-900')
                                       : dayRow.isNovelty7h
@@ -1767,7 +1780,7 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                                       ? 'text-slate-400 font-normal'
                                       : 'text-rose-600'
                                   }`}>
-                                    <Clock className={`w-2.5 h-2.5 shrink-0 ${isAutoFilled ? 'text-indigo-600' : 'text-slate-400'}`} />
+                                    <Clock className={`w-2.5 h-2.5 shrink-0 ${isAutoFilled ? 'text-indigo-600' : isNoShow ? 'text-rose-600' : 'text-slate-400'}`} />
                                     {dayRow.hasPunch ? (
                                       <span className="truncate">
                                         <span className={dayRow.autoFilledEntry ? 'text-indigo-700 font-black underline decoration-indigo-400' : ''}>
@@ -1778,6 +1791,8 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                                           {dayRow.autoFilledExit ? `${dayRow.realEnd}*` : (dayRow.realEnd || '--:--')}
                                         </span>
                                       </span>
+                                    ) : isNoShow ? (
+                                      <span className="truncate text-rose-700 font-black">No se presentó</span>
                                     ) : dayRow.isNovelty7h ? (
                                       <span className="truncate">{dayRow.scheduleTypeLabel}</span>
                                     ) : isDayOff ? (
@@ -1787,17 +1802,17 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                                     )}
                                   </span>
                                   <span className={`font-bold shrink-0 ${
-                                    isAutoFilled ? 'text-indigo-950 font-black' : (dayRow.hasPunch || dayRow.isNovelty7h) ? 'text-slate-900' : 'text-slate-400'
+                                    isAutoFilled ? 'text-indigo-950 font-black' : (dayRow.hasPunch || dayRow.isNovelty7h) ? 'text-slate-900' : (isNoShow ? 'text-rose-700 font-bold' : 'text-slate-400')
                                   }`}>
                                     {dayRow.realNetHours || 0}h
                                   </span>
                                 </div>
 
                                 {/* Mini Footer Diferencia / Novedad */}
-                                {(dayRow.isScheduled || dayRow.hasPunch || dayRow.isNovelty7h) ? (
+                                {(dayRow.isScheduled || dayRow.hasPunch || dayRow.isNovelty7h || isNoShow) ? (
                                   <div className="pt-0.5 border-t border-slate-200/60 flex items-center justify-between text-[8px] leading-tight">
                                     <span className={`font-black ${
-                                      dayRow.hoursDiff > 0 ? 'text-blue-700' : dayRow.hoursDiff < 0 ? 'text-rose-600' : 'text-emerald-600'
+                                      dayRow.hoursDiff > 0 ? 'text-blue-700' : dayRow.hoursDiff < 0 ? 'text-rose-600' : (isNoShow ? 'text-rose-600' : 'text-emerald-600')
                                     }`}>
                                       {diffFormatted}
                                     </span>
@@ -1807,6 +1822,7 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                                       dayRow.status === 'OK_MATCH' ? 'bg-emerald-100 text-emerald-800' :
                                       dayRow.status === 'LATE_ARRIVAL' ? 'bg-amber-100 text-amber-800' :
                                       dayRow.status === 'EARLY_DEPARTURE' ? 'bg-orange-100 text-orange-800' :
+                                      dayRow.status === 'NO_SHOW' ? 'bg-rose-100 text-rose-800 border border-rose-300 font-bold' :
                                       dayRow.status === 'ABSENT' ? 'bg-rose-100 text-rose-800' :
                                       dayRow.status === 'UNSCHEDULED_WORK' ? 'bg-purple-100 text-purple-800' :
                                       dayRow.status === 'OVERTIME' ? 'bg-blue-100 text-blue-800' :

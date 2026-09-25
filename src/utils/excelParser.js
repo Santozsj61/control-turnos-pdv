@@ -198,3 +198,157 @@ export function parsePunchExcel(data) {
 
   return parsedRecords;
 }
+
+/**
+ * Parsea reportes de novedades (CSV o Excel)
+ * Columnas esperadas: Cédula, Nombres y apellidos, Desc.Concepto, Fecha Inicial, Fecha Final
+ */
+export function parseNoveltiesReport(data) {
+  let rows = [];
+
+  if (typeof data === 'string') {
+    const lines = data.split(/\r?\n/).filter(line => line.trim().length > 0);
+    if (lines.length < 2) throw new Error('El archivo de novedades no contiene suficientes filas.');
+    const firstLine = lines[0];
+    const delimiter = firstLine.includes(';') ? ';' : firstLine.includes('\t') ? '\t' : ',';
+    rows = lines.map(line => line.split(delimiter).map(c => c.trim().replace(/^["']|["']$/g, '')));
+  } else {
+    let workbook;
+    if (data instanceof ArrayBuffer || ArrayBuffer.isView(data)) {
+      workbook = XLSX.read(data, { type: 'array', cellDates: false, raw: true });
+    } else {
+      workbook = XLSX.read(data, { type: 'binary', cellDates: false, raw: true });
+    }
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '', raw: true });
+  }
+
+  if (!rows || rows.length < 2) {
+    throw new Error('El archivo de novedades está vacío o no contiene registros válidos.');
+  }
+
+  let headerRowIndex = 0;
+  for (let r = 0; r < Math.min(rows.length, 10); r++) {
+    const rowStr = rows[r].map(normalizeKey).join(' ');
+    if (rowStr.includes('cedula') || rowStr.includes('documento') || rowStr.includes('concepto') || rowStr.includes('inicial')) {
+      headerRowIndex = r;
+      break;
+    }
+  }
+
+  const rawHeaders = rows[headerRowIndex].map(h => String(h).trim());
+  const headerMap = {};
+
+  rawHeaders.forEach((h, colIdx) => {
+    const norm = normalizeKey(h);
+    if (norm.includes('cedula') || norm.includes('document') || norm.includes('identid') || norm === 'id') headerMap.documentId = colIdx;
+    if (norm.includes('nombre') || norm.includes('apellido') || norm.includes('colaborador')) headerMap.fullName = colIdx;
+    if (norm.includes('concepto') || norm.includes('novedad') || norm.includes('tipo') || norm.includes('motivo')) headerMap.concept = colIdx;
+    if ((norm.includes('fecha') && norm.includes('inici')) || norm.includes('desde') || norm === 'inicio') headerMap.startDate = colIdx;
+    if ((norm.includes('fecha') && norm.includes('final')) || norm.includes('hasta') || norm === 'fin') headerMap.endDate = colIdx;
+  });
+
+  const parsedNovelties = [];
+
+  for (let r = headerRowIndex + 1; r < rows.length; r++) {
+    const row = rows[r];
+    if (!row || row.every(cell => cell === '' || cell === null || cell === undefined)) continue;
+
+    const documentId = headerMap.documentId !== undefined ? String(row[headerMap.documentId] || '').trim().replace(/\D/g, '') : '';
+    const fullName = headerMap.fullName !== undefined ? String(row[headerMap.fullName] || '').trim() : '';
+    const rawConcept = headerMap.concept !== undefined ? String(row[headerMap.concept] || '').trim() : 'NOVEDAD';
+    const startDate = headerMap.startDate !== undefined ? normalizeDate(row[headerMap.startDate]) : '';
+    const endDate = headerMap.endDate !== undefined ? normalizeDate(row[headerMap.endDate]) : startDate;
+
+    if (!documentId || !startDate) continue;
+
+    const upperConcept = rawConcept.toUpperCase();
+    let shiftType = 'LICENCIA';
+    let label = 'Novedad';
+
+    if (upperConcept.includes('VACACION')) {
+      shiftType = 'VACACIONES';
+      label = 'Vacaciones';
+    } else if (upperConcept.includes('INCAPACIDAD')) {
+      shiftType = 'INCAPACIDAD';
+      label = 'Incapacidad';
+    } else if (upperConcept.includes('MATERNIDAD')) {
+      shiftType = 'LICENCIA';
+      label = 'Licencia Maternidad';
+    } else if (upperConcept.includes('PATERNIDAD')) {
+      shiftType = 'LICENCIA';
+      label = 'Licencia Paternidad';
+    } else if (upperConcept.includes('FAMILIA')) {
+      shiftType = 'PERMISO';
+      label = 'Día de la Familia';
+    } else if (upperConcept.includes('PERMISO')) {
+      shiftType = 'PERMISO';
+      label = 'Permiso Personal';
+    } else if (upperConcept.includes('LICENCIA')) {
+      shiftType = 'LICENCIA';
+      label = 'Licencia';
+    } else if (upperConcept.includes('DESCANSO')) {
+      shiftType = 'DESCANSO';
+      label = 'Descanso';
+    }
+
+    parsedNovelties.push({
+      documentId,
+      fullName,
+      rawConcept,
+      shiftType,
+      label,
+      isNovelty7h: true,
+      netHours: 7.0,
+      startDate,
+      endDate: endDate || startDate
+    });
+  }
+
+  return parsedNovelties;
+}
+
+/**
+ * Asocia novedades a una matriz o lista de programaciones
+ */
+export function applyNoveltiesToSchedules(schedules, novelties) {
+  if (!schedules || !novelties || novelties.length === 0) return schedules;
+
+  const noveltiesByDoc = new Map();
+  novelties.forEach(nov => {
+    const doc = String(nov.documentId).trim();
+    if (!noveltiesByDoc.has(doc)) noveltiesByDoc.set(doc, []);
+    noveltiesByDoc.get(doc).push(nov);
+  });
+
+  return schedules.map(sched => {
+    const doc = String(sched.documentId || sched.employee?.documentId || '').trim();
+    const empNovs = noveltiesByDoc.get(doc);
+    if (!empNovs || empNovs.length === 0) return sched;
+
+    let hasChanges = false;
+    const updatedShifts = (sched.shifts || []).map(shift => {
+      const shiftDate = shift.date;
+      const matchedNov = empNovs.find(n => n.startDate <= shiftDate && shiftDate <= n.endDate);
+      if (matchedNov) {
+        hasChanges = true;
+        return {
+          ...shift,
+          shiftType: matchedNov.shiftType,
+          isDayOff: matchedNov.shiftType === 'DESCANSO',
+          isNovelty7h: true,
+          netHours: 7.0,
+          startTime: '',
+          endTime: '',
+          permissionReason: `${matchedNov.label}: ${matchedNov.rawConcept}`,
+          hasApprovedPermission: true
+        };
+      }
+      return shift;
+    });
+
+    return hasChanges ? { ...sched, shifts: updatedShifts } : sched;
+  });
+}
+
