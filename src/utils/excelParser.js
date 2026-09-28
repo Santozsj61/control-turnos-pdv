@@ -627,3 +627,150 @@ export function parsePayrollLiquidation(data) {
   };
 }
 
+export function parseMallaExcel(data, customWeekStart = '2026-07-06') {
+  let workbook;
+  if (data instanceof ArrayBuffer || ArrayBuffer.isView(data)) {
+    workbook = XLSX.read(data, { type: 'array', cellDates: false, raw: true });
+  } else {
+    workbook = XLSX.read(data, { type: 'binary', cellDates: false, raw: true });
+  }
+
+  const targetSheetName = workbook.SheetNames.find(n => 
+    n.toLowerCase().includes('cronograma') || 
+    n.toLowerCase().includes('malla') || 
+    n.toLowerCase().includes('horario')
+  ) || workbook.SheetNames[0];
+
+  const ws = workbook.Sheets[targetSheetName];
+  const rawRows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+  if (!rawRows || rawRows.length < 2) {
+    throw new Error('La hoja de cronograma está vacía o no tiene encabezados válidos.');
+  }
+
+  const start = new Date(customWeekStart + 'T12:00:00Z');
+  const dayNames = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+  const weekDates = [];
+  for (let i = 0; i < 7; i++) {
+    const cur = new Date(start.getTime() + i * 86400000);
+    weekDates.push({
+      date: cur.toISOString().split('T')[0],
+      dayName: dayNames[i],
+      inCol: 3 + i * 2,
+      outCol: 4 + i * 2
+    });
+  }
+
+  function numToTime(val) {
+    if (val === undefined || val === null || val === '') return '';
+    if (typeof val === 'number') {
+      const totalSecs = Math.round(val * 86400);
+      const h = Math.floor((totalSecs % 86400) / 3600);
+      const m = Math.floor((totalSecs % 3600) / 60);
+      return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    }
+    const s = String(val).trim();
+    const match = s.match(/(\d{1,2}):(\d{1,2})/);
+    if (match) return `${String(match[1]).padStart(2, '0')}:${String(match[2]).padStart(2, '0')}`;
+    return s;
+  }
+
+  const schedules = [];
+
+  for (let r = 1; r < rawRows.length; r++) {
+    const row = rawRows[r];
+    if (!row || row.length < 3) continue;
+    const rawPdv = String(row[0] || '').trim();
+    const doc = String(row[1] || '').trim();
+    const fullName = String(row[2] || '').trim();
+    if (!doc || !rawPdv) continue;
+
+    const matchCode = rawPdv.match(/^([A-Za-z0-9]+)/);
+    const code = matchCode ? matchCode[1] : '';
+
+    const shifts = weekDates.map(wd => {
+      const rawIn = row[wd.inCol];
+      const rawOut = row[wd.outCol];
+      const timeIn = numToTime(rawIn);
+      const timeOut = numToTime(rawOut);
+
+      const isDescanso = typeof rawIn === 'string' && (rawIn.toLowerCase().includes('descanso') || rawIn.toLowerCase().includes('no labora'));
+      const isIncapacidad = typeof rawIn === 'string' && rawIn.toLowerCase().includes('incapacidad');
+      const isVacaciones = typeof rawIn === 'string' && rawIn.toLowerCase().includes('vacacion');
+      const isLicencia = typeof rawIn === 'string' && rawIn.toLowerCase().includes('licencia');
+      const isNoProg = typeof rawIn === 'string' && (rawIn.toLowerCase().includes('no programado') || rawIn === '');
+
+      let shiftType = 'ORDINARIO';
+      let isDayOff = false;
+
+      if (isDescanso) {
+        shiftType = 'DESCANSO';
+        isDayOff = true;
+      } else if (isIncapacidad) {
+        shiftType = 'INCAPACIDAD';
+        isDayOff = true;
+      } else if (isVacaciones) {
+        shiftType = 'VACACIONES';
+        isDayOff = true;
+      } else if (isLicencia) {
+        shiftType = 'LICENCIA';
+        isDayOff = true;
+      } else if (isNoProg || (!timeIn && !timeOut)) {
+        shiftType = 'NO_PROGRAMADO';
+        isDayOff = true;
+      }
+
+      const hasTimes = timeIn && timeOut && timeIn.includes(':') && timeOut.includes(':');
+      let calcs;
+      if (hasTimes && !isDayOff) {
+        calcs = calculateShiftHours(timeIn, timeOut, wd.date, { nightStartTime: '19:00' }, 'ORDINARIO');
+      } else {
+        calcs = calculateShiftHours('', '', wd.date, { nightStartTime: '19:00' }, shiftType);
+      }
+
+      return {
+        date: wd.date,
+        dayOfWeek: wd.dayName,
+        startTime: hasTimes ? timeIn : '',
+        endTime: hasTimes ? timeOut : '',
+        shiftType,
+        isDayOff,
+        ...calcs
+      };
+    });
+
+    const totalNetHours = +shifts.reduce((sum, s) => sum + (s.netHours || 0), 0).toFixed(2);
+    const totalLunchHours = +shifts.reduce((sum, s) => sum + (s.lunchHours || 0), 0).toFixed(2);
+    const userId = `emp-${doc}`;
+
+    schedules.push({
+      id: `sched-${userId}-${customWeekStart}`,
+      userId,
+      user_id: userId,
+      documentId: doc,
+      document_id: doc,
+      fullName,
+      pdvCode: code,
+      pdvName: rawPdv,
+      weekStart: customWeekStart,
+      week_start: customWeekStart,
+      weekEnd: weekDates[weekDates.length - 1].date,
+      week_end: weekDates[weekDates.length - 1].date,
+      isSubmitted: true,
+      is_submitted: true,
+      totalNetHours,
+      total_net_hours: totalNetHours,
+      totalLunchHours,
+      total_lunch_hours: totalLunchHours,
+      shifts
+    });
+  }
+
+  return {
+    success: true,
+    sheetUsed: targetSheetName,
+    weekStart: customWeekStart,
+    recordCount: schedules.length,
+    schedules
+  };
+}
+

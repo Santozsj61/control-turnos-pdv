@@ -3,6 +3,7 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { db } from './db.js';
+import { runReconciliation } from './reconciliation.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -161,6 +162,21 @@ app.patch('/api/permissions/:id/status', (req, res) => {
 });
 app.get('/api/punches/batches', (req, res) => res.json({ success: true, data: db.getPunchBatches() }));
 app.get('/api/punches', (req, res) => res.json({ success: true, data: db.getPunchRecords() }));
+app.post('/api/punches/upload', (req, res) => {
+  try {
+    const { batchInfo, records } = req.body;
+    res.json({ success: true, data: db.savePunchBatch(batchInfo, records) });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+app.get('/api/reconciliation', (req, res) => {
+  try {
+    res.json({ success: true, data: runReconciliation(req.query) });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
 
 // 3. Fallback SPA routing
 app.get('*', (req, res, next) => {
