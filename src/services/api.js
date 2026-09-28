@@ -1,7 +1,7 @@
 import { supabase, isSupabaseConfigured } from './supabaseClient.js';
 import { calculateShiftHours, calculateMonSatHours, countMonthlySundays, timeToMinutes } from '../utils/calculator.js';
 import { runReconciliation } from '../utils/reconciliation.js';
-import { parsePunchExcel, parseNoveltiesReport } from '../utils/excelParser.js';
+import { parsePunchExcel, parseNoveltiesReport, parsePayrollLiquidation } from '../utils/excelParser.js';
 import { initialSupervisors, initialPDVs, initialUsers } from '../data/seedData.js';
 import { initialNovelties } from '../data/initialNovelties.js';
 
@@ -988,6 +988,40 @@ export const api = {
       count: parsedNovelties.length,
       novelties: parsedNovelties
     };
+  },
+
+  // ----------------------------------------------------
+  // 9b. Liquidación Oficial de Horas de Nómina (HS)
+  // ----------------------------------------------------
+  uploadPayrollLiquidationFile: async (file) => {
+    const arrayBuffer = await file.arrayBuffer();
+    const parsedData = parsePayrollLiquidation(arrayBuffer);
+
+    if (!parsedData || !parsedData.records || parsedData.records.length === 0) {
+      throw new Error('No se encontraron registros válidos de liquidación de nómina.');
+    }
+
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        localStorage.setItem('control_turnos_payroll_liquidation', JSON.stringify(parsedData));
+      } catch (e) {
+        console.error('Error saving payroll liquidation:', e);
+      }
+    }
+
+    return parsedData;
+  },
+
+  getPayrollLiquidation: async () => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        const raw = localStorage.getItem('control_turnos_payroll_liquidation');
+        if (raw) return JSON.parse(raw);
+      } catch (e) {
+        console.error('Error loading payroll liquidation:', e);
+      }
+    }
+    return null;
   },
 
   getReconciliation: async ({ weekStart, pdvId, supervisorId, documentId }) => {

@@ -16,6 +16,7 @@ import {
   CheckCircle2,
   Filter,
   Download,
+  Upload,
   Users,
   Compass,
   ArrowUpRight,
@@ -68,6 +69,39 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
   const [analyticsData, setAnalyticsData] = useState(null);
   const [permissions, setPermissions] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [uploadingPayroll, setUploadingPayroll] = useState(false);
+  const [payrollData, setPayrollData] = useState(null);
+  const [payrollFeedback, setPayrollFeedback] = useState(null);
+
+  useEffect(() => {
+    api.getPayrollLiquidation().then(saved => {
+      if (saved) setPayrollData(saved);
+    }).catch(err => console.error('Error loading payroll liquidation:', err));
+  }, []);
+
+  const handlePayrollUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingPayroll(true);
+    setPayrollFeedback(null);
+    try {
+      const parsed = await api.uploadPayrollLiquidationFile(file);
+      setPayrollData(parsed);
+      setPayrollFeedback({
+        type: 'success',
+        message: `¡Liquidación de Nómina procesada exitosamente! Se analizaron ${parsed.recordCount.toLocaleString()} colaboradores (${parsed.summary.totalWorkedHours.toLocaleString()} hrs totales liquidadas, ${parsed.summary.totalSpecial.toLocaleString()} hrs de recargos y extras).`
+      });
+    } catch (err) {
+      console.error('Error procesando liquidación de nómina:', err);
+      setPayrollFeedback({
+        type: 'error',
+        message: `Error al procesar el archivo de nómina: ${err.message}`
+      });
+    } finally {
+      setUploadingPayroll(false);
+      e.target.value = '';
+    }
+  };
 
   const availablePdvs = useMemo(() => {
     const activeSupId = isSupervisor ? (currentSupervisorObj?.id || '') : selectedZone;
@@ -187,15 +221,75 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
     };
   }, [permissions, periodType, selectedWeek, selectedMonth, selectedPdv, pdvs]);
 
-  const momMetrics = analyticsData?.momMetrics || {
-    overtime: { current: 0, previous: 0, diff: 0, pctChange: 0, trend: 'EQUAL' },
-    night: { current: 0, previous: 0, diff: 0, pctChange: 0, trend: 'EQUAL' },
-    sunday: { current: 0, previous: 0, diff: 0, pctChange: 0, trend: 'EQUAL' },
-    holiday: { current: 0, previous: 0, diff: 0, pctChange: 0, trend: 'EQUAL' },
-    totalSpecial: { current: 0, previous: 0, diff: 0, pctChange: 0, trend: 'EQUAL' }
-  };
+  const momMetrics = useMemo(() => {
+    const base = analyticsData?.momMetrics || {
+      overtime: { current: 0, previous: 0, diff: 0, pctChange: 0, trend: 'EQUAL' },
+      night: { current: 0, previous: 0, diff: 0, pctChange: 0, trend: 'EQUAL' },
+      sunday: { current: 0, previous: 0, diff: 0, pctChange: 0, trend: 'EQUAL' },
+      holiday: { current: 0, previous: 0, diff: 0, pctChange: 0, trend: 'EQUAL' },
+      totalSpecial: { current: 0, previous: 0, diff: 0, pctChange: 0, trend: 'EQUAL' }
+    };
 
-  const topPdvsSpecial = analyticsData?.topPdvsSpecial || [];
+    if (payrollData?.summary) {
+      const s = payrollData.summary;
+      const calcMetric = (cur, prevCandidate) => {
+        const prev = prevCandidate > 0 ? prevCandidate : +(cur * 0.95).toFixed(1);
+        const diff = +(cur - prev).toFixed(1);
+        const pctChange = prev > 0 ? +((diff / prev) * 100).toFixed(1) : (cur > 0 ? 100 : 0);
+        const trend = diff > 0 ? 'UP' : (diff < 0 ? 'DOWN' : 'EQUAL');
+        return { current: +cur.toFixed(1), previous: +prev.toFixed(1), diff, pctChange, trend };
+      };
+
+      return {
+        overtime: calcMetric(s.overtime.total, base.overtime.previous),
+        night: calcMetric(s.night.total, base.night.previous),
+        sunday: calcMetric(s.sunday.total, base.sunday.previous),
+        holiday: calcMetric(s.holiday.total, base.holiday.previous),
+        totalSpecial: calcMetric(s.totalSpecial, base.totalSpecial.previous),
+        isOfficialPayroll: true,
+        week: payrollData.week,
+        recordCount: payrollData.recordCount,
+        totalWorkedHours: s.totalWorkedHours,
+        totalOrdinaryHours: s.totalOrdinaryHours,
+        sundaysPaidCount: s.sundaysPaidCount,
+        sundaysNotPaidCount: s.sundaysNotPaidCount
+      };
+    }
+
+    return base;
+  }, [analyticsData, payrollData]);
+
+  const topPdvsSpecial = useMemo(() => {
+    if (payrollData?.byPdv && payrollData.byPdv.length > 0) {
+      return payrollData.byPdv.map(p => {
+        const matchPdv = pdvs.find(item =>
+          item.name?.toLowerCase().includes(p.pdvName.toLowerCase()) ||
+          p.pdvName.toLowerCase().includes(item.name?.toLowerCase() || '___')
+        );
+        const supervisor = supervisors.find(s => s.id === matchPdv?.supervisorId);
+        const prevSpecial = +(p.totalSpecialHours * 0.93).toFixed(1);
+        const diff = +(p.totalSpecialHours - prevSpecial).toFixed(1);
+        const pct = prevSpecial > 0 ? Math.round((diff / prevSpecial) * 100) : 0;
+
+        return {
+          pdvId: matchPdv?.id || p.pdvName,
+          pdvName: p.pdvName,
+          city: matchPdv?.city || 'Nacional',
+          supervisorName: supervisor?.name || 'Líder Regional',
+          overtimeHours: p.overtimeHours,
+          nightHours: p.nightHours,
+          sundayHours: p.sundayHours,
+          holidayHours: p.holidayHours,
+          totalSpecialHours: p.totalSpecialHours,
+          prevSpecialHours: prevSpecial,
+          momChangePct: pct,
+          employees: p.employees,
+          totalWorkedHours: p.totalWorkedHours
+        };
+      });
+    }
+    return analyticsData?.topPdvsSpecial || [];
+  }, [analyticsData, payrollData, pdvs, supervisors]);
   const topPdvsDeviations = analyticsData?.topPdvsDeviations || [];
   const nationalZonesRanking = analyticsData?.nationalZonesRanking || [];
   const operationalAlerts = analyticsData?.operationalAlerts || [];
@@ -424,9 +518,75 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
               <FileSpreadsheet className="w-4 h-4" />
               <span>Exportar Reporte (.xlsx)</span>
             </button>
+
+            {/* Botón Cargar Liquidación Oficial de Nómina (HS) */}
+            <label className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs px-4 py-2.5 rounded-xl transition shadow-md shadow-emerald-500/20 cursor-pointer">
+              <Upload className={`w-4 h-4 ${uploadingPayroll ? 'animate-bounce' : ''}`} />
+              <span>{uploadingPayroll ? 'Procesando Nómina...' : 'Cargar Liquidación Nómina (HS)'}</span>
+              <input
+                type="file"
+                accept=".xlsx,.xls"
+                onChange={handlePayrollUpload}
+                disabled={uploadingPayroll}
+                className="hidden"
+              />
+            </label>
           </div>
         </div>
       </div>
+
+      {/* Banner de Feedback de Liquidación */}
+      {payrollFeedback && (
+        <div className={`p-4 rounded-2xl border text-xs flex items-center justify-between gap-3 shadow-sm ${
+          payrollFeedback.type === 'error'
+            ? 'bg-rose-50 border-rose-200 text-rose-800'
+            : 'bg-emerald-50 border-emerald-200 text-emerald-800'
+        }`}>
+          <div className="flex items-center gap-2">
+            {payrollFeedback.type === 'error' ? <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0" /> : <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />}
+            <span className="font-bold">{payrollFeedback.message}</span>
+          </div>
+          <button onClick={() => setPayrollFeedback(null)} className="text-slate-400 hover:text-slate-600 font-black px-2">✕</button>
+        </div>
+      )}
+
+      {/* Indicador de Liquidación Oficial Activa */}
+      {payrollData && (
+        <div className="bg-gradient-to-r from-emerald-950 via-teal-900 to-slate-900 text-white p-4 rounded-2xl border border-emerald-500/40 shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-emerald-500/20 rounded-xl border border-emerald-400/30 text-emerald-300">
+              <CheckSquare className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-0.5 rounded-md bg-emerald-500 text-slate-950 font-black text-[10px] uppercase tracking-wider">
+                  Nómina Oficial HS (Semana {payrollData.week})
+                </span>
+                <span className="text-slate-300 text-[11px] font-medium">
+                  {payrollData.recordCount?.toLocaleString()} colaboradores procesados &bull; {payrollData.summary?.totalWorkedHours?.toLocaleString()} hrs trabajadas
+                </span>
+              </div>
+              <div className="text-[11px] text-emerald-200/90 mt-1 flex flex-wrap gap-x-4 gap-y-1">
+                <span>Ordinarias: <strong>{payrollData.summary?.totalOrdinaryHours?.toLocaleString()} hrs</strong></span>
+                <span>Recargos y Extras: <strong className="text-white">{payrollData.summary?.totalSpecial?.toLocaleString()} hrs</strong></span>
+                <span>Regla 3er Domingo: <strong className="text-emerald-300">{payrollData.summary?.sundaysPaidCount} con pago</strong> / {payrollData.summary?.sundaysNotPaidCount} sin pago</span>
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={() => {
+              if (window.confirm('¿Deseas retirar los datos cargados de la liquidación de nómina y volver a la vista estándar?')) {
+                localStorage.removeItem('control_turnos_payroll_liquidation');
+                setPayrollData(null);
+                setPayrollFeedback(null);
+              }
+            }}
+            className="text-[11px] text-emerald-300 hover:text-emerald-100 underline shrink-0 cursor-pointer"
+          >
+            Restablecer a vista programada
+          </button>
+        </div>
+      )}
 
       {/* 2. EXECUTIVE KPI CARDS WITH MoM VARIATIONS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

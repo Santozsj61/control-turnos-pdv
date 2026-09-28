@@ -352,3 +352,278 @@ export function applyNoveltiesToSchedules(schedules, novelties) {
   });
 }
 
+/**
+ * Parsea el archivo oficial de Liquidación de Horas Suplementarias de Nómina (ej. "Ejemplo de Liquidacion HS.xlsx")
+ * Con hojas canónicas:
+ * 1. "Liquidacion" (Consolidado oficial por colaborador con 21 columnas canónicas de nómina)
+ * 2. "Marcaciones" (Desglose diario Lun-Sáb, franjas diurnas/nocturnas y festivos)
+ */
+export function parsePayrollLiquidation(data) {
+  let workbook;
+  if (data instanceof ArrayBuffer || ArrayBuffer.isView(data)) {
+    workbook = XLSX.read(data, { type: 'array', cellDates: false, raw: true });
+  } else {
+    workbook = XLSX.read(data, { type: 'binary', cellDates: false, raw: true });
+  }
+
+  const sheetNames = workbook.SheetNames;
+  const liqSheetName = sheetNames.find(s => normalizeKey(s).includes('liquidacion')) ||
+                       sheetNames.find(s => normalizeKey(s).includes('nomina')) ||
+                       sheetNames[0];
+
+  const worksheet = workbook.Sheets[liqSheetName];
+  if (!worksheet) {
+    throw new Error('No se encontró la hoja de Liquidación en el archivo Excel.');
+  }
+
+  const rawRows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '', raw: true });
+  if (!rawRows || rawRows.length < 2) {
+    throw new Error('La hoja de Liquidación está vacía o no contiene encabezados válidos.');
+  }
+
+  let headerRowIndex = 0;
+  for (let r = 0; r < Math.min(rawRows.length, 10); r++) {
+    const rowStr = rawRows[r].map(normalizeKey).join(' ');
+    if (rowStr.includes('documento') || rowStr.includes('cedula') || rowStr.includes('horasordinarias') || rowStr.includes('recargonocturno')) {
+      headerRowIndex = r;
+      break;
+    }
+  }
+
+  const headerRow = rawRows[headerRowIndex];
+  function findCol(keywords) {
+    for (let c = 0; c < headerRow.length; c++) {
+      const norm = normalizeKey(headerRow[c]);
+      for (const kw of keywords) {
+        if (norm.includes(kw)) return c;
+      }
+    }
+    return -1;
+  }
+
+  const COLS = {
+    empresa: findCol(['empresa']),
+    tipoNomina: findCol(['tipodenomina', 'tiponomina']),
+    pdv: findCol(['puntodeventa', 'pdv']),
+    cargo: findCol(['cargo']),
+    nombre: findCol(['nombre']),
+    documento: findCol(['documento', 'cedula']),
+    semana: findCol(['semana']),
+    ord: findCol(['horasordinarias']),
+    rn: findCol(['recargonocturnoordinario']),
+    hed: findCol(['horaextradiurna']),
+    hen: findCol(['horaextranocturna']),
+    rdd: findCol(['recargodiurnodominical']),
+    rnd: findCol(['recargonocturnodominical']),
+    hedd: findCol(['horaextradiurnadominical']),
+    hend: findCol(['horaextranocturnadominical']),
+    rdf: findCol(['recargodiurnofestivo']),
+    rnf: findCol(['recargonocturnofestivo']),
+    totalHoras: findCol(['totalhorastrabajadas', 'totalhoras']),
+    domingosMes: findCol(['ndomingoslaborados', 'domingoslaborados']),
+    reglaDom: findCol(['regladominical']),
+    festivosSemana: findCol(['nfestivospagados', 'festivospagados'])
+  };
+
+  function num(val) {
+    if (val === undefined || val === null || val === '') return 0;
+    if (typeof val === 'number') return val;
+    const n = parseFloat(String(val).replace(/\s/g, '').replace(',', '.'));
+    return isNaN(n) ? 0 : n;
+  }
+
+  const records = [];
+  let totalOrd = 0;
+  let totalRN = 0;
+  let totalHED = 0;
+  let totalHEN = 0;
+  let totalRDD = 0;
+  let totalRND = 0;
+  let totalHEDD = 0;
+  let totalHEND = 0;
+  let totalRDF = 0;
+  let totalRNF = 0;
+  let totalHoras = 0;
+  let countDomingosPagados = 0;
+  let countDomingosNoPagados = 0;
+  let detectedWeek = '';
+
+  const pdvAggMap = {};
+  const companyAggMap = {};
+
+  for (let r = headerRowIndex + 1; r < rawRows.length; r++) {
+    const row = rawRows[r];
+    if (!row || row.length < 3) continue;
+
+    const doc = String(COLS.documento !== -1 ? row[COLS.documento] : '').trim();
+    const nombre = String(COLS.nombre !== -1 ? row[COLS.nombre] : '').trim();
+    if (!doc && !nombre) continue;
+
+    const empresa = String(COLS.empresa !== -1 ? row[COLS.empresa] : '').trim() || 'NCS BRANDS S.A.S.';
+    const tipoNomina = String(COLS.tipoNomina !== -1 ? row[COLS.tipoNomina] : '').trim() || 'Q';
+    const pdvName = String(COLS.pdv !== -1 ? row[COLS.pdv] : '').trim();
+    const cargo = String(COLS.cargo !== -1 ? row[COLS.cargo] : '').trim();
+    const semana = String(COLS.semana !== -1 ? row[COLS.semana] : '').trim();
+    if (semana && !detectedWeek) detectedWeek = semana;
+
+    const ord = num(COLS.ord !== -1 ? row[COLS.ord] : 0);
+    const rn = num(COLS.rn !== -1 ? row[COLS.rn] : 0);
+    const hed = num(COLS.hed !== -1 ? row[COLS.hed] : 0);
+    const hen = num(COLS.hen !== -1 ? row[COLS.hen] : 0);
+    const rdd = num(COLS.rdd !== -1 ? row[COLS.rdd] : 0);
+    const rnd = num(COLS.rnd !== -1 ? row[COLS.rnd] : 0);
+    const hedd = num(COLS.hedd !== -1 ? row[COLS.hedd] : 0);
+    const hend = num(COLS.hend !== -1 ? row[COLS.hend] : 0);
+    const rdf = num(COLS.rdf !== -1 ? row[COLS.rdf] : 0);
+    const rnf = num(COLS.rnf !== -1 ? row[COLS.rnf] : 0);
+    const totalH = num(COLS.totalHoras !== -1 ? row[COLS.totalHoras] : 0);
+
+    const numDom = num(COLS.domingosMes !== -1 ? row[COLS.domingosMes] : 0);
+    const reglaDom = String(COLS.reglaDom !== -1 ? row[COLS.reglaDom] : '').trim();
+    const numFest = num(COLS.festivosSemana !== -1 ? row[COLS.festivosSemana] : 0);
+
+    if (reglaDom.toLowerCase().includes('se paga') && !reglaDom.toLowerCase().includes('no')) {
+      countDomingosPagados++;
+    } else if (reglaDom.toLowerCase().includes('no se paga')) {
+      countDomingosNoPagados++;
+    }
+
+    totalOrd += ord;
+    totalRN += rn;
+    totalHED += hed;
+    totalHEN += hen;
+    totalRDD += rdd;
+    totalRND += rnd;
+    totalHEDD += hedd;
+    totalHEND += hend;
+    totalRDF += rdf;
+    totalRNF += rnf;
+    totalHoras += (totalH || (ord + hed + hen + rdd + rnd + hedd + hend + rdf + rnf));
+
+    const totalOvertime = hed + hen + hedd + hend;
+    const totalNight = rn + rnd + rnf;
+    const totalSunday = rdd + rnd + hedd + hend;
+    const totalHoliday = rdf + rnf;
+    const totalSpecial = totalOvertime + totalNight + totalSunday + totalHoliday;
+
+    // Agrupación por PDV
+    const pdvKey = pdvName || 'SIN_PDV';
+    if (!pdvAggMap[pdvKey]) {
+      pdvAggMap[pdvKey] = {
+        pdvName: pdvKey,
+        employees: 0,
+        ord: 0,
+        overtime: 0,
+        night: 0,
+        sunday: 0,
+        holiday: 0,
+        totalSpecial: 0,
+        totalWorked: 0
+      };
+    }
+    pdvAggMap[pdvKey].employees++;
+    pdvAggMap[pdvKey].ord += ord;
+    pdvAggMap[pdvKey].overtime += totalOvertime;
+    pdvAggMap[pdvKey].night += totalNight;
+    pdvAggMap[pdvKey].sunday += totalSunday;
+    pdvAggMap[pdvKey].holiday += totalHoliday;
+    pdvAggMap[pdvKey].totalSpecial += totalSpecial;
+    pdvAggMap[pdvKey].totalWorked += (totalH || (ord + totalSpecial));
+
+    // Agrupación por Empresa
+    const empKey = empresa || 'NCS BRANDS S.A.S.';
+    if (!companyAggMap[empKey]) {
+      companyAggMap[empKey] = { company: empKey, employees: 0, totalSpecial: 0, totalWorked: 0 };
+    }
+    companyAggMap[empKey].employees++;
+    companyAggMap[empKey].totalSpecial += totalSpecial;
+    companyAggMap[empKey].totalWorked += (totalH || (ord + totalSpecial));
+
+    records.push({
+      documentId: doc,
+      name: nombre,
+      company: empresa,
+      payrollType: tipoNomina,
+      pdvName,
+      position: cargo,
+      week: semana,
+      ordinaryHours: +ord.toFixed(2),
+      nightSurchargeOrd: +rn.toFixed(2),
+      overtimeDay: +hed.toFixed(2),
+      overtimeNight: +hen.toFixed(2),
+      sundayDay: +rdd.toFixed(2),
+      sundayNight: +rnd.toFixed(2),
+      sundayOvertimeDay: +hedd.toFixed(2),
+      sundayOvertimeNight: +hend.toFixed(2),
+      holidayDay: +rdf.toFixed(2),
+      holidayNight: +rnf.toFixed(2),
+      totalWorkedHours: +(totalH || (ord + totalSpecial)).toFixed(2),
+      sundaysWorkedMonth: numDom,
+      sundayRule: reglaDom,
+      holidaysPaidWeek: numFest,
+      totalOvertime: +totalOvertime.toFixed(2),
+      totalNight: +totalNight.toFixed(2),
+      totalSunday: +totalSunday.toFixed(2),
+      totalHoliday: +totalHoliday.toFixed(2),
+      totalSpecial: +totalSpecial.toFixed(2)
+    });
+  }
+
+  const totalOvertimeConsolidated = totalHED + totalHEN + totalHEDD + totalHEND;
+  const totalNightConsolidated = totalRN + totalRND + totalRNF;
+  const totalSundayConsolidated = totalRDD + totalRND + totalHEDD + totalHEND;
+  const totalHolidayConsolidated = totalRDF + totalRNF;
+  const totalSpecialConsolidated = totalOvertimeConsolidated + totalNightConsolidated + totalSundayConsolidated + totalHolidayConsolidated;
+
+  return {
+    success: true,
+    sheetUsed: liqSheetName,
+    week: detectedWeek || '27',
+    recordCount: records.length,
+    summary: {
+      totalEmployees: records.length,
+      totalOrdinaryHours: +totalOrd.toFixed(2),
+      overtime: {
+        total: +totalOvertimeConsolidated.toFixed(2),
+        day: +totalHED.toFixed(2),
+        night: +totalHEN.toFixed(2),
+        sundayDay: +totalHEDD.toFixed(2),
+        sundayNight: +totalHEND.toFixed(2)
+      },
+      night: {
+        total: +totalNightConsolidated.toFixed(2),
+        ordinary: +totalRN.toFixed(2),
+        sunday: +totalRND.toFixed(2),
+        holiday: +totalRNF.toFixed(2)
+      },
+      sunday: {
+        total: +totalSundayConsolidated.toFixed(2),
+        day: +totalRDD.toFixed(2),
+        night: +totalRND.toFixed(2),
+        overtimeDay: +totalHEDD.toFixed(2),
+        overtimeNight: +totalHEND.toFixed(2)
+      },
+      holiday: {
+        total: +totalHolidayConsolidated.toFixed(2),
+        day: +totalRDF.toFixed(2),
+        night: +totalRNF.toFixed(2)
+      },
+      totalSpecial: +totalSpecialConsolidated.toFixed(2),
+      totalWorkedHours: +totalHoras.toFixed(2),
+      sundaysPaidCount: countDomingosPagados,
+      sundaysNotPaidCount: countDomingosNoPagados
+    },
+    byPdv: Object.values(pdvAggMap).map(p => ({
+      ...p,
+      overtimeHours: +p.overtime.toFixed(1),
+      nightHours: +p.night.toFixed(1),
+      sundayHours: +p.sunday.toFixed(1),
+      holidayHours: +p.holiday.toFixed(1),
+      totalSpecialHours: +p.totalSpecial.toFixed(1),
+      totalWorkedHours: +p.totalWorked.toFixed(1)
+    })).sort((a, b) => b.totalSpecialHours - a.totalSpecialHours),
+    byCompany: Object.values(companyAggMap),
+    records
+  };
+}
+
