@@ -1582,9 +1582,11 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
   }, [unprogrammedEmployees]);
 
   const isGridTotallyBlank = useMemo(() => {
-    if (!scheduleMatrix || scheduleMatrix.length === 0) return true;
-    return scheduleMatrix.every(row => 
-      !row.shifts || row.shifts.every(s => (!s.startTime && !s.isDayOff) || s.shiftType === 'NO_PROGRAMADO')
+    if (!scheduleMatrix || typeof scheduleMatrix !== 'object') return true;
+    const rows = Object.values(scheduleMatrix);
+    if (rows.length === 0) return true;
+    return rows.every(row => 
+      !row?.shifts || row.shifts.every(s => (!s.startTime && !s.isDayOff) || s.shiftType === 'NO_PROGRAMADO')
     );
   }, [scheduleMatrix]);
 
