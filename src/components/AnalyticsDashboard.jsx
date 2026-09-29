@@ -48,6 +48,7 @@ import * as XLSX from 'xlsx';
 import { ALL_WEEKS_2026 } from '../utils/weeks.js';
 import { api } from '../services/api.js';
 import { OFFICIAL_PAYROLL_BY_WEEK } from '../data/officialPayrollData.js';
+import { isCollaboratorActive } from '../data/activeCollaborators371.js';
 
 const WEEK_START_MAP = {
   '23': '2026-06-01',
@@ -182,9 +183,12 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
     try {
       const parsed = await api.uploadPayrollLiquidationFile(file);
       setPayrollData(parsed);
+      const retiredMsg = (parsed.retiredCount > 0)
+        ? ` ⚠️ Se detectaron ${parsed.retiredCount} colaboradores no vigentes marcados como (Retirado).`
+        : '';
       setPayrollFeedback({
         type: 'success',
-        message: `¡Liquidación de Nómina procesada exitosamente! Se analizaron ${parsed.recordCount.toLocaleString()} colaboradores (${parsed.summary.totalWorkedHours.toLocaleString()} hrs totales liquidadas, ${parsed.summary.totalSpecial.toLocaleString()} hrs de recargos y extras).`
+        message: `¡Liquidación de Nómina procesada exitosamente! Se analizaron ${parsed.recordCount.toLocaleString()} colaboradores (${parsed.summary.totalWorkedHours.toLocaleString()} hrs totales liquidadas, ${parsed.summary.totalSpecial.toLocaleString()} hrs de recargos y extras).${retiredMsg}`
       });
     } catch (err) {
       console.error('Error procesando liquidación de nómina:', err);
@@ -1048,6 +1052,14 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
                 <span>Recargos y Extras: <strong className="text-white">{momMetrics.totalSpecial?.current?.toLocaleString()} hrs</strong></span>
                 <span>Regla 3er Domingo: <strong className="text-emerald-300">{momMetrics.sundaysPaidCount} con pago recargo</strong> / {momMetrics.sundaysNotPaidCount} compensatorio</span>
               </div>
+              {activePayroll?.retiredCount > 0 && (
+                <div className="mt-2 bg-amber-950/60 border border-amber-500/50 rounded-lg px-2.5 py-1 flex items-center gap-1.5 text-[11px] text-amber-200">
+                  <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <span>
+                    Se detectaron <strong>{activePayroll.retiredCount} colaboradores</strong> anteriores/inactivos marcados como <strong>(Retirado)</strong>.
+                  </span>
+                </div>
+              )}
             </div>
           </div>
           {payrollData && (

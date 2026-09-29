@@ -4,6 +4,7 @@ import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, Cart
 import * as XLSX from 'xlsx';
 import { ALL_WEEKS_2026, CURRENT_WEEK_START } from '../utils/weeks.js';
 import { api } from '../services/api.js';
+import { isCollaboratorActive } from '../data/activeCollaborators371.js';
 
 export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
   const isAdmin = currentUser?.role === 'ADMIN';
@@ -238,7 +239,10 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
     setUploadMsg(null);
     try {
       const res = await api.uploadPunchFile(file);
-      setUploadMsg({ type: 'success', text: `Archivo cargado exitosamente: ${res.recordCount} marcaciones registradas.` });
+      const retiredMsg = res.retiredCount > 0 
+        ? ` ⚠️ Se detectaron ${res.retiredCount} marcaciones de colaboradores retirados/anteriores marcadas como (Retirado).` 
+        : '';
+      setUploadMsg({ type: 'success', text: `Archivo cargado exitosamente: ${res.recordCount} marcaciones registradas.${retiredMsg}` });
       fetchReconciliation();
     } catch (err) {
       setUploadMsg({ type: 'error', text: err.message || 'Error de conexión durante la carga' });
@@ -261,9 +265,13 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
     setUploadMsg(null);
     try {
       const res = await api.uploadNoveltiesFile(file);
+      const retiredCount = (res.novelties || []).filter(n => n.isRetired).length;
+      const retiredMsg = retiredCount > 0 
+        ? ` ⚠️ Se detectaron ${retiredCount} novedades de personal retirado/anterior marcadas como (Retirado).` 
+        : '';
       setUploadMsg({
         type: 'success',
-        text: `Reporte de Novedades procesado con éxito: ${res.count} novedades asociadas a programaciones (7 horas de ley reconocidas automáticamente).`
+        text: `Reporte de Novedades procesado con éxito: ${res.count} novedades asociadas a programaciones (7 horas de ley reconocidas automáticamente).${retiredMsg}`
       });
       fetchReconciliation();
     } catch (err) {
@@ -1712,6 +1720,11 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                             <span className="font-extrabold text-slate-900 text-[11px] leading-snug truncate max-w-full block" title={collab.fullName}>
                               {collab.fullName}
                             </span>
+                            {(collab.isRetired || !isCollaboratorActive(collab.documentId)) && (
+                              <span className="bg-rose-100 text-rose-800 text-[8px] font-black px-1 py-0.2 rounded border border-rose-300">
+                                Retirado
+                              </span>
+                            )}
                             {collab.isUnscheduledWorker && (
                               <span className="bg-purple-100 text-purple-800 text-[8px] font-black px-1 py-0.2 rounded">
                                 No Prog
@@ -2061,7 +2074,14 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                                   )}
 
                                   <td className="py-3 px-3.5">
-                                    <div className="font-bold text-slate-900">{row.fullName}</div>
+                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                      <span className="font-bold text-slate-900">{row.fullName}</span>
+                                      {(!isCollaboratorActive(row.documentId) || row.isRetired) && (
+                                        <span className="bg-rose-100 text-rose-800 text-[9px] font-black px-1.5 py-0.2 rounded border border-rose-300">
+                                          Retirado
+                                        </span>
+                                      )}
+                                    </div>
                                     <div className="text-[11px] text-slate-500">CC: {row.documentId} | {row.position}</div>
                                   </td>
 
@@ -2270,7 +2290,14 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
 
                       {/* Employee & PDV */}
                       <td className="py-3 px-3.5">
-                        <div className="font-bold text-slate-900">{row.fullName}</div>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-bold text-slate-900">{row.fullName}</span>
+                          {(!isCollaboratorActive(row.documentId) || row.isRetired) && (
+                            <span className="bg-rose-100 text-rose-800 text-[9px] font-black px-1.5 py-0.2 rounded border border-rose-300">
+                              Retirado
+                            </span>
+                          )}
+                        </div>
                         <div className="text-[11px] text-slate-500">CC: {row.documentId} | {row.position}</div>
                         <div className="text-[10px] text-blue-700 font-semibold mt-0.5">
                           {row.pdvName} (Jefe: {row.supervisorName.split(' ')[0]})

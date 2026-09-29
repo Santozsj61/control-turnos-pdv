@@ -7,6 +7,7 @@ import {
 import * as XLSX from 'xlsx';
 import { COVERAGE_MONITOR_BY_WEEK } from '../data/coverageMonitorData.js';
 import { initialSupervisors } from '../data/seedData.js';
+import { isCollaboratorActive } from '../data/activeCollaborators371.js';
 
 export default function PendingCoverageMonitorView({ currentUser, pdvs, supervisors }) {
   const isSupervisor = currentUser?.role === 'SUPERVISOR';
@@ -165,6 +166,7 @@ export default function PendingCoverageMonitorView({ currentUser, pdvs, supervis
     filteredPdvs.forEach(p => {
       if (p.pendingCollaborators && p.pendingCollaborators.length > 0) {
         p.pendingCollaborators.forEach(c => {
+          const isAct = isCollaboratorActive(c.documentId);
           rows.push({
             'Código PDV': p.pdvCode,
             'Punto de Venta': p.pdvName,
@@ -172,7 +174,8 @@ export default function PendingCoverageMonitorView({ currentUser, pdvs, supervis
             'Zona': p.zone,
             'Líder Regional': p.supervisorName,
             'Documento Colaborador': c.documentId,
-            'Nombre Colaborador': c.fullName,
+            'Nombre Colaborador': isAct ? c.fullName : `${String(c.fullName || '').replace(/\s*\(Retirado\)/gi, '')} (Retirado)`,
+            'Estado': isAct ? 'Activo' : 'Retirado',
             'Cargo': c.position,
             'Pendiente Turno Programado': c.isPendingProgram ? 'SÍ' : 'NO',
             'Pendiente Marcación': c.isPendingPunch ? 'SÍ' : 'NO',
@@ -587,8 +590,13 @@ export default function PendingCoverageMonitorView({ currentUser, pdvs, supervis
                       className="bg-slate-50 hover:bg-slate-100/80 p-3.5 rounded-xl border border-slate-200 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                     >
                       <div className="space-y-0.5">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-bold text-slate-900 text-xs sm:text-sm">{c.fullName}</span>
+                          {!isCollaboratorActive(c.documentId) && (
+                            <span className="bg-rose-100 text-rose-800 text-[9px] font-black px-1.5 py-0.2 rounded border border-rose-300">
+                              Retirado
+                            </span>
+                          )}
                           <span className="text-[10px] text-slate-500 font-mono">CC: {c.documentId}</span>
                         </div>
                         <span className="text-[11px] text-slate-500 font-medium block">{c.position}</span>

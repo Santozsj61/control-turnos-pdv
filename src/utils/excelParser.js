@@ -1,5 +1,6 @@
 import * as XLSX from 'xlsx';
 import { calculateShiftHours } from './calculator.js';
+import { isCollaboratorActive, tagCollaboratorStatus } from '../data/activeCollaborators371.js';
 
 function normalizeKey(str) {
   if (!str) return '';
@@ -174,13 +175,19 @@ export function parsePunchExcel(data) {
       punchCalculations = calculateShiftHours(entryTime.substring(0, 5), exitTime.substring(0, 5), entryDate);
     }
 
+    const { isActive, displayName } = tagCollaboratorStatus(documentId, fullName);
+    const isRetired = !isActive;
+
     parsedRecords.push({
       code,
       documentId,
       name,
       lastName1,
       lastName2,
-      fullName,
+      fullName: displayName,
+      originalFullName: fullName,
+      isRetired,
+      statusLabel: isActive ? 'Activo' : 'Retirado',
       position,
       area,
       supervisorName: supervisor,
@@ -293,9 +300,15 @@ export function parseNoveltiesReport(data) {
       label = 'Descanso';
     }
 
+    const { isActive, displayName } = tagCollaboratorStatus(documentId, fullName);
+    const isRetired = !isActive;
+
     parsedNovelties.push({
       documentId,
-      fullName,
+      fullName: displayName,
+      originalFullName: fullName,
+      isRetired,
+      statusLabel: isActive ? 'Activo' : 'Retirado',
       rawConcept,
       shiftType,
       label,
@@ -539,9 +552,15 @@ export function parsePayrollLiquidation(data) {
     companyAggMap[empKey].totalSpecial += totalSpecial;
     companyAggMap[empKey].totalWorked += (totalH || (ord + totalSpecial));
 
+    const { isActive, displayName } = tagCollaboratorStatus(doc, nombre);
+    const isRetired = !isActive;
+
     records.push({
       documentId: doc,
-      name: nombre,
+      name: displayName,
+      originalName: nombre,
+      isRetired,
+      statusLabel: isActive ? 'Activo' : 'Retirado',
       company: empresa,
       payrollType: tipoNomina,
       pdvName,
@@ -575,13 +594,21 @@ export function parsePayrollLiquidation(data) {
   const totalHolidayConsolidated = totalRDF + totalRNF;
   const totalSpecialConsolidated = totalOvertimeConsolidated + totalNightConsolidated + totalSundayConsolidated + totalHolidayConsolidated;
 
+  const retiredCount = records.filter(r => r.isRetired).length;
+  const activeCount = records.filter(r => !r.isRetired).length;
+
   return {
     success: true,
     sheetUsed: liqSheetName,
     week: detectedWeek || '27',
     recordCount: records.length,
+    retiredCount,
+    activeCount,
+    retiredCollaborators: records.filter(r => r.isRetired).map(r => ({ documentId: r.documentId, name: r.name, pdvName: r.pdvName })),
     summary: {
       totalEmployees: records.length,
+      retiredEmployees: retiredCount,
+      activeEmployees: activeCount,
       totalOrdinaryHours: +totalOrd.toFixed(2),
       overtime: {
         total: +totalOvertimeConsolidated.toFixed(2),
@@ -742,13 +769,19 @@ export function parseMallaExcel(data, customWeekStart = '2026-07-06') {
     const totalLunchHours = +shifts.reduce((sum, s) => sum + (s.lunchHours || 0), 0).toFixed(2);
     const userId = `emp-${doc}`;
 
+    const { isActive, displayName } = tagCollaboratorStatus(doc, fullName);
+    const isRetired = !isActive;
+
     schedules.push({
       id: `sched-${userId}-${customWeekStart}`,
       userId,
       user_id: userId,
       documentId: doc,
       document_id: doc,
-      fullName,
+      fullName: displayName,
+      originalFullName: fullName,
+      isRetired,
+      statusLabel: isActive ? 'Activo' : 'Retirado',
       pdvCode: code,
       pdvName: rawPdv,
       weekStart: customWeekStart,
@@ -765,11 +798,16 @@ export function parseMallaExcel(data, customWeekStart = '2026-07-06') {
     });
   }
 
+  const retiredCount = schedules.filter(s => s.isRetired).length;
+  const activeCount = schedules.filter(s => !s.isRetired).length;
+
   return {
     success: true,
     sheetUsed: targetSheetName,
     weekStart: customWeekStart,
     recordCount: schedules.length,
+    retiredCount,
+    activeCount,
     schedules
   };
 }

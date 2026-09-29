@@ -1524,7 +1524,14 @@ export const api = {
       period: 'Semana cargada',
       store: 'Todos los PDVs'
     };
-    return api.savePunchBatch(batchInfo, parsedRecords);
+    const saved = await api.savePunchBatch(batchInfo, parsedRecords);
+    const retiredCount = parsedRecords.filter(r => r.isRetired).length;
+    return {
+      ...saved,
+      recordCount: parsedRecords.length,
+      retiredCount,
+      records: parsedRecords
+    };
   },
 
   generateSamplePunches: async ({ weekStart = '2026-08-31' } = {}) => {

@@ -20,6 +20,7 @@ import {
 import { calculateShiftHours, calculateMonSatHours, countMonthlySundays } from '../utils/calculator.js';
 import { api } from '../services/api.js';
 import { supabase } from '../services/supabaseClient.js';
+import { isCollaboratorActive, tagCollaboratorStatus } from '../data/activeCollaborators371.js';
 
 const DAYS_NAME = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
@@ -739,6 +740,7 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
 
           const weekDates = getDatesForWeek(activeWeekStart);
           let updatedCount = 0;
+          let retiredUploadedCount = 0;
           let newMatrix = { ...scheduleMatrix };
           let updatedEmployees = [...allEmployees];
 
@@ -783,18 +785,33 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
               allowedPdvs[0] || 
               { id: 'pdv-1', name: 'PDV Principal' };
 
+            const targetDoc = docVal || emp?.documentId;
+            const isActive = isCollaboratorActive(targetDoc);
+            const isRetired = !isActive;
+            if (isRetired) retiredUploadedCount++;
+
             // If not found in loaded scope, create standardized employee object without duplicates
             if (!emp && (docVal || nameVal)) {
+              const { displayName } = tagCollaboratorStatus(docVal, nameVal || `COLABORADOR ${docVal}`);
               emp = {
                 id: `emp-${docVal || Date.now()}`,
-                fullName: nameVal || `COLABORADOR ${docVal}`,
+                fullName: displayName,
+                originalFullName: nameVal || `COLABORADOR ${docVal}`,
                 documentId: docVal || '1000000000',
                 position: 'ASESOR(A) DE IMAGEN',
                 role: 'EMPLOYEE',
                 pdvId: matchedPdv.id,
-                contractType: 'FIJO'
+                contractType: 'FIJO',
+                isRetired,
+                statusLabel: isActive ? 'Activo' : 'Retirado'
               };
               updatedEmployees.push(emp);
+            } else if (emp && isRetired) {
+              emp.isRetired = true;
+              emp.statusLabel = 'Retirado';
+              if (!emp.fullName.includes('(Retirado)')) {
+                emp.fullName = `${emp.fullName} (Retirado)`;
+              }
             }
 
             if (!emp) continue;
@@ -912,9 +929,12 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
           }
 
           const weekTag = detectedWeek ? ` (${detectedWeek.shortLabel})` : '';
+          const retiredAlert = retiredUploadedCount > 0 
+            ? ` ⚠️ Se detectaron ${retiredUploadedCount} colaboradores inactivos/anteriores marcados como (Retirado).` 
+            : '';
           setMessage({
             type: 'success',
-            text: `✓ ¡Programación semanal vinculada y guardada exitosamente en la NUBE para ${updatedCount} colaborador(es)${weekTag}! ${cloudSaved ? '☁️ Sincronizado en Supabase.' : ''}`
+            text: `✓ ¡Programación semanal vinculada y guardada exitosamente en la NUBE para ${updatedCount} colaborador(es)${weekTag}!${retiredAlert} ${cloudSaved ? '☁️ Sincronizado en Supabase.' : ''}`
           });
           setUploadingSchedule(false);
         } catch (err) {
@@ -2111,11 +2131,14 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
                 className="w-full bg-white border border-blue-300 rounded-lg p-2 font-bold text-slate-900 focus:ring-2 focus:ring-blue-500 cursor-pointer"
               >
                 <option value="">-- Seleccionar Colaborador Previo para Reincorporar con 1 Clic --</option>
-                {allHistoricalEmployees.map(u => (
-                  <option key={u.id} value={u.documentId || u.id}>
-                    {u.fullName} - CC: {u.documentId} ({u.position || 'Asesor'}) [{u.contractType || 'Fijo'}]
-                  </option>
-                ))}
+                {allHistoricalEmployees.map(u => {
+                  const isRet = !isCollaboratorActive(u.documentId);
+                  return (
+                    <option key={u.id} value={u.documentId || u.id}>
+                      {u.fullName}{isRet ? ' (Retirado)' : ''} - CC: {u.documentId} ({u.position || 'Asesor'}) [{u.contractType || 'Fijo'}]
+                    </option>
+                  );
+                })}
               </select>
               <span className="text-[10px] text-blue-700 mt-1 block font-medium">
                 Al seleccionar un colaborador previo, sus datos se autocompletarán inmediatamente.
@@ -2340,6 +2363,11 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
                       <td className="p-3 border-r border-slate-200 sticky left-0 bg-white z-10 shadow-xs">
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <span className="font-extrabold text-slate-900 leading-tight">{emp.fullName}</span>
+                          {(emp.isRetired || !isCollaboratorActive(emp.documentId)) && (
+                            <span className="text-[9px] font-black px-1.5 py-0.2 rounded border bg-rose-100 text-rose-800 border-rose-300">
+                              Retirado
+                            </span>
+                          )}
                           <span className={`text-[9px] font-extrabold px-1.5 py-0.2 rounded border ${
                             isTemporal 
                               ? 'bg-amber-100 text-amber-800 border-amber-300' 
@@ -2886,7 +2914,14 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
                         <tr key={emp.id} className="hover:bg-slate-50/80 transition">
                           <td className="p-3 font-mono text-[10px] text-slate-400">#{idx + 1}</td>
                           <td className="p-3 font-bold text-slate-900">
-                            <div>{emp.fullName}</div>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span>{emp.fullName}</span>
+                              {(emp.isRetired || !isCollaboratorActive(emp.documentId)) && (
+                                <span className="text-[9px] font-black px-1.5 py-0.2 rounded border bg-rose-100 text-rose-800 border-rose-300">
+                                  Retirado
+                                </span>
+                              )}
+                            </div>
                             <div className="text-[10px] font-mono text-slate-400">{emp.code || emp.id}</div>
                           </td>
                           <td className="p-3 font-mono font-semibold text-slate-700">
