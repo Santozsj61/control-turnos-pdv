@@ -27,12 +27,10 @@ export function getAllWeeks2026() {
     const m2 = monthNames[curSun.getUTCMonth()];
     const y2 = curSun.getUTCFullYear();
 
-    const isLoaded = [27, 28, 29, 30, 31].includes(w);
-    const loadedTag = isLoaded ? ' (Cargada 📊)' : '';
     const isCurrent = w === CURRENT_WEEK_NUMBER;
-    const tag = isCurrent ? ' (Semana Actual ⭐)' : loadedTag;
+    const tag = isCurrent ? ' (Semana Actual ⭐)' : '';
     const label = `Semana ${w}: ${String(d1).padStart(2, '0')} ${m1} - ${String(d2).padStart(2, '0')} ${m2} ${y2}${tag}`;
-    const shortLabel = `Sem ${w} (${String(d1).padStart(2, '0')} ${m1} - ${String(d2).padStart(2, '0')} ${m2})${isLoaded ? ' 📊' : ''}`;
+    const shortLabel = `Sem ${w} (${String(d1).padStart(2, '0')} ${m1} - ${String(d2).padStart(2, '0')} ${m2})`;
 
     weeks.push({
       weekNumber: w,

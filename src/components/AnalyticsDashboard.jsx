@@ -262,7 +262,7 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
     if (payrollData && String(payrollData.week) === String(selectedPayrollWeek)) {
       return payrollData;
     }
-    return OFFICIAL_PAYROLL_BY_WEEK[selectedPayrollWeek] || OFFICIAL_PAYROLL_BY_WEEK['28'];
+    return OFFICIAL_PAYROLL_BY_WEEK[selectedPayrollWeek] || null;
   }, [payrollData, selectedPayrollWeek]);
 
   // Previous week's official payroll for real WoW comparison
@@ -624,9 +624,9 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
     const weeksList = ['27', '28', '29', '30', '31'];
     return weeksList.map(w => {
       const wData = OFFICIAL_PAYROLL_BY_WEEK[w];
-      const count = wData?.recordCount || 370;
+      const count = wData?.recordCount || 0;
       const worked = wData?.summary?.totalWorkedHours || 0;
-      const avgReal = +(worked / count).toFixed(1);
+      const avgReal = count > 0 ? +(worked / count).toFixed(1) : 0;
       const legalProg = 42.0;
       return {
         week: `Semana ${w}`,
