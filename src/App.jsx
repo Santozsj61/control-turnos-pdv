@@ -13,6 +13,7 @@ import ConfigView from './components/ConfigView.jsx';
 import HabitualSchedulesAuditView from './components/HabitualSchedulesAuditView.jsx';
 import NetworkMonitorView from './components/NetworkMonitorView.jsx';
 import WeeklyJustificationView from './components/WeeklyJustificationView.jsx';
+import PendingCoverageMonitorView from './components/PendingCoverageMonitorView.jsx';
 
 import { api } from './services/api.js';
 import { initialSupervisors, initialPDVs, initialUsers } from './data/seedData.js';
@@ -222,6 +223,14 @@ export default function App() {
 
         {activeTab === 'weekly_justification' && (
           <WeeklyJustificationView
+            currentUser={currentUser}
+            pdvs={pdvs}
+            supervisors={supervisors}
+          />
+        )}
+
+        {activeTab === 'pending_coverage' && (
+          <PendingCoverageMonitorView
             currentUser={currentUser}
             pdvs={pdvs}
             supervisors={supervisors}

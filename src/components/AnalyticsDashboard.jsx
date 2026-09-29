@@ -50,38 +50,91 @@ import { api } from '../services/api.js';
 import { OFFICIAL_PAYROLL_BY_WEEK } from '../data/officialPayrollData.js';
 
 const WEEK_START_MAP = {
+  '23': '2026-06-01',
+  '24': '2026-06-08',
+  '25': '2026-06-15',
+  '26': '2026-06-22',
   '27': '2026-06-29',
   '28': '2026-07-06',
   '29': '2026-07-13',
   '30': '2026-07-20',
-  '31': '2026-07-27'
+  '31': '2026-07-27',
+  '32': '2026-08-03',
+  '33': '2026-08-10',
+  '34': '2026-08-17',
+  '35': '2026-08-24'
 };
 
 const DATE_TO_WEEK_MAP = {
+  '2026-06-01': '23',
+  '2026-06-08': '24',
+  '2026-06-15': '25',
+  '2026-06-22': '26',
   '2026-06-29': '27',
   '2026-07-06': '28',
   '2026-07-13': '29',
   '2026-07-20': '30',
-  '2026-07-27': '31'
+  '2026-07-27': '31',
+  '2026-08-03': '32',
+  '2026-08-10': '33',
+  '2026-08-17': '34',
+  '2026-08-24': '35'
 };
 
 const PREV_WEEK_MAP = {
-  '27': null,
+  '23': null,
+  '24': '23',
+  '25': '24',
+  '26': '25',
+  '27': '26',
   '28': '27',
   '29': '28',
   '30': '29',
   '31': '30',
+  '32': '31',
+  '33': '32',
+  '34': '33',
+  '35': '34',
   'ALL': null
 };
 
 const HOLIDAY_NAME_MAP = {
+  '23': 'Semana sin festivo nacional',
+  '24': 'Sagrado Corazón (08 Jun)',
+  '25': 'Semana sin festivo nacional',
+  '26': 'San Pedro y San Pablo / Corpus (22 Jun)',
   '27': 'San Pedro y San Pablo (29 Jun)',
   '28': 'Semana sin festivo nacional',
   '29': 'Festivo Nacional Traslado (13 Jul)',
   '30': 'Día de la Independencia (20 Jul)',
   '31': 'Semana sin festivo nacional',
-  'ALL': '3 Festivos en el período (29-Jun, 13-Jul, 20-Jul)'
+  '32': 'Batalla de Boyacá (07 Ago)',
+  '33': 'Semana sin festivo nacional',
+  '34': 'Asunción de la Virgen (17 Ago)',
+  '35': 'Semana sin festivo nacional',
+  'ALL': 'Todos los Festivos del Trimestre'
 };
+
+const ALL_AVAILABLE_WEEKS = [
+  // Junio
+  { key: '23', month: 'Junio', label: 'Semana 23', date: '01 Jun - 07 Jun', badge: 'Ordinaria', desc: 'Inicio Junio 42h' },
+  { key: '24', month: 'Junio', label: 'Semana 24', date: '08 Jun - 14 Jun', badge: 'Festivo', desc: 'Sagrado Corazón' },
+  { key: '25', month: 'Junio', label: 'Semana 25', date: '15 Jun - 21 Jun', badge: 'Ordinaria', desc: '42h Legales' },
+  { key: '26', month: 'Junio', label: 'Semana 26', date: '22 Jun - 28 Jun', badge: 'Festivo', desc: 'San Pedro / Corpus' },
+  // Julio
+  { key: '27', month: 'Julio', label: 'Semana 27', date: '29 Jun - 05 Jul', badge: 'Festivo', desc: 'San Pedro y San Pablo' },
+  { key: '28', month: 'Julio', label: 'Semana 28', date: '06 Jul - 12 Jul', badge: 'Ordinaria', desc: '42h Legales' },
+  { key: '29', month: 'Julio', label: 'Semana 29', date: '13 Jul - 19 Jul', badge: 'Festivo', desc: 'Festivo 13-Jul' },
+  { key: '30', month: 'Julio', label: 'Semana 30', date: '20 Jul - 26 Jul', badge: 'Festivo', desc: '20-Jul Independencia' },
+  { key: '31', month: 'Julio', label: 'Semana 31', date: '27 Jul - 02 Ago', badge: 'Ordinaria', desc: 'Cierre Fin de Mes' },
+  // Agosto
+  { key: '32', month: 'Agosto', label: 'Semana 32', date: '03 Ago - 09 Ago', badge: 'Festivo', desc: 'Batalla de Boyacá' },
+  { key: '33', month: 'Agosto', label: 'Semana 33', date: '10 Ago - 16 Ago', badge: 'Ordinaria', desc: '42h Legales' },
+  { key: '34', month: 'Agosto', label: 'Semana 34', date: '17 Ago - 23 Ago', badge: 'Festivo', desc: 'Asunción de la Virgen' },
+  { key: '35', month: 'Agosto', label: 'Semana 35', date: '24 Ago - 30 Ago', badge: 'Ordinaria', desc: 'Cierre de Agosto' },
+  // Consolidado
+  { key: 'ALL', month: 'ALL', label: 'Consolidado', date: 'Trimestre Jun-Ago', badge: 'Acumulado', desc: '13 Semanas Totales' }
+];
 
 export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
   const isAdmin = currentUser?.role === 'ADMIN';
@@ -106,8 +159,14 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
   const [loading, setLoading] = useState(false);
   const [uploadingPayroll, setUploadingPayroll] = useState(false);
   const [selectedPayrollWeek, setSelectedPayrollWeek] = useState('28');
+  const [monthFilter, setMonthFilter] = useState('ALL'); // 'ALL' | 'Junio' | 'Julio' | 'Agosto'
   const [payrollData, setPayrollData] = useState(null);
   const [payrollFeedback, setPayrollFeedback] = useState(null);
+
+  const visibleWeekPills = useMemo(() => {
+    if (monthFilter === 'ALL') return ALL_AVAILABLE_WEEKS;
+    return ALL_AVAILABLE_WEEKS.filter(w => w.month === monthFilter || w.key === 'ALL');
+  }, [monthFilter]);
 
   useEffect(() => {
     api.getPayrollLiquidation({ week: selectedPayrollWeek }).then(saved => {
@@ -870,36 +929,49 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
 
       {/* 1.1 Barra Principal de Selección Semanal Separada */}
       <div className="bg-slate-900 rounded-2xl p-4 border border-slate-800 shadow-md space-y-3">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <span className="p-1.5 bg-purple-500/20 text-purple-400 rounded-lg">
               <Calendar className="w-4 h-4" />
             </span>
             <span className="text-xs font-black uppercase tracking-wider text-slate-100">
-              Semanas Liquidadas Disponibles (Selección Inmediata):
+              Semanas Liquidadas Disponibles (13 Semanas Jun - Ago 2026):
             </span>
           </div>
-          <span className="text-[11px] text-slate-400">
-            Cada pestaña calcula y separa automáticamente las métricas, tarjetas y rankings
-          </span>
+
+          {/* Month Filter Tabs */}
+          <div className="flex items-center gap-1.5 bg-slate-800/90 p-1 rounded-xl border border-slate-700 text-xs font-bold">
+            {[
+              { id: 'ALL', label: 'Todas las Semanas' },
+              { id: 'Junio', label: 'Junio (Sem 23-26)' },
+              { id: 'Julio', label: 'Julio (Sem 27-31)' },
+              { id: 'Agosto', label: 'Agosto (Sem 31-35)' }
+            ].map(m => (
+              <button
+                key={m.id}
+                type="button"
+                onClick={() => setMonthFilter(m.id)}
+                className={`px-2.5 py-1 rounded-lg transition ${
+                  monthFilter === m.id
+                    ? 'bg-purple-600 text-white shadow-xs'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                {m.label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
-          {[
-            { key: '27', label: 'Semana 27', date: '29 Jun - 05 Jul', badge: 'Festivo', desc: 'San Pedro y San Pablo' },
-            { key: '28', label: 'Semana 28', date: '06 Jul - 12 Jul', badge: 'Ordinaria', desc: '42h Legales' },
-            { key: '29', label: 'Semana 29', date: '13 Jul - 19 Jul', badge: 'Festivo', desc: 'Festivo 13-Jul' },
-            { key: '30', label: 'Semana 30', date: '20 Jul - 26 Jul', badge: 'Festivo', desc: '20-Jul Independencia' },
-            { key: '31', label: 'Semana 31', date: '27 Jul - 02 Ago', badge: 'Ordinaria', desc: 'Cierre Fin de Mes' },
-            { key: 'ALL', label: 'Consolidado', date: 'Semanas 27-31', badge: 'Acumulado', desc: 'Total 5 Semanas' }
-          ].map(item => {
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2">
+          {visibleWeekPills.map(item => {
             const isSelected = selectedPayrollWeek === item.key;
             return (
               <button
                 key={item.key}
                 type="button"
                 onClick={() => handleSelectWeek(item.key)}
-                className={`p-3 rounded-xl text-left transition-all border flex flex-col justify-between cursor-pointer ${
+                className={`p-2.5 rounded-xl text-left transition-all border flex flex-col justify-between cursor-pointer ${
                   isSelected
                     ? 'bg-purple-600 border-purple-400 text-white shadow-lg shadow-purple-600/40 ring-2 ring-purple-300 scale-[1.02]'
                     : 'bg-slate-800/80 border-slate-700/80 text-slate-300 hover:bg-slate-700 hover:text-white'
@@ -907,7 +979,7 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
               >
                 <div className="flex items-center justify-between gap-1">
                   <span className="text-xs font-black">{item.label}</span>
-                  <span className={`text-[9px] font-black px-1.5 py-0.2 rounded uppercase ${
+                  <span className={`text-[8px] font-black px-1.5 py-0.2 rounded uppercase ${
                     isSelected ? 'bg-purple-900 text-white' :
                     item.badge === 'Festivo' ? 'bg-emerald-500/20 text-emerald-300' :
                     item.badge === 'Acumulado' ? 'bg-amber-500/20 text-amber-300' :
@@ -916,10 +988,10 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
                     {item.badge}
                   </span>
                 </div>
-                <div className={`text-[10px] mt-1 ${isSelected ? 'text-purple-100 font-semibold' : 'text-slate-400'}`}>
+                <div className={`text-[9px] mt-1 ${isSelected ? 'text-purple-100 font-semibold' : 'text-slate-400'}`}>
                   {item.date}
                 </div>
-                <div className={`text-[9px] mt-0.5 truncate ${isSelected ? 'text-purple-200' : 'text-slate-500'}`}>
+                <div className={`text-[8.5px] mt-0.5 truncate ${isSelected ? 'text-purple-200' : 'text-slate-500'}`}>
                   {item.desc}
                 </div>
               </button>

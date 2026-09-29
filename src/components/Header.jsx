@@ -27,6 +27,7 @@ export default function Header({ activeTab, setActiveTab, currentUser, onOpenUse
     },
     { id: 'reconciliation', label: 'Conciliación de Marcaciones', icon: BarChart3, show: !isMaintenanceApprover },
     { id: 'weekly_justification', label: 'Justificación Semanal', icon: FileText, show: !isMaintenanceApprover },
+    { id: 'pending_coverage', label: 'Control Cobertura PDV', icon: ShieldAlert, show: !isEmployee && !isMaintenanceApprover },
     { id: 'habitual_schedules', label: 'Horarios Habituales & Auditoría', icon: Clock, show: isAuditorVrx || isAdmin },
     { id: 'analytics', label: isAdmin || isHrAdmin || isAuditorVrx ? 'Dashboard Analítica Nacional' : 'Analítica & Alertas Zona', icon: TrendingUp, show: isAdmin || isHrAdmin || isAuditorVrx || isSupervisor },
     { id: 'tracking', label: isEmployee ? 'Mi Expediente & Historial' : 'Seguimiento & Hoja de Vida', icon: FileText, show: !isPdv && !isSupervisor && !isHrAdmin && !isEmployee && (isAdmin || isAuditorVrx) },
