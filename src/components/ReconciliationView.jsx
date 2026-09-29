@@ -33,7 +33,7 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
     ? pdvs.filter(p => p.supervisorId === currentSupervisorObj?.id || p.supervisorId === currentUser?.supervisorId || p.supervisor_id === currentSupervisorObj?.id)
     : myPdv ? [myPdv] : pdvs.filter(p => p.id === currentPdvId || p.code === currentUser?.code);
 
-  const [weekStart, setWeekStart] = useState('2026-07-06');
+  const [weekStart, setWeekStart] = useState(CURRENT_WEEK_START);
   const [selectedPdv, setSelectedPdv] = useState(isEmployee ? (currentPdvId || allowedPdvs[0]?.id || '') : '');
   const [selectedSupervisor, setSelectedSupervisor] = useState(isSupervisor ? (currentSupervisorObj?.id || '') : '');
   const [statusFilter, setStatusFilter] = useState('ALL');
@@ -58,7 +58,7 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
   const [integrityFilter, setIntegrityFilter] = useState('ALL'); // 'ALL', 'MISSING_EXIT', 'SHORT_SHIFT'
 
   // Monthly / Weekly Reconciliation Dashboard (Cronograma Semanal vs Marcaciones Subidas)
-  const [selectedMonth, setSelectedMonth] = useState('2026-07');
+  const [selectedMonth, setSelectedMonth] = useState(CURRENT_WEEK_START.slice(0, 7));
   const [dashboardPeriodType, setDashboardPeriodType] = useState('WEEK'); // 'MONTH' | 'WEEK'
   const [monthlyDashboardData, setMonthlyDashboardData] = useState(null);
   const [loadingMonthly, setLoadingMonthly] = useState(false);
@@ -745,10 +745,10 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                 }}
                 className="w-full bg-purple-50 hover:bg-purple-100/60 border border-purple-300 text-purple-900 text-xs font-bold rounded-xl px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:outline-hidden transition cursor-pointer"
               >
-                <option value="2026-07">Julio 2026 (Semanas 28 a 31 cargadas 📊)</option>
-                <option value="2026-06">Junio 2026 (Semana 27 cargada 📊)</option>
-                <option value="2026-08">Agosto 2026 (Semanas 32 a 35 cargadas 📊)</option>
-                <option value="2026-09">Septiembre 2026</option>
+                <option value="2026-07">Julio 2026 📊 (Semanas 28 a 31 cargadas)</option>
+                <option value="2026-06">Junio 2026 📊 (Semana 27 cargada)</option>
+                <option value="2026-08">Agosto 2026 📊 (Semanas 32 a 35 cargadas)</option>
+                <option value="2026-09">Septiembre 2026 (Semana Actual ⭐)</option>
                 <option value="2026-10">Octubre 2026</option>
               </select>
             )}

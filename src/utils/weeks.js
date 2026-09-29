@@ -1,11 +1,78 @@
 /**
  * Calendario Oficial de Semanas y Consecutivos 2026
- * Consecutivos Semana 1 a Semana 53 (Semana Actual: 39)
+ * Consecutivos Semana 1 a Semana 53 con detección dinámica en tiempo real.
  */
 
-export const CURRENT_WEEK_NUMBER = 39;
-export const CURRENT_WEEK_START = '2026-09-21';
-export const CURRENT_WEEK_END = '2026-09-27';
+// Semanas oficiales con información histórica / operativa cargada
+export const KNOWN_WEEKS_WITH_DATA = [
+  '2026-06-29', // Sem 27 (29 Jun - 05 Jul 2026)
+  '2026-07-06', // Sem 28 (06 Jul - 12 Jul 2026)
+  '2026-07-13', // Sem 29 (13 Jul - 19 Jul 2026)
+  '2026-07-20', // Sem 30 (20 Jul - 26 Jul 2026)
+  '2026-07-27', // Sem 31 (27 Jul - 02 Ago 2026)
+  '2026-08-03', // Sem 32 (03 Ago - 09 Ago 2026)
+  '2026-08-10', // Sem 33 (10 Ago - 16 Ago 2026)
+  '2026-08-17', // Sem 34 (17 Ago - 23 Ago 2026)
+  '2026-08-24'  // Sem 35 (24 Ago - 30 Ago 2026)
+];
+
+/**
+ * Verifica si una semana específica cuenta con datos cargados (oficiales o en almacenamiento local)
+ */
+export function isWeekLoaded(weekStart) {
+  if (KNOWN_WEEKS_WITH_DATA.includes(weekStart)) return true;
+  if (typeof window !== 'undefined' && window.localStorage) {
+    const raw = window.localStorage.getItem(`control_turnos_schedules_${weekStart}`);
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) return true;
+      } catch (e) {}
+    }
+  }
+  return false;
+}
+
+/**
+ * Detecta dinámicamente la semana actual basada en la fecha del sistema (reloj real)
+ */
+export function getCurrentWeekCalculation() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const todayStr = `${year}-${month}-${day}`;
+
+  // Semana 1 ISO-8601 de 2026 inicia el lunes 29 de Diciembre de 2025
+  let curMon = new Date(Date.UTC(2025, 11, 29, 12, 0, 0));
+
+  for (let w = 1; w <= 53; w++) {
+    const curSun = new Date(curMon.getTime() + 6 * 86400000);
+    const startStr = curMon.toISOString().split('T')[0];
+    const endStr = curSun.toISOString().split('T')[0];
+
+    if (todayStr >= startStr && todayStr <= endStr) {
+      return {
+        weekNumber: w,
+        weekStart: startStr,
+        weekEnd: endStr,
+        today: todayStr
+      };
+    }
+    curMon = new Date(curMon.getTime() + 7 * 86400000);
+  }
+
+  // Fallback para fechas fuera del calendario 2026
+  if (todayStr < '2025-12-29') {
+    return { weekNumber: 1, weekStart: '2025-12-29', weekEnd: '2026-01-04', today: todayStr };
+  }
+  return { weekNumber: 53, weekStart: '2026-12-28', weekEnd: '2027-01-03', today: todayStr };
+}
+
+const currentCalc = getCurrentWeekCalculation();
+export const CURRENT_WEEK_NUMBER = currentCalc.weekNumber;
+export const CURRENT_WEEK_START = currentCalc.weekStart;
+export const CURRENT_WEEK_END = currentCalc.weekEnd;
 
 export function getAllWeeks2026() {
   const weeks = [];
@@ -28,9 +95,14 @@ export function getAllWeeks2026() {
     const y2 = curSun.getUTCFullYear();
 
     const isCurrent = w === CURRENT_WEEK_NUMBER;
-    const tag = isCurrent ? ' (Semana Actual ⭐)' : '';
+    const hasData = isWeekLoaded(startStr);
+
+    let tag = '';
+    if (isCurrent) tag += ' (Semana Actual ⭐)';
+    if (hasData) tag += ' 📊 (Datos cargados)';
+
     const label = `Semana ${w}: ${String(d1).padStart(2, '0')} ${m1} - ${String(d2).padStart(2, '0')} ${m2} ${y2}${tag}`;
-    const shortLabel = `Sem ${w} (${String(d1).padStart(2, '0')} ${m1} - ${String(d2).padStart(2, '0')} ${m2})`;
+    const shortLabel = `Sem ${w} (${String(d1).padStart(2, '0')} ${m1} - ${String(d2).padStart(2, '0')} ${m2})${hasData ? ' 📊' : ''}${isCurrent ? ' ⭐' : ''}`;
 
     weeks.push({
       weekNumber: w,
@@ -38,7 +110,8 @@ export function getAllWeeks2026() {
       weekEnd: endStr,
       label,
       shortLabel,
-      isCurrent
+      isCurrent,
+      hasData
     });
 
     curMon = new Date(curMon.getTime() + 7 * 86400000);
