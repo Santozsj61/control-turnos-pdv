@@ -116,9 +116,7 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
   const [showPlantillaModal, setShowPlantillaModal] = useState(false);
   const [plantillaSearchTerm, setPlantillaSearchTerm] = useState('');
 
-  // Modos de visualización interactivos para la alerta de programación
-  const [alertViewMode, setAlertViewMode] = useState('opcion1'); // 'opcion1' | 'opcion2' | 'opcion3' | 'opcion4'
-  const [isAlertDetailsExpanded, setIsAlertDetailsExpanded] = useState(false);
+  // Modal de colaboradores con turnos pendientes por programar
   const [isUnprogrammedModalOpen, setIsUnprogrammedModalOpen] = useState(false);
   const [unprogrammedSearchTerm, setUnprogrammedSearchTerm] = useState('');
 
@@ -1581,15 +1579,6 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
     return map;
   }, [unprogrammedEmployees]);
 
-  const isGridTotallyBlank = useMemo(() => {
-    if (!scheduleMatrix || typeof scheduleMatrix !== 'object') return true;
-    const rows = Object.values(scheduleMatrix);
-    if (rows.length === 0) return true;
-    return rows.every(row => 
-      !row?.shifts || row.shifts.every(s => (!s.startTime && !s.isDayOff) || s.shiftType === 'NO_PROGRAMADO')
-    );
-  }, [scheduleMatrix]);
-
   return (
     <div className="max-w-[98%] xl:max-w-[1650px] 2xl:max-w-[1850px] mx-auto px-2 sm:px-4 py-6 space-y-6">
       
@@ -2031,8 +2020,8 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
-            {/* BOTÓN OPCIÓN 3: Indicador discreto en barra superior de turnos pendientes */}
-            {alertViewMode === 'opcion3' && unprogrammedEmployees.length > 0 && (
+            {/* BOTÓN INDICADOR DISCRETO: Turnos pendientes por programar (Abre Modal) */}
+            {unprogrammedEmployees.length > 0 && (
               <button
                 type="button"
                 onClick={() => setIsUnprogrammedModalOpen(true)}
@@ -2276,231 +2265,7 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
         </div>
       )}
 
-      {/* SELECTOR INTERACTIVO DE OPCIONES PARA MEJORAR LA VISTA */}
-      <div className="bg-slate-900 text-white rounded-2xl p-3.5 border border-slate-700 shadow-md flex flex-col md:flex-row items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 bg-blue-600/30 text-blue-400 rounded-lg border border-blue-500/30">
-            <Eye className="w-4 h-4 text-blue-400" />
-          </div>
-          <div>
-            <span className="text-xs font-black uppercase tracking-wider text-slate-300">Modo de Vista de Alerta:</span>
-            <p className="text-[11px] text-slate-400">Prueba en vivo cómo prefieres ver la alerta cuando no hay datos cargados:</p>
-          </div>
-        </div>
 
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <button
-            type="button"
-            onClick={() => setAlertViewMode('opcion1')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
-              alertViewMode === 'opcion1' 
-                ? 'bg-blue-600 text-white shadow-md' 
-                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-            }`}
-          >
-            <span>1. Inteligente y Colapsable</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setAlertViewMode('opcion2')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
-              alertViewMode === 'opcion2' 
-                ? 'bg-emerald-600 text-white shadow-md' 
-                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-            }`}
-          >
-            <span>2. Ocultar si está en blanco</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setAlertViewMode('opcion3')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
-              alertViewMode === 'opcion3' 
-                ? 'bg-amber-600 text-white shadow-md' 
-                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-            }`}
-          >
-            <span>3. Botón Superior + Modal</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setAlertViewMode('opcion4')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
-              alertViewMode === 'opcion4' 
-                ? 'bg-purple-600 text-white shadow-md' 
-                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-            }`}
-          >
-            <span>4. Simple de 1 Línea</span>
-          </button>
-        </div>
-      </div>
-
-      {/* RENDERIZADO CONDICIONAL SEGÚN LA OPCIÓN SELECCIONADA */}
-
-      {/* ============================================================ */}
-      {/* OPCIÓN 1: INTELIGENTE Y COLAPSABLE                          */}
-      {/* ============================================================ */}
-      {alertViewMode === 'opcion1' && unprogrammedEmployees.length > 0 && (
-        <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 mb-4 shadow-sm transition">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div className="flex items-start gap-3">
-              <div className="p-2.5 bg-amber-500 text-white rounded-xl shadow-xs shrink-0 mt-0.5">
-                <AlertTriangle className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h4 className="font-extrabold text-sm text-amber-950">
-                    {isGridTotallyBlank 
-                      ? `ℹ️ Semana en blanco: ${unprogrammedEmployees.length} colaboradores pendientes por programar`
-                      : `⚠️ Hay ${unprogrammedEmployees.length} colaborador(es) con turnos pendientes`}
-                  </h4>
-                  <span className="bg-amber-200 text-amber-900 text-[10px] font-black px-2 py-0.5 rounded-full uppercase border border-amber-300">
-                    {isGridTotallyBlank ? 'Nueva Semana' : 'Incompleto'}
-                  </span>
-                </div>
-                <p className="text-xs text-amber-900 mt-1">
-                  {isGridTotallyBlank
-                    ? 'La grilla semanal aún no tiene turnos ingresados. Puedes comenzar a programar o completar automáticamente.'
-                    : `Existen colaboradores con turnos pendientes para la semana del ${weekDates[0]?.formattedDate} al ${weekDates[6]?.formattedDate}.`}
-                </p>
-              </div>
-            </div>
-
-            <div className="shrink-0 flex items-center gap-2 w-full md:w-auto justify-end flex-wrap">
-              <button
-                type="button"
-                onClick={() => setIsAlertDetailsExpanded(!isAlertDetailsExpanded)}
-                className="bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300 font-bold text-xs px-3 py-2 rounded-xl transition flex items-center gap-1.5"
-              >
-                <span>{isAlertDetailsExpanded ? 'Ocultar Lista' : `Ver Colaboradores (${unprogrammedEmployees.length})`}</span>
-                {isAlertDetailsExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-              </button>
-
-              <button
-                type="button"
-                onClick={handleApplyStandardToAll}
-                className="bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition shadow-xs whitespace-nowrap"
-              >
-                Completar con Turno Estándar
-              </button>
-            </div>
-          </div>
-
-          {/* Lista colapsable con buscador y scroll limitado */}
-          {isAlertDetailsExpanded && (
-            <div className="mt-4 pt-3 border-t border-amber-200 space-y-2">
-              <div className="flex items-center justify-between gap-2 flex-wrap">
-                <span className="text-xs font-bold text-amber-900">Listado de colaboradores pendientes:</span>
-                <div className="relative w-full sm:w-64">
-                  <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="text"
-                    placeholder="Filtrar por nombre..."
-                    value={unprogrammedSearchTerm}
-                    onChange={(e) => setUnprogrammedSearchTerm(e.target.value)}
-                    className="w-full pl-8 pr-3 py-1 text-xs border border-amber-300 rounded-lg bg-white text-slate-800 focus:outline-none focus:ring-1 focus:ring-amber-500"
-                  />
-                </div>
-              </div>
-              <div className="max-h-48 overflow-y-auto pr-1 flex flex-wrap gap-1.5 pt-1">
-                {unprogrammedEmployees
-                  .filter(item => !unprogrammedSearchTerm || item.emp.fullName.toLowerCase().includes(unprogrammedSearchTerm.toLowerCase()))
-                  .map(item => (
-                    <span 
-                      key={item.emp.id} 
-                      className="inline-flex items-center gap-1.5 bg-white border border-amber-300/80 px-2.5 py-1 rounded-lg text-xs font-semibold text-amber-950 shadow-2xs"
-                    >
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
-                      <span>{item.emp.fullName}:</span>
-                      <span className="font-normal text-amber-800 text-[11px]">({item.reason})</span>
-                    </span>
-                  ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ============================================================ */}
-      {/* OPCIÓN 2: OCULTAR SI LA GRILLA ESTÁ EN BLANCO               */}
-      {/* ============================================================ */}
-      {alertViewMode === 'opcion2' && (
-        isGridTotallyBlank ? (
-          <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-500 flex items-center justify-between mb-4">
-            <span className="italic">✨ Grilla 100% limpia: Como la semana no tiene turnos cargados, no se muestra ninguna alerta que moleste.</span>
-            <span className="text-[10px] font-bold uppercase bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded border border-emerald-300">Modo Silencioso Activo</span>
-          </div>
-        ) : (
-          unprogrammedEmployees.length > 0 && (
-            <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 mb-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm animate-in fade-in duration-150">
-              <div className="flex items-start gap-3">
-                <div className="p-2.5 bg-amber-500 text-white rounded-xl shadow-xs shrink-0 mt-0.5">
-                  <AlertTriangle className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h4 className="font-extrabold text-sm text-amber-950">
-                    ⚠️ Hay {unprogrammedEmployees.length} colaborador(es) sin completar en la programación activa
-                  </h4>
-                  <p className="text-xs text-amber-900 mt-1">
-                    Se detectaron colaboradores sin turnos asignados para la semana en curso.
-                  </p>
-                </div>
-              </div>
-              <div className="shrink-0 flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={handleApplyStandardToAll}
-                  className="bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition shadow-xs"
-                >
-                  Completar con Turno Estándar
-                </button>
-              </div>
-            </div>
-          )
-        )
-      )}
-
-      {/* ============================================================ */}
-      {/* OPCIÓN 3: BOTÓN DISCRETO EN LA BARRA SUPERIOR + MODAL        */}
-      {/* ============================================================ */}
-      {alertViewMode === 'opcion3' && (
-        <div className="bg-amber-50/70 border border-amber-200 rounded-xl p-3 text-xs text-amber-900 flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <span className="text-amber-600 font-bold">✓ Modo Barra Superior Activo:</span>
-            <span>La alerta no estorba en la grilla. Se ubicó en el botón <strong>"⚠️ Pendientes por programar ({unprogrammedEmployees.length})"</strong> en la barra de herramientas de arriba.</span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setIsUnprogrammedModalOpen(true)}
-            className="bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition"
-          >
-            Abrir Modal de Revisión
-          </button>
-        </div>
-      )}
-
-      {/* ============================================================ */}
-      {/* OPCIÓN 4: MENSAJE SIMPLE DE 1 LÍNEA                         */}
-      {/* ============================================================ */}
-      {alertViewMode === 'opcion4' && unprogrammedEmployees.length > 0 && (
-        <div className="bg-amber-50 border border-amber-300 rounded-xl px-4 py-2.5 mb-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
-          <div className="flex items-center gap-2 text-xs font-bold text-amber-950">
-            <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
-            <span>⚠️ Se detectaron {unprogrammedEmployees.length} colaboradores con programación pendiente para esta semana.</span>
-          </div>
-          <button
-            type="button"
-            onClick={handleApplyStandardToAll}
-            className="bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs px-3 py-1.5 rounded-lg transition shrink-0"
-          >
-            Completar con Turno Estándar
-          </button>
-        </div>
-      )}
 
       {/* MODAL POPUP PARA LA OPCIÓN 3 */}
       {isUnprogrammedModalOpen && (
