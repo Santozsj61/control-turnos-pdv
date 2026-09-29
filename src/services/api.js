@@ -1534,6 +1534,32 @@ export const api = {
     };
   },
 
+  resetAllOperationalData: async () => {
+    if (isSupabaseConfigured) {
+      await Promise.all([
+        supabase.from('schedules').delete().neq('id', '__none__'),
+        supabase.from('punch_records').delete().neq('id', '__none__'),
+        supabase.from('punch_batches').delete().neq('id', '__none__'),
+        supabase.from('permissions').delete().neq('id', '__none__'),
+        supabase.from('supplementary_justifications').delete().neq('id', '__none__')
+      ]);
+    } else {
+      await fetchLocal('/api/reset-data', { method: 'POST' }).catch(() => {});
+    }
+
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const keysToRemove = Object.keys(localStorage).filter(k => 
+        k.startsWith('control_turnos_schedules_') ||
+        k === 'control_turnos_custom_employees' ||
+        k === 'control_turnos_payroll_liquidation' ||
+        k === 'control_turnos_novelties'
+      );
+      keysToRemove.forEach(k => localStorage.removeItem(k));
+    }
+
+    return { success: true };
+  },
+
   generateSamplePunches: async ({ weekStart = '2026-08-31' } = {}) => {
     const [schedules, users, pdvs] = await Promise.all([
       api.getSchedules({ weekStart }).catch(() => []),

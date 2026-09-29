@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Settings, ShieldCheck, CheckCircle2, Clock, Coffee, AlertCircle, 
-  RotateCcw, Save, Loader2, Sparkles, Mail 
+  RotateCcw, Save, Loader2, Sparkles, Mail, Trash2, AlertTriangle 
 } from 'lucide-react';
 import { api } from '../services/api.js';
 
@@ -90,6 +90,37 @@ export default function ConfigView() {
       setFeedback({ type: 'error', text: err.message || 'Error al guardar los parámetros.' });
     } finally {
       setSaving(false);
+    }
+  }
+
+  const [resetting, setResetting] = useState(false);
+
+  async function handleResetAllData() {
+    const confirmed = window.confirm(
+      '¿Estás seguro de que deseas eliminar todas las programaciones y marcaciones cargadas?\n\n' +
+      'Esta acción eliminará de forma irreversible:\n' +
+      '• Todas las mallas y turnos programados.\n' +
+      '• Todas las marcaciones biométricas y lotes cargados.\n' +
+      '• Todos los permisos y justificaciones.\n\n' +
+      'Se conservará intacta la base oficial de 371 colaboradores activos.'
+    );
+    if (!confirmed) return;
+
+    setResetting(true);
+    setFeedback(null);
+    try {
+      await api.resetAllOperationalData();
+      setFeedback({
+        type: 'success',
+        text: '✓ Se han eliminado exitosamente todos los datos de marcaciones, turnos y programaciones. La plataforma se encuentra 100% limpia manteniendo exclusivamente la base oficial de 371 colaboradores activos.'
+      });
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+    } catch (err) {
+      setFeedback({ type: 'error', text: `Error al reiniciar los datos: ${err.message}` });
+    } finally {
+      setResetting(false);
     }
   }
 
@@ -381,6 +412,47 @@ export default function ConfigView() {
           </button>
         </div>
       </form>
+
+      {/* Danger Zone: Purgado de Datos Operativos */}
+      <div className="bg-rose-50 border border-rose-200 rounded-2xl p-6 shadow-xs space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 bg-rose-500 text-white rounded-xl">
+            <Trash2 className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="text-sm font-black text-rose-950 uppercase tracking-wider">
+              Zona de Purga y Limpieza de Datos Operativos
+            </h3>
+            <p className="text-xs text-rose-700">
+              Elimina todas las marcaciones biométricas, turnos programados, novedades y justificaciones cargadas, dejando la plataforma 100% limpia manteniendo únicamente la base oficial de 371 colaboradores activos.
+            </p>
+          </div>
+        </div>
+
+        <div className="pt-2 flex items-center justify-between border-t border-rose-200/80">
+          <span className="text-[11px] text-rose-600 font-medium">
+            * Esta acción no elimina colaboradores, supervisores ni cuentas de PDVs.
+          </span>
+          <button
+            type="button"
+            onClick={handleResetAllData}
+            disabled={resetting}
+            className="flex items-center gap-2 px-5 py-2.5 bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 text-white font-bold rounded-xl text-xs transition shadow-md shadow-rose-900/20 cursor-pointer"
+          >
+            {resetting ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Purgando datos...</span>
+              </>
+            ) : (
+              <>
+                <Trash2 className="w-4 h-4" />
+                <span>Eliminar Marcaciones y Programación</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

@@ -49,6 +49,21 @@ export default function App() {
       setPdvs(finalPdvs);
       setSupervisors(finalSups);
 
+      // Limpieza automática única de cachés locales antiguas (turnos, marcaciones, novedades)
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const PURGE_KEY = 'control_turnos_purged_371_v3';
+        if (!localStorage.getItem(PURGE_KEY)) {
+          const keysToRemove = Object.keys(localStorage).filter(k => 
+            k.startsWith('control_turnos_schedules_') ||
+            k === 'control_turnos_custom_employees' ||
+            k === 'control_turnos_payroll_liquidation' ||
+            k === 'control_turnos_novelties'
+          );
+          keysToRemove.forEach(k => localStorage.removeItem(k));
+          localStorage.setItem(PURGE_KEY, 'true');
+        }
+      }
+
       // Check localStorage for saved session
       const savedUserStr = localStorage.getItem('control_turnos_user');
       let restoredUser = null;
