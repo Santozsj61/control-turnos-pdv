@@ -61,4 +61,4 @@ export const COVERAGE_MONITOR_BY_WEEK = ${JSON.stringify(coverageByWeek, null, 2
 `;
 
 fs.writeFileSync('src/data/coverageMonitorData.js', fileContent);
-console.log('✅ Generated clean coverageMonitorData.js with 102 PDVs and 371 active collaborators.');
+console.log(`✅ Generated clean coverageMonitorData.js with ${pdvsCoverage.length} PDVs and ${ACTIVE_371_COLLABORATORS.length} active collaborators.`);

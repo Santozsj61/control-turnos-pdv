@@ -2042,26 +2042,6 @@ export const initialPDVs = [
       "13:00-20:30"
     ],
     "habitualSchedule": {}
-  },
-  {
-    "id": "pdv-102",
-    "code": "Q132",
-    "name": "Q132 - Valledupar - Centro",
-    "city": "Valledupar",
-    "zoneId": "sup-centro-1",
-    "zoneName": "ZONA CENTRO (LIDER 1)",
-    "supervisorId": "sup-centro-1",
-    "supervisorName": "Andrea Pérez (Líder 1)",
-    "openingHour": "10:00",
-    "closingHour": "20:30",
-    "allowedShifts": [
-      "10:00-20:30",
-      "10:00-18:00",
-      "11:00-19:00",
-      "12:00-20:30",
-      "13:00-20:30"
-    ],
-    "habitualSchedule": {}
   }
 ];
 
@@ -3461,18 +3441,6 @@ export const initialUsers = [
     "role": "PDV",
     "pdvId": "pdv-101",
     "supervisorId": "sup-cali-1",
-    "position": "ADMINISTRADOR DE TIENDA",
-    "area": "VENTAS RETAIL"
-  },
-  {
-    "id": "user-pdv-102",
-    "username": "q132",
-    "password": "101888",
-    "code": "Q132",
-    "fullName": "Q132 - Valledupar - Centro",
-    "role": "PDV",
-    "pdvId": "pdv-102",
-    "supervisorId": "sup-centro-1",
     "position": "ADMINISTRADOR DE TIENDA",
     "area": "VENTAS RETAIL"
   },
