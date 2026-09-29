@@ -59,11 +59,9 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
 
   // Monthly / Weekly Reconciliation Dashboard (Cronograma Semanal vs Marcaciones Subidas)
   const [selectedMonth, setSelectedMonth] = useState('2026-07');
-  const [dashboardPeriodType, setDashboardPeriodType] = useState('MONTH'); // 'MONTH' | 'WEEK'
-  const [dashboardWeek, setDashboardWeek] = useState('2026-07-06');
+  const [dashboardPeriodType, setDashboardPeriodType] = useState('WEEK'); // 'MONTH' | 'WEEK'
   const [monthlyDashboardData, setMonthlyDashboardData] = useState(null);
   const [loadingMonthly, setLoadingMonthly] = useState(false);
-  const [reconciliationViewTab, setReconciliationViewTab] = useState('DASHBOARD'); // 'DASHBOARD' | 'DETALLE'
 
   // Month-over-Month Comparison for PDV
   const [weeklyComparisonData, setWeeklyComparisonData] = useState(null);
@@ -142,7 +140,7 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
         pdvId: targetPdvId, 
         periodType: dashboardPeriodType,
         month: selectedMonth,
-        weekStart: dashboardWeek 
+        weekStart: weekStart 
       });
       if (data) {
         setMonthlyDashboardData(data);
@@ -224,7 +222,7 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
 
   useEffect(() => {
     fetchMonthlyDashboard();
-  }, [selectedMonth, dashboardPeriodType, dashboardWeek, selectedPdv, currentUser?.id, currentUser?.pdvId]);
+  }, [selectedMonth, dashboardPeriodType, weekStart, selectedPdv, currentUser?.id, currentUser?.pdvId]);
 
   // Handle file upload (Exclusive for Admin, Talento Humano & Auditor VRX)
   async function handleFileUpload(e) {
@@ -665,7 +663,206 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
       )}
 
       {/* ---------------------------------------------------- */}
-      {/* MÓDULO DASHBOARD COMPARATIVO MENSUAL (CRONOGRAMA VS MARCACIONES) */}
+      {/* BARRA MAESTRA UNIFICADA DE FILTROS Y BÚSQUEDA */}
+      {/* ---------------------------------------------------- */}
+      <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-3">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+          <div className="flex items-center gap-2">
+            <div className="p-2 bg-blue-100 text-blue-700 rounded-xl">
+              <Filter className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="text-sm font-black text-slate-900 tracking-tight flex items-center gap-2">
+                <span>Filtros y Búsqueda General</span>
+                <span className="bg-blue-50 text-blue-700 border border-blue-200 text-[10px] font-extrabold px-2 py-0.5 rounded-full">
+                  Unificado
+                </span>
+              </h3>
+              <p className="text-[11px] text-slate-500">
+                Control centralizado de período, punto de venta y colaborador para sincronizar dashboard y detalle.
+              </p>
+            </div>
+          </div>
+
+          {/* Period Type Toggle: Por Semana vs Por Mes */}
+          <div className="flex items-center gap-1.5 self-start lg:self-auto bg-slate-100 p-1 rounded-xl text-xs font-bold border border-slate-200">
+            <button
+              type="button"
+              onClick={() => setDashboardPeriodType('WEEK')}
+              className={`px-3 py-1 rounded-lg transition cursor-pointer flex items-center gap-1.5 ${
+                dashboardPeriodType === 'WEEK' ? 'bg-white text-blue-700 shadow-xs' : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <Calendar className="w-3.5 h-3.5" />
+              <span>Por Semana</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setDashboardPeriodType('MONTH')}
+              className={`px-3 py-1 rounded-lg transition cursor-pointer flex items-center gap-1.5 ${
+                dashboardPeriodType === 'MONTH' ? 'bg-white text-purple-700 shadow-xs' : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <BarChart3 className="w-3.5 h-3.5" />
+              <span>Por Mes</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Unified Controls Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-end">
+          {/* 1. Semana / Mes (lg:col-span-3) */}
+          <div className="lg:col-span-3">
+            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+              {dashboardPeriodType === 'WEEK' ? '📅 Semana a Evaluar' : '📆 Mes de Operación'}
+            </label>
+            {dashboardPeriodType === 'WEEK' ? (
+              <select
+                value={weekStart}
+                onChange={(e) => {
+                  const newW = e.target.value;
+                  setWeekStart(newW);
+                  setSelectedMonth(newW.slice(0, 7));
+                }}
+                className="w-full bg-slate-50 hover:bg-slate-100 border border-slate-300 text-slate-900 text-xs font-bold rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-hidden transition cursor-pointer"
+              >
+                {ALL_WEEKS_2026.map(w => (
+                  <option key={w.weekStart} value={w.weekStart}>
+                    {w.label}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <select
+                value={selectedMonth}
+                onChange={(e) => {
+                  const newM = e.target.value;
+                  setSelectedMonth(newM);
+                  const matchingWeek = ALL_WEEKS_2026.find(w => w.weekStart.startsWith(newM));
+                  if (matchingWeek) {
+                    setWeekStart(matchingWeek.weekStart);
+                  }
+                }}
+                className="w-full bg-purple-50 hover:bg-purple-100/60 border border-purple-300 text-purple-900 text-xs font-bold rounded-xl px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:outline-hidden transition cursor-pointer"
+              >
+                <option value="2026-07">Julio 2026 (Semanas 28 a 31 cargadas 📊)</option>
+                <option value="2026-06">Junio 2026 (Semana 27 cargada 📊)</option>
+                <option value="2026-08">Agosto 2026 (Semanas 32 a 35 cargadas 📊)</option>
+                <option value="2026-09">Septiembre 2026</option>
+                <option value="2026-10">Octubre 2026</option>
+              </select>
+            )}
+          </div>
+
+          {/* 2. Punto de Venta (lg:col-span-3) */}
+          <div className="lg:col-span-3">
+            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+              🏬 Punto de Venta
+            </label>
+            {isEmployee ? (
+              <div className="bg-slate-100 border border-slate-300 text-slate-800 text-xs font-bold rounded-xl px-3 py-2 flex items-center justify-between">
+                <span className="truncate">{allowedPdvs[0]?.name || 'Mi PDV'}</span>
+                <Lock className="w-3.5 h-3.5 text-slate-400 shrink-0 ml-1" />
+              </div>
+            ) : (
+              <select
+                value={selectedPdv}
+                onChange={(e) => setSelectedPdv(e.target.value)}
+                className="w-full bg-slate-50 hover:bg-slate-100 border border-slate-300 text-slate-900 text-xs font-bold rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-hidden transition cursor-pointer"
+              >
+                <option value="">
+                  {isAdmin ? `Todos los PDVs (${pdvs.length})` : `Mis PDVs Asignados (${allowedPdvs.length})`}
+                </option>
+                {allowedPdvs.map(p => (
+                  <option key={p.id} value={p.id}>
+                    {p.code ? `${p.code} - ` : ''}{p.name} ({p.city})
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+
+          {/* 3. Jefe Directo / Zona (lg:col-span-2) */}
+          <div className="lg:col-span-2">
+            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+              👔 Líder de Zona
+            </label>
+            {!isAdmin ? (
+              <div className="bg-slate-100 border border-slate-300 text-slate-800 text-xs font-bold rounded-xl px-3 py-2 flex items-center justify-between">
+                <span className="truncate">
+                  {isSupervisor
+                    ? (currentSupervisorObj?.zoneName || currentSupervisorObj?.name)
+                    : supervisors.find(s => s.id === allowedPdvs[0]?.supervisorId)?.name || 'Asignado'}
+                </span>
+                <Lock className="w-3.5 h-3.5 text-slate-400 shrink-0 ml-1" />
+              </div>
+            ) : (
+              <select
+                value={selectedSupervisor}
+                onChange={(e) => setSelectedSupervisor(e.target.value)}
+                className="w-full bg-slate-50 hover:bg-slate-100 border border-slate-300 text-slate-900 text-xs font-bold rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-hidden transition cursor-pointer"
+              >
+                <option value="">Todos los Líderes ({supervisors.length})</option>
+                {supervisors.map(s => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+            )}
+          </div>
+
+          {/* 4. Buscador por texto (lg:col-span-2) */}
+          <div className="lg:col-span-2">
+            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+              🔍 Buscar Colaborador
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Nombre, cédula..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-300 text-slate-900 text-xs rounded-xl px-3 py-2 pr-7 focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
+              />
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-2 top-2 text-slate-400 hover:text-slate-600 text-xs font-bold cursor-pointer"
+                  title="Limpiar búsqueda"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* 5. Filtro de Novedad / Estado (lg:col-span-2) */}
+          <div className="lg:col-span-2">
+            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+              ⚡ Estado / Novedades
+            </label>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-hidden transition cursor-pointer"
+            >
+              <option value="ALL">Mostrar Todos ({rows.length})</option>
+              <option value="DISCREPANCIES">Solo Novedades / Discrepancias</option>
+              <option value="AUTO_FILLED">Solo Autocompletadas ({stats.autoFilledCount || 0})</option>
+              <option value="UNSCHEDULED">Solo No Programados ({stats.unscheduledPunches || 0})</option>
+              <option value="NO_SHOW">Solo No se presentó ({stats.noShows || 0})</option>
+              <option value="LATE">Solo Llegadas Tarde ({stats.lateArrivals || 0})</option>
+              <option value="EARLY">Solo Salidas Anticipadas ({stats.earlyDepartures || 0})</option>
+              <option value="ABSENT">Solo Ausencias ({stats.absences || 0})</option>
+              <option value="MATCH">Solo Cumplimiento Exacto ({stats.exactMatches || 0})</option>
+              <option value="PERMISSION">Solo con Permiso</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* ---------------------------------------------------- */}
+      {/* MÓDULO DASHBOARD COMPARATIVO (CRONOGRAMA VS MARCACIONES) */}
       {/* ---------------------------------------------------- */}
       <div className="bg-white rounded-2xl p-6 border border-slate-200/90 shadow-xs space-y-6">
         {/* Header & Controls */}
@@ -673,7 +870,7 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
           <div>
             <div className="flex items-center gap-2">
               <span className="bg-indigo-100 text-indigo-800 text-xs font-extrabold px-3 py-0.5 rounded-full flex items-center gap-1.5">
-                <BarChart3 className="w-3.5 h-3.5" /> Dashboard Comparativo Mensual
+                <BarChart3 className="w-3.5 h-3.5" /> Dashboard Comparativo {dashboardPeriodType === 'WEEK' ? 'Semanal' : 'Mensual'}
               </span>
               <span className="bg-slate-100 text-slate-700 text-xs font-semibold px-2.5 py-0.5 rounded-full">
                 Tiempo Suplementario
@@ -683,84 +880,25 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
               Cronograma Semanal vs. Marcaciones Biométricas Subidas
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
-              Comparación de Horas Extras, Recargo Nocturno, Dominicales y Festivos para <strong>{monthlyDashboardData?.pdv?.name || 'Punto de Venta'}</strong> ({dashboardPeriodType === 'WEEK' ? `Semana ${dashboardWeek}` : `Mes ${selectedMonth}`}).
+              Comparación de Horas Extras, Recargo Nocturno, Dominicales y Festivos para <strong>{monthlyDashboardData?.pdv?.name || 'Punto de Venta'}</strong> ({dashboardPeriodType === 'WEEK' ? (ALL_WEEKS_2026.find(w => w.weekStart === weekStart)?.label || `Semana ${weekStart}`) : `Mes ${selectedMonth}`}).
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5 flex-wrap">
-            {/* Period Type Toggle: MONTH vs WEEK */}
-            <div className="flex items-center bg-slate-100 p-1 rounded-xl text-xs font-bold border border-slate-200">
-              <button
-                type="button"
-                onClick={() => setDashboardPeriodType('MONTH')}
-                className={`px-3 py-1 rounded-lg transition cursor-pointer ${
-                  dashboardPeriodType === 'MONTH' ? 'bg-white text-purple-700 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
-                }`}
-              >
-                Por Mes
-              </button>
-              <button
-                type="button"
-                onClick={() => setDashboardPeriodType('WEEK')}
-                className={`px-3 py-1 rounded-lg transition cursor-pointer ${
-                  dashboardPeriodType === 'WEEK' ? 'bg-white text-blue-700 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
-                }`}
-              >
-                Por Semana
-              </button>
-            </div>
-
-            {/* Week Selector (if WEEK) */}
-            {dashboardPeriodType === 'WEEK' ? (
-              <div className="flex items-center gap-1.5 bg-blue-50 border border-blue-200 p-1.5 rounded-xl">
-                <Calendar className="w-4 h-4 text-blue-600 ml-1" />
-                <select
-                  value={dashboardWeek}
-                  onChange={(e) => setDashboardWeek(e.target.value)}
-                  className="bg-transparent text-xs font-bold text-blue-900 focus:outline-hidden pr-2 cursor-pointer"
-                >
-                  {ALL_WEEKS_2026.map(w => (
-                    <option key={w.weekStart} value={w.weekStart}>
-                      {w.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            ) : (
-              /* Month Selector (if MONTH) */
-              <div className="flex items-center gap-1.5 bg-purple-50 border border-purple-200 p-1.5 rounded-xl">
-                <Calendar className="w-4 h-4 text-purple-600 ml-1" />
-                <select
-                  value={selectedMonth}
-                  onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="bg-transparent text-xs font-bold text-purple-900 focus:outline-hidden pr-2 cursor-pointer"
-                >
-                  <option value="2026-07">Julio 2026 (Semanas 28 a 31 cargadas 📊)</option>
-                  <option value="2026-06">Junio 2026 (Semana 27 cargada 📊)</option>
-                  <option value="2026-08">Agosto 2026</option>
-                  <option value="2026-09">Septiembre 2026</option>
-                  <option value="2026-10">Octubre 2026</option>
-                </select>
-              </div>
-            )}
-
-            {/* PDV Selector for Admins / Supervisors */}
-            {(!isEmployee && allowedPdvs.length > 1) && (
-              <div className="flex items-center gap-1.5 bg-slate-50 p-1.5 rounded-xl border border-slate-200">
-                <Store className="w-4 h-4 text-slate-500 ml-1" />
-                <select
-                  value={selectedPdv}
-                  onChange={(e) => setSelectedPdv(e.target.value)}
-                  className="bg-transparent text-xs font-bold text-slate-800 focus:outline-hidden pr-2 cursor-pointer max-w-xs"
-                >
-                  {allowedPdvs.map(p => (
-                    <option key={p.id} value={p.id}>
-                      {p.code} - {p.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
+          {/* Informative Context Badges */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow-2xs">
+              <Calendar className="w-3.5 h-3.5 text-blue-600" />
+              <span>
+                {dashboardPeriodType === 'WEEK' 
+                  ? (ALL_WEEKS_2026.find(w => w.weekStart === weekStart)?.label || `Semana ${weekStart}`)
+                  : (selectedMonth === '2026-07' ? 'Julio 2026' : selectedMonth === '2026-06' ? 'Junio 2026' : selectedMonth === '2026-08' ? 'Agosto 2026' : `Mes ${selectedMonth}`)
+                }
+              </span>
+            </span>
+            <span className="bg-blue-50 border border-blue-200 text-blue-800 text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow-2xs">
+              <Store className="w-3.5 h-3.5 text-blue-600" />
+              <span>{monthlyDashboardData?.pdv?.name || allowedPdvs.find(p => p.id === selectedPdv)?.name || 'Punto de Venta'}</span>
+            </span>
           </div>
         </div>
 
@@ -1293,7 +1431,9 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                   <Activity className="w-3 h-3 text-indigo-400" />
                   Control Operativo
                 </span>
-                <span className="text-xs text-slate-300 font-medium">Semana {weekStart}</span>
+                <span className="text-xs text-slate-200 font-bold bg-white/10 px-2.5 py-0.5 rounded-full">
+                  {ALL_WEEKS_2026.find(w => w.weekStart === weekStart)?.label || `Semana ${weekStart}`}
+                </span>
               </div>
               <h3 className="text-base sm:text-lg font-black text-white mt-1">
                 Resumen: Programación de Turnos vs Marcaciones Biométricas
@@ -1398,7 +1538,7 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
         <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
           <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Evaluados</div>
           <div className="text-2xl font-black text-slate-900 mt-1">{stats.totalRows} turnos</div>
-          <div className="text-[10px] text-slate-400 mt-0.5">Semana {weekStart}</div>
+          <div className="text-[10px] text-slate-400 mt-0.5 truncate">{ALL_WEEKS_2026.find(w => w.weekStart === weekStart)?.label || `Semana ${weekStart}`}</div>
         </div>
 
         <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
@@ -1443,104 +1583,7 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
         </div>
       </div>
 
-      {/* Filter & Search Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-          {/* Week */}
-          <div>
-            <label className="block text-[10px] font-bold text-slate-400 uppercase">Semana</label>
-            <select
-              value={weekStart}
-              onChange={(e) => setWeekStart(e.target.value)}
-              className="bg-slate-50 border border-slate-300 text-slate-800 text-xs font-semibold rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-blue-500 max-w-[280px]"
-            >
-              {ALL_WEEKS_2026.map(w => (
-                <option key={w.weekStart} value={w.weekStart}>
-                  {w.label}
-                </option>
-              ))}
-            </select>
-          </div>
 
-          {/* PDV Filter */}
-          <div>
-            <label className="block text-[10px] font-bold text-slate-400 uppercase">Punto de Venta</label>
-            {isEmployee ? (
-              <div className="bg-slate-100 border border-slate-300 text-slate-800 text-xs font-bold rounded-lg px-2.5 py-1.5 flex items-center gap-1.5">
-                <Lock className="w-3 h-3 text-slate-500" />
-                <span>{allowedPdvs[0]?.name || 'Mi PDV'}</span>
-              </div>
-            ) : (
-              <select
-                value={selectedPdv}
-                onChange={(e) => setSelectedPdv(e.target.value)}
-                className="bg-slate-50 border border-slate-300 text-slate-800 text-xs font-semibold rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">
-                  {isAdmin ? `Todos los PDVs (${pdvs.length})` : `Mis PDVs Asignados (${allowedPdvs.length})`}
-                </option>
-                {allowedPdvs.map(p => (
-                  <option key={p.id} value={p.id}>{p.name} ({p.city})</option>
-                ))}
-              </select>
-            )}
-          </div>
-
-          {/* Supervisor Filter */}
-          <div>
-            <label className="block text-[10px] font-bold text-slate-400 uppercase">Jefe Directo</label>
-            {!isAdmin ? (
-              <div className="bg-slate-100 border border-slate-300 text-slate-800 text-xs font-bold rounded-lg px-2.5 py-1.5 flex items-center gap-1.5">
-                <Lock className="w-3 h-3 text-slate-500" />
-                <span>
-                  {isSupervisor
-                    ? currentSupervisorObj?.name
-                    : supervisors.find(s => s.id === allowedPdvs[0]?.supervisorId)?.name || 'Asignado'}
-                </span>
-              </div>
-            ) : (
-              <select
-                value={selectedSupervisor}
-                onChange={(e) => setSelectedSupervisor(e.target.value)}
-                className="bg-slate-50 border border-slate-300 text-slate-800 text-xs font-semibold rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">Todos los Líderes ({supervisors.length})</option>
-                {supervisors.map(s => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
-                ))}
-              </select>
-            )}
-          </div>
-        </div>
-
-        {/* Search & Status Badges */}
-        <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
-          <input
-            type="text"
-            placeholder="Buscar por colaborador, cédula o PDV..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="bg-slate-50 border border-slate-300 text-slate-900 text-xs rounded-lg px-3 py-1.5 focus:ring-2 focus:ring-blue-500 min-w-56"
-          />
-
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-slate-900 text-white text-xs font-semibold rounded-lg px-3 py-1.5"
-          >
-            <option value="ALL">Mostrar Todos ({rows.length})</option>
-            <option value="DISCREPANCIES">Solo Discrepancias / Novedades</option>
-            <option value="AUTO_FILLED">Solo Autocompletadas con Cronograma ({stats.autoFilledCount || 0})</option>
-            <option value="UNSCHEDULED">Solo No Programados / Sin Turno ({stats.unscheduledPunches || 0})</option>
-            <option value="NO_SHOW">Solo No se presentó ({stats.noShows || 0})</option>
-            <option value="LATE">Solo Llegadas Tarde</option>
-            <option value="EARLY">Solo Salidas Anticipadas</option>
-            <option value="ABSENT">Solo Ausencias (Turnos Programados)</option>
-            <option value="MATCH">Solo Cumplimiento Exacto</option>
-            <option value="PERMISSION">Solo con Permiso Aprobado</option>
-          </select>
-        </div>
-      </div>
 
       {/* Admin Shift Correction Enablement Toolbar */}
       {isAdminOrSup && (
@@ -1639,9 +1682,42 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
           </button>
         </div>
 
-        <span className="text-xs text-slate-500 hidden sm:inline-block">
-          Semana {weekStart} • Cruce Biométrico
-        </span>
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Buscar colaborador..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="bg-slate-50 border border-slate-300 text-slate-800 text-xs rounded-xl px-3 py-1.5 pr-6 focus:ring-2 focus:ring-blue-500 w-44 sm:w-52"
+            />
+            {searchTerm && (
+              <button
+                type="button"
+                onClick={() => setSearchTerm('')}
+                className="absolute right-2 top-2 text-slate-400 hover:text-slate-600 text-xs font-bold cursor-pointer"
+                title="Limpiar búsqueda"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+          {(searchTerm || statusFilter !== 'ALL') && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchTerm('');
+                setStatusFilter('ALL');
+              }}
+              className="text-[11px] font-bold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2.5 py-1.5 rounded-xl transition cursor-pointer"
+            >
+              Restablecer
+            </button>
+          )}
+          <span className="text-xs text-slate-500 font-semibold hidden sm:inline-block">
+            {ALL_WEEKS_2026.find(w => w.weekStart === weekStart)?.label?.split('(')[0] || `Semana ${weekStart}`} • {filteredRows.length} registros
+          </span>
+        </div>
       </div>
 
       {/* 0. HORIZONTAL PERSON WEEKLY VIEW (Requerimiento PDV: Comparativo Semanal por Persona) */}
