@@ -146,5 +146,18 @@ export const db = {
     data.punchRecords.push(...rows);
     saveDB(data);
     return { batch, recordCount: rows.length };
+  },
+  getPayrollLiquidations: (filters = {}) => {
+    let list = loadDB().payrollLiquidations || [];
+    if (filters.week) {
+      list = list.filter(r => String(r.week) === String(filters.week));
+    }
+    if (filters.pdvName) {
+      list = list.filter(r => r.pdvName?.toLowerCase().includes(filters.pdvName.toLowerCase()));
+    }
+    if (filters.documentId) {
+      list = list.filter(r => String(r.documentId) === String(filters.documentId));
+    }
+    return list;
   }
 };

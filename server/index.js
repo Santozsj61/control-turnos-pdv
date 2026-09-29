@@ -178,6 +178,115 @@ app.get('/api/reconciliation', (req, res) => {
   }
 });
 
+// 2b. Payroll Liquidations API
+app.get('/api/payroll', (req, res) => {
+  try {
+    const rawList = db.getPayrollLiquidations(req.query);
+    const week = req.query.week || (rawList[0]?.week || '28');
+    const filtered = req.query.week ? rawList : rawList.filter(r => String(r.week) === String(week));
+
+    let totalOrd = 0, totalRN = 0, totalHED = 0, totalHEN = 0;
+    let totalRDD = 0, totalRND = 0, totalHEDD = 0, totalHEND = 0;
+    let totalRDF = 0, totalRNF = 0, totalHoras = 0;
+    let sundaysPaid = 0, sundaysNotPaid = 0;
+    const pdvMap = {};
+    const compMap = {};
+
+    filtered.forEach(r => {
+      totalOrd += r.ordinaryHours || 0;
+      totalRN += r.nightSurchargeOrd || 0;
+      totalHED += r.overtimeDay || 0;
+      totalHEN += r.overtimeNight || 0;
+      totalRDD += r.sundayDay || 0;
+      totalRND += r.sundayNight || 0;
+      totalHEDD += r.sundayOvertimeDay || 0;
+      totalHEND += r.sundayOvertimeNight || 0;
+      totalRDF += r.holidayDay || 0;
+      totalRNF += r.holidayNight || 0;
+      totalHoras += r.totalWorkedHours || 0;
+
+      const rule = String(r.sundayRule || '').toLowerCase();
+      if (rule.includes('se paga') && !rule.includes('no')) sundaysPaid++;
+      else if (rule.includes('no se paga')) sundaysNotPaid++;
+
+      const pKey = r.pdvName || 'SIN_PDV';
+      if (!pdvMap[pKey]) {
+        pdvMap[pKey] = { pdvName: pKey, employees: 0, overtime: 0, night: 0, sunday: 0, holiday: 0, totalSpecial: 0, totalWorked: 0 };
+      }
+      const ov = (r.overtimeDay || 0) + (r.overtimeNight || 0) + (r.sundayOvertimeDay || 0) + (r.sundayOvertimeNight || 0);
+      const ni = (r.nightSurchargeOrd || 0) + (r.sundayNight || 0) + (r.holidayNight || 0);
+      const su = (r.sundayDay || 0) + (r.sundayNight || 0) + (r.sundayOvertimeDay || 0) + (r.sundayOvertimeNight || 0);
+      const ho = (r.holidayDay || 0) + (r.holidayNight || 0);
+      const sp = ov + ni + su + ho;
+      pdvMap[pKey].employees++;
+      pdvMap[pKey].overtime += ov;
+      pdvMap[pKey].night += ni;
+      pdvMap[pKey].sunday += su;
+      pdvMap[pKey].holiday += ho;
+      pdvMap[pKey].totalSpecial += sp;
+      pdvMap[pKey].totalWorked += r.totalWorkedHours || 0;
+    });
+
+    const totalOvertime = totalHED + totalHEN + totalHEDD + totalHEND;
+    const totalNight = totalRN + totalRND + totalRNF;
+    const totalSunday = totalRDD + totalRND + totalHEDD + totalHEND;
+    const totalHoliday = totalRDF + totalRNF;
+    const totalSpecial = totalOvertime + totalNight + totalSunday + totalHoliday;
+
+    res.json({
+      success: true,
+      week,
+      recordCount: filtered.length,
+      availableWeeks: ['27', '28', '29', '30', '31'],
+      summary: {
+        totalEmployees: filtered.length,
+        totalOrdinaryHours: +totalOrd.toFixed(2),
+        overtime: {
+          total: +totalOvertime.toFixed(2),
+          day: +totalHED.toFixed(2),
+          night: +totalHEN.toFixed(2),
+          sundayDay: +totalHEDD.toFixed(2),
+          sundayNight: +totalHEND.toFixed(2)
+        },
+        night: {
+          total: +totalNight.toFixed(2),
+          ordinary: +totalRN.toFixed(2),
+          sunday: +totalRND.toFixed(2),
+          holiday: +totalRNF.toFixed(2)
+        },
+        sunday: {
+          total: +totalSunday.toFixed(2),
+          day: +totalRDD.toFixed(2),
+          night: +totalRND.toFixed(2),
+          overtimeDay: +totalHEDD.toFixed(2),
+          overtimeNight: +totalHEND.toFixed(2)
+        },
+        holiday: {
+          total: +totalHoliday.toFixed(2),
+          day: +totalRDF.toFixed(2),
+          night: +totalRNF.toFixed(2)
+        },
+        totalSpecial: +totalSpecial.toFixed(2),
+        totalWorkedHours: +totalHoras.toFixed(2),
+        sundaysPaidCount: sundaysPaid,
+        sundaysNotPaidCount: sundaysNotPaid
+      },
+      byPdv: Object.values(pdvMap).map(p => ({
+        ...p,
+        overtimeHours: +p.overtime.toFixed(1),
+        nightHours: +p.night.toFixed(1),
+        sundayHours: +p.sunday.toFixed(1),
+        holidayHours: +p.holiday.toFixed(1),
+        totalSpecialHours: +p.totalSpecial.toFixed(1),
+        totalWorkedHours: +p.totalWorked.toFixed(1)
+      })).sort((a, b) => b.totalSpecialHours - a.totalSpecialHours),
+      records: filtered
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // 3. Fallback SPA routing
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api')) return next();

@@ -59,8 +59,8 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
   );
 
   const [periodType, setPeriodType] = useState('MONTH'); // 'MONTH' | 'WEEK'
-  const [selectedMonth, setSelectedMonth] = useState('2026-06');
-  const [selectedWeek, setSelectedWeek] = useState('2026-06-29');
+  const [selectedMonth, setSelectedMonth] = useState('2026-07');
+  const [selectedWeek, setSelectedWeek] = useState('2026-07-06');
   const [selectedZone, setSelectedZone] = useState(
     isSupervisor ? (currentSupervisorObj?.id || '') : ''
   );
@@ -70,14 +70,15 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
   const [permissions, setPermissions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [uploadingPayroll, setUploadingPayroll] = useState(false);
+  const [selectedPayrollWeek, setSelectedPayrollWeek] = useState('28');
   const [payrollData, setPayrollData] = useState(null);
   const [payrollFeedback, setPayrollFeedback] = useState(null);
 
   useEffect(() => {
-    api.getPayrollLiquidation().then(saved => {
+    api.getPayrollLiquidation({ week: selectedPayrollWeek }).then(saved => {
       if (saved) setPayrollData(saved);
     }).catch(err => console.error('Error loading payroll liquidation:', err));
-  }, []);
+  }, [selectedPayrollWeek]);
 
   const handlePayrollUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -449,11 +450,11 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
                   onChange={(e) => setSelectedMonth(e.target.value)}
                   className="bg-slate-900 border border-slate-600 text-white text-xs font-bold rounded-lg px-2.5 py-1.5 focus:ring-2 focus:ring-purple-500"
                 >
-                  <option value="2026-10">Octubre 2026</option>
-                  <option value="2026-09">Septiembre 2026</option>
-                  <option value="2026-08">Agosto 2026</option>
-                  <option value="2026-07">Julio 2026</option>
+                  <option value="2026-07">Julio 2026 (Semanas 28 a 31 cargadas 📊)</option>
                   <option value="2026-06">Junio 2026 (Semana 27 cargada 📊)</option>
+                  <option value="2026-08">Agosto 2026</option>
+                  <option value="2026-09">Septiembre 2026</option>
+                  <option value="2026-10">Octubre 2026</option>
                   <option value="2026-05">Mayo 2026</option>
                   <option value="2026-04">Abril 2026</option>
                   <option value="2026-03">Marzo 2026</option>
@@ -558,12 +559,23 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
               <CheckSquare className="w-5 h-5" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className="px-2 py-0.5 rounded-md bg-emerald-500 text-slate-950 font-black text-[10px] uppercase tracking-wider">
-                  Nómina Oficial HS (Semana {payrollData.week})
+                  Nómina Oficial HS
                 </span>
+                <select
+                  value={selectedPayrollWeek}
+                  onChange={(e) => setSelectedPayrollWeek(e.target.value)}
+                  className="bg-emerald-900 border border-emerald-400 text-emerald-100 text-xs font-bold rounded-lg px-2 py-0.5 focus:ring-2 focus:ring-emerald-400 cursor-pointer"
+                >
+                  <option value="27">Semana 27 (29 Jun - 05 Jul)</option>
+                  <option value="28">Semana 28 (06 Jul - 12 Jul)</option>
+                  <option value="29">Semana 29 (13 Jul - 19 Jul)</option>
+                  <option value="30">Semana 30 (20 Jul - 26 Jul)</option>
+                  <option value="31">Semana 31 (27 Jul - 02 Ago)</option>
+                </select>
                 <span className="text-slate-300 text-[11px] font-medium">
-                  {payrollData.recordCount?.toLocaleString()} colaboradores procesados &bull; {payrollData.summary?.totalWorkedHours?.toLocaleString()} hrs trabajadas
+                  {payrollData.recordCount?.toLocaleString()} colaboradores &bull; {payrollData.summary?.totalWorkedHours?.toLocaleString()} hrs trabajadas
                 </span>
               </div>
               <div className="text-[11px] text-emerald-200/90 mt-1 flex flex-wrap gap-x-4 gap-y-1">

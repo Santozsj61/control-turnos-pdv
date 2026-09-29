@@ -4,6 +4,7 @@ import { runReconciliation } from '../utils/reconciliation.js';
 import { parsePunchExcel, parseNoveltiesReport, parsePayrollLiquidation } from '../utils/excelParser.js';
 import { initialSupervisors, initialPDVs, initialUsers } from '../data/seedData.js';
 import { initialNovelties } from '../data/initialNovelties.js';
+import { OFFICIAL_PAYROLL_BY_WEEK } from '../data/officialPayrollData.js';
 
 // Fallback helper for local dev server if Supabase keys aren't set yet
 async function fetchLocal(url, options = {}) {
@@ -558,13 +559,8 @@ export const api = {
       const q = new URLSearchParams(filters).toString();
       return fetchLocal(`/api/schedules${q ? '?' + q : ''}`);
     }
-    let query = supabase.from('schedules').select('*, users(*)');
-    if (filters.userId) query = query.eq('user_id', filters.userId);
-    if (filters.weekStart) query = query.eq('week_start', filters.weekStart);
-    if (filters.pdvId && filters.pdvId !== 'ALL') query = query.eq('pdv_id', filters.pdvId);
-    const { data, error } = await query.limit(filters.limit || 5000);
-    if (error) throw new Error(error.message);
-    return (data || []).map(s => ({
+
+    const mapSchedule = s => ({
       id: s.id,
       userId: s.user_id,
       pdvId: s.pdv_id,
@@ -576,7 +572,29 @@ export const api = {
       totalLunchHours: Number(s.total_lunch_hours || 0),
       notes: s.notes,
       user: s.users || null
-    }));
+    });
+
+    if (!filters.userId && !filters.weekStart && (!filters.pdvId || filters.pdvId === 'ALL')) {
+      let allData = [];
+      let from = 0;
+      const step = 1000;
+      while (true) {
+        const { data, error } = await supabase.from('schedules').select('*, users(*)').range(from, from + step - 1);
+        if (error || !data || data.length === 0) break;
+        allData.push(...data);
+        if (data.length < step) break;
+        from += step;
+      }
+      return allData.map(mapSchedule);
+    }
+
+    let query = supabase.from('schedules').select('*, users(*)');
+    if (filters.userId) query = query.eq('user_id', filters.userId);
+    if (filters.weekStart) query = query.eq('week_start', filters.weekStart);
+    if (filters.pdvId && filters.pdvId !== 'ALL') query = query.eq('pdv_id', filters.pdvId);
+    const { data, error } = await query.limit(filters.limit || 5000);
+    if (error) throw new Error(error.message);
+    return (data || []).map(mapSchedule);
   },
 
   saveBatchPdvSchedules: async ({ pdvId, weekStart, weekEnd, schedules }) => {
@@ -1012,15 +1030,36 @@ export const api = {
     return parsedData;
   },
 
-  getPayrollLiquidation: async () => {
+  getPayrollLiquidation: async (params = {}) => {
+    const week = String(params.week || '28');
+
+    // 1. Check custom uploaded file in localStorage
     if (typeof window !== 'undefined' && window.localStorage) {
       try {
         const raw = localStorage.getItem('control_turnos_payroll_liquidation');
-        if (raw) return JSON.parse(raw);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && (!params.week || String(parsed.week) === week)) {
+            return parsed;
+          }
+        }
       } catch (e) {
-        console.error('Error loading payroll liquidation:', e);
+        console.error('Error loading payroll liquidation from localStorage:', e);
       }
     }
+
+    // 2. Return pre-bundled official payroll for weeks 27-31
+    if (OFFICIAL_PAYROLL_BY_WEEK && (OFFICIAL_PAYROLL_BY_WEEK[week] || OFFICIAL_PAYROLL_BY_WEEK['28'])) {
+      return OFFICIAL_PAYROLL_BY_WEEK[week] || OFFICIAL_PAYROLL_BY_WEEK['28'];
+    }
+
+    // 3. Fallback to local server
+    try {
+      const q = new URLSearchParams(params).toString();
+      const res = await fetchLocal(`/api/payroll${q ? '?' + q : ''}`);
+      if (res && res.success) return res;
+    } catch (e) {}
+
     return null;
   },
 
