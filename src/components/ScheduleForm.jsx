@@ -828,12 +828,12 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
               // 1. Columnas separadas de Ingreso y Salida (Plantilla oficial Quest)
               const inColKey = Object.keys(row).find(k => {
                 const kClean = cleanNormalizeStr(k);
-                return kClean.includes(dayKey) && (kClean.includes('ingreso') || kClean.includes('entrada') || kClean.includes('in') || kClean.includes('inicio'));
+                return kClean.includes(dayKey) && (kClean.includes('ingreso') || kClean.includes('entrada') || /\bin\b/.test(kClean) || /\binicio\b/.test(kClean));
               });
 
               const outColKey = Object.keys(row).find(k => {
                 const kClean = cleanNormalizeStr(k);
-                return kClean.includes(dayKey) && (kClean.includes('salida') || kClean.includes('out') || kClean.includes('fin'));
+                return kClean.includes(dayKey) && (kClean.includes('salida') || /\bout\b/.test(kClean) || /\bfin\b/.test(kClean));
               });
 
               if (inColKey || outColKey) {
