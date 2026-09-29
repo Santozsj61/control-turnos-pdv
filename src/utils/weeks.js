@@ -3,8 +3,8 @@
  * Consecutivos Semana 1 a Semana 53 con detección dinámica en tiempo real.
  */
 
-// Semanas oficiales con información histórica / operativa cargada
-export const KNOWN_WEEKS_WITH_DATA = [
+// Set de semanas cargadas en memoria (inicializado con las 9 semanas históricas oficiales)
+export const LOADED_WEEKS_SET = new Set([
   '2026-06-29', // Sem 27 (29 Jun - 05 Jul 2026)
   '2026-07-06', // Sem 28 (06 Jul - 12 Jul 2026)
   '2026-07-13', // Sem 29 (13 Jul - 19 Jul 2026)
@@ -14,19 +14,49 @@ export const KNOWN_WEEKS_WITH_DATA = [
   '2026-08-10', // Sem 33 (10 Ago - 16 Ago 2026)
   '2026-08-17', // Sem 34 (17 Ago - 23 Ago 2026)
   '2026-08-24'  // Sem 35 (24 Ago - 30 Ago 2026)
-];
+]);
+
+export const KNOWN_WEEKS_WITH_DATA = Array.from(LOADED_WEEKS_SET);
+
+/**
+ * Registra una semana que acaba de recibir datos (programación, marcaciones o novedades)
+ */
+export function registerLoadedWeek(weekStart) {
+  if (!weekStart) return;
+  LOADED_WEEKS_SET.add(weekStart);
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('weeks_data_updated', { detail: { weekStart } }));
+  }
+}
+
+/**
+ * Registra múltiples semanas con datos cargados
+ */
+export function registerLoadedWeeks(weeksArray) {
+  if (!Array.isArray(weeksArray)) return;
+  weeksArray.forEach(w => {
+    if (w) LOADED_WEEKS_SET.add(w);
+  });
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('weeks_data_updated', { detail: { weeks: weeksArray } }));
+  }
+}
 
 /**
  * Verifica si una semana específica cuenta con datos cargados (oficiales o en almacenamiento local)
  */
 export function isWeekLoaded(weekStart) {
-  if (KNOWN_WEEKS_WITH_DATA.includes(weekStart)) return true;
+  if (!weekStart) return false;
+  if (LOADED_WEEKS_SET.has(weekStart)) return true;
   if (typeof window !== 'undefined' && window.localStorage) {
     const raw = window.localStorage.getItem(`control_turnos_schedules_${weekStart}`);
     if (raw) {
       try {
         const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed) && parsed.length > 0) return true;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          LOADED_WEEKS_SET.add(weekStart);
+          return true;
+        }
       } catch (e) {}
     }
   }
@@ -94,24 +124,25 @@ export function getAllWeeks2026() {
     const m2 = monthNames[curSun.getUTCMonth()];
     const y2 = curSun.getUTCFullYear();
 
-    const isCurrent = w === CURRENT_WEEK_NUMBER;
-    const hasData = isWeekLoaded(startStr);
-
-    let tag = '';
-    if (isCurrent) tag += ' (Semana Actual ⭐)';
-    if (hasData) tag += ' 📊 (Datos cargados)';
-
-    const label = `Semana ${w}: ${String(d1).padStart(2, '0')} ${m1} - ${String(d2).padStart(2, '0')} ${m2} ${y2}${tag}`;
-    const shortLabel = `Sem ${w} (${String(d1).padStart(2, '0')} ${m1} - ${String(d2).padStart(2, '0')} ${m2})${hasData ? ' 📊' : ''}${isCurrent ? ' ⭐' : ''}`;
-
     weeks.push({
       weekNumber: w,
       weekStart: startStr,
       weekEnd: endStr,
-      label,
-      shortLabel,
-      isCurrent,
-      hasData
+      get isCurrent() {
+        return this.weekNumber === getCurrentWeekCalculation().weekNumber;
+      },
+      get hasData() {
+        return isWeekLoaded(this.weekStart);
+      },
+      get label() {
+        let tag = '';
+        if (this.isCurrent) tag += ' (Semana Actual ⭐)';
+        if (this.hasData) tag += ' 📊 (Datos cargados)';
+        return `Semana ${this.weekNumber}: ${String(d1).padStart(2, '0')} ${m1} - ${String(d2).padStart(2, '0')} ${m2} ${y2}${tag}`;
+      },
+      get shortLabel() {
+        return `Sem ${this.weekNumber} (${String(d1).padStart(2, '0')} ${m1} - ${String(d2).padStart(2, '0')} ${m2})${this.hasData ? ' 📊' : ''}${this.isCurrent ? ' ⭐' : ''}`;
+      }
     });
 
     curMon = new Date(curMon.getTime() + 7 * 86400000);

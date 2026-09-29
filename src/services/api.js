@@ -5,6 +5,7 @@ import { parsePunchExcel, parseNoveltiesReport, parsePayrollLiquidation } from '
 import { initialSupervisors, initialPDVs, initialUsers } from '../data/seedData.js';
 import { initialNovelties } from '../data/initialNovelties.js';
 import { OFFICIAL_PAYROLL_BY_WEEK } from '../data/officialPayrollData.js';
+import { registerLoadedWeek, registerLoadedWeeks, ALL_WEEKS_2026, KNOWN_WEEKS_WITH_DATA } from '../utils/weeks.js';
 
 // Fallback helper for local dev server if Supabase keys aren't set yet
 async function fetchLocal(url, options = {}) {
@@ -598,6 +599,7 @@ export const api = {
   },
 
   saveBatchPdvSchedules: async ({ pdvId, weekStart, weekEnd, schedules }) => {
+    if (weekStart) registerLoadedWeek(weekStart);
     if (!isSupabaseConfigured) {
       return fetchLocal('/api/schedules/batch-pdv', {
         method: 'POST',
@@ -880,6 +882,7 @@ export const api = {
   },
 
   savePunchBatch: async (batchInfo, parsedRecords) => {
+    if (batchInfo?.weekStart) registerLoadedWeek(batchInfo.weekStart);
     if (!isSupabaseConfigured) {
       return fetchLocal('/api/punches/upload', {
         method: 'POST',
@@ -1518,11 +1521,27 @@ export const api = {
     if (!parsedRecords || parsedRecords.length === 0) {
       throw new Error('No se encontraron registros de marcación válidos en el archivo Excel.');
     }
+
+    const dates = parsedRecords.map(r => r.date).filter(Boolean);
+    let detectedWeekStart = null;
+    let detectedPeriod = 'Semana cargada';
+    if (dates.length > 0) {
+      const sorted = dates.sort();
+      const firstDate = sorted[0];
+      const foundWeek = ALL_WEEKS_2026.find(w => firstDate >= w.weekStart && firstDate <= w.weekEnd);
+      if (foundWeek) {
+        detectedWeekStart = foundWeek.weekStart;
+        detectedPeriod = foundWeek.label;
+        registerLoadedWeek(foundWeek.weekStart);
+      }
+    }
+
     const batchInfo = {
       fileName: file.name,
       fileSize: file.size,
-      period: 'Semana cargada',
-      store: 'Todos los PDVs'
+      period: detectedPeriod,
+      store: 'Todos los PDVs',
+      weekStart: detectedWeekStart
     };
     const saved = await api.savePunchBatch(batchInfo, parsedRecords);
     const retiredCount = parsedRecords.filter(r => r.isRetired).length;
@@ -1530,8 +1549,46 @@ export const api = {
       ...saved,
       recordCount: parsedRecords.length,
       retiredCount,
-      records: parsedRecords
+      records: parsedRecords,
+      weekStart: detectedWeekStart
     };
+  },
+
+  getWeeksWithData: async () => {
+    const weeksSet = new Set(KNOWN_WEEKS_WITH_DATA);
+
+    // 1. Escanear localStorage
+    if (typeof window !== 'undefined' && window.localStorage) {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('control_turnos_schedules_')) {
+          const w = k.replace('control_turnos_schedules_', '');
+          if (w) weeksSet.add(w);
+        }
+      }
+    }
+
+    // 2. Escanear Supabase si está configurado
+    if (isSupabaseConfigured) {
+      try {
+        const [schedRes, batchRes] = await Promise.all([
+          supabase.from('schedules').select('week_start').limit(5000),
+          supabase.from('punch_batches').select('week_start').limit(100)
+        ]);
+        if (schedRes.data) {
+          schedRes.data.forEach(s => { if (s.week_start) weeksSet.add(s.week_start); });
+        }
+        if (batchRes.data) {
+          batchRes.data.forEach(b => { if (b.week_start) weeksSet.add(b.week_start); });
+        }
+      } catch (err) {
+        console.warn('Error reading weeks with data from Supabase:', err);
+      }
+    }
+
+    const allWeeks = Array.from(weeksSet).sort();
+    registerLoadedWeeks(allWeeks);
+    return allWeeks;
   },
 
   resetAllOperationalData: async () => {

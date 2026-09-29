@@ -38,7 +38,8 @@ export default function App() {
       const [loadedUsers, loadedPdvs, loadedSups] = await Promise.all([
         api.getUsers().catch(() => []),
         api.getPDVs().catch(() => []),
-        api.getSupervisors().catch(() => [])
+        api.getSupervisors().catch(() => []),
+        api.getWeeksWithData().catch(() => [])
       ]);
 
       const finalUsers = (loadedUsers && loadedUsers.length > 0) ? loadedUsers : initialUsers;

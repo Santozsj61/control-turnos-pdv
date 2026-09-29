@@ -93,6 +93,13 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
   const [uploadingPunches, setUploadingPunches] = useState(false);
   const [uploadingSchedule, setUploadingSchedule] = useState(false);
   const [message, setMessage] = useState(null);
+  const [, setWeeksRevision] = useState(0);
+
+  useEffect(() => {
+    const handler = () => setWeeksRevision(r => r + 1);
+    window.addEventListener('weeks_data_updated', handler);
+    return () => window.removeEventListener('weeks_data_updated', handler);
+  }, []);
 
   // Filters & Sorting state
   const [filterHours, setFilterHours] = useState('ALL'); // 'ALL' | 'LE_42' | 'GT_42'

@@ -80,6 +80,13 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
   const [uploadingNovelties, setUploadingNovelties] = useState(false);
   const [uploadMsg, setUploadMsg] = useState(null);
   const [selectedRowDetail, setSelectedRowDetail] = useState(null);
+  const [, setWeeksRevision] = useState(0);
+
+  useEffect(() => {
+    const handler = () => setWeeksRevision(r => r + 1);
+    window.addEventListener('weeks_data_updated', handler);
+    return () => window.removeEventListener('weeks_data_updated', handler);
+  }, []);
 
   async function fetchReconciliation() {
     setLoading(true);
