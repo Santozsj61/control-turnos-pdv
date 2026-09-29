@@ -1512,6 +1512,49 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
   const isPdvFullyLocked = filteredAndSortedEmployees.length > 0 && 
     filteredAndSortedEmployees.every(emp => scheduleMatrix[emp.id]?.isSubmitted);
 
+  // Detect unprogrammed collaborators in the active PDV scope
+  const unprogrammedEmployees = useMemo(() => {
+    return (filteredAndSortedEmployees || []).map(emp => {
+      const row = scheduleMatrix[emp.id];
+      if (!row || !row.shifts || row.shifts.length === 0) {
+        return {
+          emp,
+          reason: 'Sin turnos en toda la semana',
+          missingDaysCount: 7,
+          missingDays: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
+        };
+      }
+
+      const missingDays = [];
+      row.shifts.forEach((s, idx) => {
+        const isUnscheduled = s.shiftType === 'NO_PROGRAMADO' || (!s.startTime && !s.isDayOff);
+        if (isUnscheduled) {
+          missingDays.push(DAYS_NAME[idx] || s.dayOfWeek || `Día ${idx + 1}`);
+        }
+      });
+
+      const isTotalZero = (row.monSatStats?.totalHours || 0) === 0 && row.shifts.every(s => !s.startTime && (s.shiftType === 'NO_PROGRAMADO' || !s.shiftType));
+
+      if (missingDays.length > 0 || isTotalZero) {
+        return {
+          emp,
+          reason: isTotalZero ? '0 horas / Sin turnos asignados' : `Faltan turnos en ${missingDays.length} día(s)`,
+          missingDaysCount: missingDays.length,
+          missingDays
+        };
+      }
+      return null;
+    }).filter(Boolean);
+  }, [filteredAndSortedEmployees, scheduleMatrix]);
+
+  const unprogrammedMap = useMemo(() => {
+    const map = new Map();
+    unprogrammedEmployees.forEach(item => {
+      map.set(item.emp.id, item);
+    });
+    return map;
+  }, [unprogrammedEmployees]);
+
   return (
     <div className="max-w-[98%] xl:max-w-[1650px] 2xl:max-w-[1850px] mx-auto px-2 sm:px-4 py-6 space-y-6">
       
@@ -2180,6 +2223,52 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
         </div>
       )}
 
+      {/* Alerta de Cobertura: Colaboradores sin turnos programados o con días pendientes */}
+      {unprogrammedEmployees.length > 0 && (
+        <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 mb-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm animate-in fade-in duration-150">
+          <div className="flex items-start gap-3">
+            <div className="p-2.5 bg-amber-500 text-white rounded-xl shadow-xs shrink-0 mt-0.5">
+              <AlertTriangle className="w-5 h-5 text-white animate-pulse" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h4 className="font-extrabold text-sm text-amber-950">
+                  ⚠️ Alerta de Programación: Hay {unprogrammedEmployees.length} colaborador(es) con turnos pendientes por programar
+                </h4>
+                <span className="bg-amber-200 text-amber-900 text-[10px] font-black px-2 py-0.5 rounded-full uppercase border border-amber-300">
+                  Programación Incompleta
+                </span>
+              </div>
+              <p className="text-xs text-amber-900 mt-1 leading-relaxed">
+                Los siguientes colaboradores del PDV no tienen su horario completo asignado para la semana del <strong>{weekDates[0]?.formattedDate}</strong> al <strong>{weekDates[6]?.formattedDate}</strong>. Por favor asigna sus turnos u horario de descanso antes de enviar la programación oficial:
+              </p>
+              <div className="flex flex-wrap gap-1.5 mt-2.5">
+                {unprogrammedEmployees.map(item => (
+                  <span 
+                    key={item.emp.id} 
+                    className="inline-flex items-center gap-1.5 bg-white border border-amber-300/80 px-2.5 py-1 rounded-lg text-xs font-bold text-amber-950 shadow-2xs"
+                  >
+                    <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
+                    <span>{item.emp.fullName}:</span>
+                    <span className="font-normal text-amber-800 text-[11px]">({item.reason})</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="shrink-0 flex items-center gap-2 w-full md:w-auto justify-end">
+            <button
+              type="button"
+              onClick={handleApplyStandardToAll}
+              className="bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition shadow-xs whitespace-nowrap"
+            >
+              Completar con Turno Estándar
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* ---------------------------------------------------- */}
       {/* 5. MAIN HORIZONTAL SCHEDULE MATRIX (Lunes a Domingo) */}
       {/* ---------------------------------------------------- */}
@@ -2270,7 +2359,7 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
                           </div>
                         )}
                         <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1">
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-1.5 flex-wrap">
                             {userRow.isSubmitted ? (
                               <span className="text-[9px] font-bold bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded flex items-center gap-0.5">
                                 <Lock className="w-2.5 h-2.5" /> Oficial
@@ -2278,6 +2367,12 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
                             ) : (
                               <span className="text-[9px] font-bold bg-amber-100 text-amber-800 px-1.5 py-0.2 rounded">
                                 Borrador
+                              </span>
+                            )}
+                            {unprogrammedMap.get(emp.id) && (
+                              <span className="text-[9px] font-black bg-rose-100 text-rose-800 border border-rose-300 px-1.5 py-0.2 rounded flex items-center gap-1 animate-pulse" title={unprogrammedMap.get(emp.id).reason}>
+                                <AlertTriangle className="w-2.5 h-2.5 text-rose-600" />
+                                Falta Turno
                               </span>
                             )}
                           </div>
@@ -2645,6 +2740,27 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
                 <span className="font-bold text-amber-700">{zoneOvertimeCount}</span>
               </div>
             </div>
+
+            {/* Warning if there are unprogrammed collaborators */}
+            {unprogrammedEmployees.length > 0 && (
+              <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-3.5 text-xs text-amber-950 space-y-2">
+                <div className="flex items-center gap-2 font-extrabold text-amber-900">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>¡Alerta! Hay {unprogrammedEmployees.length} colaborador(es) con turnos pendientes por programar:</span>
+                </div>
+                <div className="max-h-32 overflow-y-auto space-y-1 pl-1">
+                  {unprogrammedEmployees.map(item => (
+                    <div key={item.emp.id} className="text-[11px] flex items-center justify-between text-amber-800 bg-white/60 p-1.5 rounded border border-amber-200">
+                      <span className="font-bold">{item.emp.fullName}:</span>
+                      <span className="text-[10px] text-amber-900 font-semibold">{item.reason}</span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[10px] text-amber-700 italic">
+                  Si guardas ahora, la tienda figurará con personal pendiente por programar en el módulo de Control de Cobertura PDV.
+                </p>
+              </div>
+            )}
 
             <div className="flex items-center justify-end gap-2 pt-2">
               <button

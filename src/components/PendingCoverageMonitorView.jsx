@@ -10,16 +10,18 @@ import { initialSupervisors } from '../data/seedData.js';
 
 export default function PendingCoverageMonitorView({ currentUser, pdvs, supervisors }) {
   const isSupervisor = currentUser?.role === 'SUPERVISOR';
+  const isEmployee = currentUser?.role === 'EMPLOYEE' || currentUser?.role === 'PDV';
   const currentSupervisorObj = supervisors?.find(
     s => s.name === currentUser?.fullName || currentUser?.id?.includes(s.id)
   );
+  const userPdvObj = pdvs?.find(p => p.id === currentUser?.pdvId || p.code === currentUser?.pdvId);
 
   // Filter States
   const [selectedMonth, setSelectedMonth] = useState('ALL'); // 'ALL' | 'Junio' | 'Julio' | 'Agosto'
   const [selectedWeek, setSelectedWeek] = useState('ALL'); // 'ALL' | '23'..'35'
   const [selectedZone, setSelectedZone] = useState(isSupervisor ? (currentSupervisorObj?.id || '') : '');
   const [selectedStatus, setSelectedStatus] = useState('ALL'); // 'ALL' | 'AL_DIA' | 'PENDIENTE_MARCACION' | 'PENDIENTE_PROGRAMAR' | 'PENDIENTE_AMBOS'
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(isEmployee && userPdvObj ? (userPdvObj.code || userPdvObj.name) : '');
   const [activeModalPdv, setActiveModalPdv] = useState(null);
 
   // Available Weeks
