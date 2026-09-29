@@ -20,7 +20,7 @@ import {
 import { calculateShiftHours, calculateMonSatHours, countMonthlySundays } from '../utils/calculator.js';
 import { api } from '../services/api.js';
 import { supabase } from '../services/supabaseClient.js';
-import { isCollaboratorActive, tagCollaboratorStatus } from '../data/activeCollaborators371.js';
+import { isCollaboratorActive, tagCollaboratorStatus, ACTIVE_371_DOCUMENTS } from '../data/activeCollaborators371.js';
 
 const DAYS_NAME = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
@@ -271,24 +271,45 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
         }
       } catch (e) {}
 
-      // 3. Incorporate any employees found in existingScheds who are not in emps
+      // 3. Incorporar colaboradores de la programación histórica y sincronizar PDV de la semana
       existingScheds.forEach(es => {
         const u = es.user || {};
-        if (!emps.some(e => e.id === es.userId || (u.document_id && String(e.documentId) === String(u.document_id)))) {
-          const doc = u.document_id || (es.userId.startsWith('emp-') ? es.userId.replace('emp-', '') : '1000000000');
+        const doc = u.document_id || (es.userId?.startsWith('emp-') ? es.userId.replace('emp-', '') : '');
+        const isRet = u.is_active === false || (doc && !ACTIVE_371_DOCUMENTS.has(doc));
+        const rawName = u.full_name || `COLABORADOR ${doc || es.userId}`;
+        const finalName = isRet && !rawName.includes('(Retirado)') ? `${rawName} (Retirado)` : rawName;
+
+        const existingEmp = emps.find(e => e.id === es.userId || (doc && String(e.documentId) === String(doc)));
+        if (!existingEmp) {
           const newEmp = {
-            id: es.userId.startsWith('emp-') ? es.userId : `emp-${doc}`,
-            fullName: u.full_name || `COLABORADOR ${doc}`,
-            documentId: doc,
+            id: es.userId.startsWith('emp-') ? es.userId : (doc ? `emp-${doc}` : es.userId),
+            fullName: finalName,
+            documentId: doc || '1000000000',
             position: u.position || 'ASESOR(A) DE IMAGEN',
             role: 'EMPLOYEE',
-            pdvId: u.pdv_id || es.pdvId || 'pdv-1',
-            contractType: u.contract_type || 'FIJO'
+            pdvId: es.pdvId || u.pdv_id || 'pdv-1',
+            pdv_id: es.pdvId || u.pdv_id || 'pdv-1',
+            contractType: u.contract_type || 'FIJO',
+            isRetired: isRet,
+            statusLabel: isRet ? 'Retirado' : 'Activo'
           };
           emps.push(newEmp);
+        } else {
+          // Asignar el PDV en el que estuvo programado ESA semana específica (movilidad histórica exacta)
+          if (es.pdvId) {
+            existingEmp.pdvId = es.pdvId;
+            existingEmp.pdv_id = es.pdvId;
+          }
+          if (isRet) {
+            existingEmp.isRetired = true;
+            existingEmp.statusLabel = 'Retirado';
+            if (!existingEmp.fullName.includes('(Retirado)')) {
+              existingEmp.fullName = `${existingEmp.fullName} (Retirado)`;
+            }
+          }
         }
       });
-      setAllHistoricalEmployees(emps);
+      setAllHistoricalEmployees([...emps]);
 
       // 4. Resolve active employees for this specific week and scope
       // Regla de movilidad semanal:
@@ -300,15 +321,13 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
       if (targetPdv) {
         filteredEmps = emps.filter(e => {
           const empSched = existingScheds.find(s => s.userId === e.id || (e.documentId && s.user?.document_id && String(s.user.document_id) === String(e.documentId)));
-          if (empSched) {
-            return empSched.pdvId === targetPdv;
-          }
-          return e.pdvId === targetPdv;
+          const activePdv = empSched ? empSched.pdvId : (e.pdvId || e.pdv_id);
+          return activePdv === targetPdv;
         });
       } else if (isSupervisor) {
         filteredEmps = emps.filter(e => {
           const empSched = existingScheds.find(s => s.userId === e.id || (e.documentId && s.user?.document_id && String(e.documentId) === String(s.user.document_id)));
-          const activePdvId = empSched ? empSched.pdvId : e.pdvId;
+          const activePdvId = empSched ? empSched.pdvId : (e.pdvId || e.pdv_id);
           return allowedPdvs.some(ap => ap.id === activePdvId || ap.code === activePdvId);
         });
       }
