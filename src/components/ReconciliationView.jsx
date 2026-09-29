@@ -1866,12 +1866,14 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
 
                                 {/* Mini Footer Diferencia / Novedad */}
                                 {(dayRow.isScheduled || dayRow.hasPunch || dayRow.isNovelty7h || isNoShow) ? (
-                                  <div className="pt-0.5 border-t border-slate-200/60 flex items-center justify-between text-[8px] leading-tight">
-                                    <span className={`font-black ${
-                                      dayRow.hoursDiff > 0 ? 'text-blue-700' : dayRow.hoursDiff < 0 ? 'text-rose-600' : (isNoShow ? 'text-rose-600' : 'text-emerald-600')
-                                    }`}>
-                                      {diffFormatted}
-                                    </span>
+                                  <div className={`pt-0.5 border-t border-slate-200/60 flex items-center ${isPdv ? 'justify-end' : 'justify-between'} text-[8px] leading-tight`}>
+                                    {!isPdv && (
+                                      <span className={`font-black ${
+                                        dayRow.hoursDiff > 0 ? 'text-blue-700' : dayRow.hoursDiff < 0 ? 'text-rose-600' : (isNoShow ? 'text-rose-600' : 'text-emerald-600')
+                                      }`}>
+                                        {diffFormatted}
+                                      </span>
+                                    )}
                                     <span className={`px-1 py-0.2 rounded font-black uppercase tracking-tight text-[7.5px] truncate max-w-[62px] ${
                                       isAutoFilled ? 'bg-indigo-100 text-indigo-800 border border-indigo-300/80' :
                                       dayRow.isNovelty7h && !dayRow.hasPunch ? 'bg-sky-100 text-sky-800 border border-sky-200' :
@@ -1904,19 +1906,21 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                             <div className="text-[10.5px] font-black leading-tight">
                               {collab.totalRealHours}h <span className="text-slate-400 text-[8.5px] font-normal">/ {collab.totalScheduledHours}h</span>
                             </div>
-                            <div className={`text-[8.5px] font-extrabold px-1 py-0.2 rounded inline-block ${
-                              collab.diffHours > 0 ? 'bg-blue-600 text-white' :
-                              collab.diffHours < 0 ? 'bg-rose-600 text-white' :
-                              'bg-emerald-600 text-white'
-                            }`}>
-                              {collab.diffHours > 0 ? `+${collab.diffHours}h` : collab.diffHours < 0 ? `${collab.diffHours}h` : '0h'}
-                            </div>
+                            {!isPdv && (
+                              <div className={`text-[8.5px] font-extrabold px-1 py-0.2 rounded inline-block ${
+                                collab.diffHours > 0 ? 'bg-blue-600 text-white' :
+                                collab.diffHours < 0 ? 'bg-rose-600 text-white' :
+                                'bg-emerald-600 text-white'
+                              }`}>
+                                {collab.diffHours > 0 ? `+${collab.diffHours}h` : collab.diffHours < 0 ? `${collab.diffHours}h` : '0h'}
+                              </div>
+                            )}
                             {(collab.sundayRealHours > 0 || collab.sundayScheduledHours > 0) && (
                               <div className="text-[7.5px] text-amber-300 font-bold leading-tight pt-0.5 border-t border-slate-700/60" title="Horas dominicales (liquidación separada de Lun a Sáb)">
                                 Dom: {collab.sundayRealHours}h{collab.sundayScheduledHours > 0 ? ` / ${collab.sundayScheduledHours}h` : ''}
                               </div>
                             )}
-                            {(collab.lateCount > 0 || collab.earlyCount > 0 || collab.absenceCount > 0 || collab.unscheduledCount > 0) && (
+                            {!isPdv && (collab.lateCount > 0 || collab.earlyCount > 0 || collab.absenceCount > 0 || collab.unscheduledCount > 0) && (
                               <div className="pt-0.5 flex flex-wrap items-center justify-center gap-0.5 text-[7.5px] font-bold">
                                 {collab.lateCount > 0 && <span className="bg-amber-500/30 text-amber-200 px-1 rounded">{collab.lateCount}T</span>}
                                 {collab.earlyCount > 0 && <span className="bg-orange-500/30 text-orange-200 px-1 rounded">{collab.earlyCount}SA</span>}
