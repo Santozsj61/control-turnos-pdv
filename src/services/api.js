@@ -2114,7 +2114,7 @@ export const api = {
   // 11. Employee Dossier / Tracking
   // ----------------------------------------------------
   getEmployeeTracking: async (userId) => {
-    const [users, pdvs, supervisors, schedules, permissions] = await Promise.all([
+    const [users, pdvs, supervisors, rawSchedules, permissions] = await Promise.all([
       api.getUsers().catch(() => []),
       api.getPDVs().catch(() => []),
       api.getSupervisors().catch(() => []),
@@ -2132,17 +2132,68 @@ export const api = {
     const pdv = pdvs.find(p => p.id === user.pdvId) || pdvs[0] || {};
     const supervisor = supervisors.find(s => s.id === user.supervisorId || s.id === pdv.supervisorId) || supervisors[0] || {};
 
+    // 1. Recopilar todos los cronogramas del colaborador
+    let schedules = [...rawSchedules];
+    if (typeof localStorage !== 'undefined') {
+      try {
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('control_turnos_schedules_')) {
+            const raw = localStorage.getItem(key);
+            if (raw) {
+              const parsed = JSON.parse(raw);
+              if (Array.isArray(parsed)) {
+                const matches = parsed.filter(s =>
+                  s.userId === userId ||
+                  s.user_id === userId ||
+                  s.employee?.id === userId ||
+                  (user.documentId && String(s.employee?.documentId || s.user?.documentId) === String(user.documentId))
+                );
+                matches.forEach(m => {
+                  if (!schedules.some(ex => ex.id === m.id || (ex.weekStart === m.weekStart && ex.userId === m.userId))) {
+                    schedules.push(m);
+                  }
+                });
+              }
+            }
+          }
+        }
+      } catch (e) {}
+    }
+
+    // 2. Traer marcaciones biométricas reales del colaborador por cédula
+    const doc = String(user.documentId || user.document_id || '').trim();
+    let punches = [];
+    if (doc) {
+      punches = await api.getPunchRecords({ documentId: doc }).catch(() => []);
+      if (punches.length === 0 && doc.startsWith('0')) {
+        punches = await api.getPunchRecords({ documentId: doc.replace(/^0+/, '') }).catch(() => []);
+      }
+    }
+
+    // Ordenar marcaciones de más reciente a más antigua
+    punches.sort((a, b) => new Date(b.entryDate || 0) - new Date(a.entryDate || 0));
+
+    // Ordenar cronogramas de semana más reciente a más antigua
+    schedules.sort((a, b) => new Date(b.weekStart || 0) - new Date(a.weekStart || 0));
+
     const month = new Date().toISOString().substring(0, 7);
     const sunStats = countMonthlySundays(schedules, userId, month);
+
+    let punctualityScore = 98;
+    if (punches.length > 0) {
+      const lateArrivals = punches.filter(p => (p.realCalculations?.lateArrivalMinutes || 0) > 10).length;
+      punctualityScore = Math.max(70, Math.round(100 - (lateArrivals / punches.length) * 30));
+    }
 
     return {
       user,
       pdv,
       supervisor,
       currentMonthSundays: sunStats?.totalSundays || 0,
-      punctualityScore: 98,
+      punctualityScore,
       schedules,
-      punches: [],
+      punches,
       permissions
     };
   }

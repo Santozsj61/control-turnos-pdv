@@ -19,38 +19,52 @@ import {
 } from 'lucide-react';
 import { api } from '../services/api.js';
 
-export default function EmployeeTrackingView({ currentUser, pdvs, supervisors, users }) {
+export default function EmployeeTrackingView({ currentUser, pdvs = [], supervisors = [], users = [] }) {
   const isAdmin = currentUser?.role === 'ADMIN';
   const isSupervisor = currentUser?.role === 'SUPERVISOR';
   const isEmployee = currentUser?.role === 'EMPLOYEE';
+  const isAuditorVrx = currentUser?.role === 'AUDITOR_VRX';
 
   const currentSupervisorObj = supervisors.find(
     s => s.name === currentUser?.fullName || currentUser?.id?.includes(s.id)
   );
 
+  const canViewAll = isAdmin || isAuditorVrx;
+
   // Available employees based on role
-  const availableEmployees = isAdmin
-    ? users.filter(u => u.role === 'EMPLOYEE')
+  const availableEmployees = canViewAll
+    ? (users || []).filter(u => u.role === 'EMPLOYEE' || u.position?.toLowerCase().includes('asesor') || (u.documentId && u.id !== currentUser?.id))
     : isSupervisor
-    ? users.filter(u => {
+    ? (users || []).filter(u => {
         const pdv = pdvs.find(p => p.id === u.pdvId);
         return pdv?.supervisorId === currentSupervisorObj?.id || u.supervisorId === currentSupervisorObj?.id;
       })
-    : users.filter(u => u.id === currentUser.id);
+    : (users || []).filter(u => u.id === currentUser?.id);
 
-  const [selectedUserId, setSelectedUserId] = useState(currentUser?.id || '');
+  const effectiveEmployeeList = availableEmployees.length > 0 
+    ? availableEmployees 
+    : (users || []).filter(u => u.id !== currentUser?.id);
+
+  const defaultSelectedId = isEmployee 
+    ? (currentUser?.id || '')
+    : (effectiveEmployeeList[0]?.id || (users || [])[0]?.id || '');
+
+  const [selectedUserId, setSelectedUserId] = useState(defaultSelectedId);
+  const [selectedPdvFilter, setSelectedPdvFilter] = useState('ALL');
+  const [searchQuery, setSearchQuery] = useState('');
   const [trackingData, setTrackingData] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
 
   // Default selection
   useEffect(() => {
     if (isEmployee) {
-      setSelectedUserId(currentUser.id);
-    } else if (availableEmployees.length > 0 && !selectedUserId) {
-      setSelectedUserId(availableEmployees[0].id);
+      setSelectedUserId(currentUser?.id || '');
+    } else if (effectiveEmployeeList.length > 0) {
+      if (!selectedUserId || !effectiveEmployeeList.some(e => e.id === selectedUserId)) {
+        setSelectedUserId(effectiveEmployeeList[0].id);
+      }
     }
-  }, [currentUser?.id, availableEmployees.length]);
+  }, [currentUser?.id, effectiveEmployeeList.length]);
 
   async function fetchEmployeeTracking(userId) {
     if (!userId) return;
@@ -73,13 +87,19 @@ export default function EmployeeTrackingView({ currentUser, pdvs, supervisors, u
     }
   }, [selectedUserId]);
 
-  const filteredEmployees = availableEmployees.filter(emp => {
+  const filteredEmployees = effectiveEmployeeList.filter(emp => {
+    if (selectedPdvFilter !== 'ALL' && emp.pdvId !== selectedPdvFilter) return false;
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
+    const pdvObj = pdvs.find(p => p.id === emp.pdvId);
+    const pdvName = (pdvObj?.name || '').toLowerCase();
+    const pdvCode = (pdvObj?.code || '').toLowerCase();
     return (
-      emp.fullName?.toLowerCase().includes(q) ||
-      emp.documentId?.includes(q) ||
-      emp.code?.toLowerCase().includes(q)
+      (emp.fullName || '').toLowerCase().includes(q) ||
+      String(emp.documentId || '').includes(q) ||
+      (emp.code || '').toLowerCase().includes(q) ||
+      pdvName.includes(q) ||
+      pdvCode.includes(q)
     );
   });
 
@@ -95,7 +115,7 @@ export default function EmployeeTrackingView({ currentUser, pdvs, supervisors, u
   return (
     <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
       {/* Top Banner */}
-      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="bg-blue-100 text-blue-800 text-xs font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1">
@@ -111,21 +131,65 @@ export default function EmployeeTrackingView({ currentUser, pdvs, supervisors, u
           </p>
         </div>
 
-        {/* Employee Selection dropdown for Admin / Supervisor */}
+        {/* Employee Selection and Filters for Admin / Auditor / Supervisor */}
         {!isEmployee && (
-          <div className="w-full sm:w-80">
-            <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Seleccionar Colaborador</label>
-            <select
-              value={selectedUserId}
-              onChange={(e) => setSelectedUserId(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-300 text-slate-800 text-xs font-bold rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-blue-500"
-            >
-              {filteredEmployees.map(emp => (
-                <option key={emp.id} value={emp.id}>
-                  {emp.fullName} - CC {emp.documentId} ({emp.position})
-                </option>
-              ))}
-            </select>
+          <div className="w-full xl:w-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+            {/* Filter by PDV */}
+            <div className="w-full sm:w-44">
+              <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Filtrar por Tienda</label>
+              <select
+                value={selectedPdvFilter}
+                onChange={(e) => {
+                  setSelectedPdvFilter(e.target.value);
+                  const matched = effectiveEmployeeList.filter(emp => e.target.value === 'ALL' || emp.pdvId === e.target.value);
+                  if (matched.length > 0 && !matched.some(m => m.id === selectedUserId)) {
+                    setSelectedUserId(matched[0].id);
+                  }
+                }}
+                className="w-full bg-slate-50 border border-slate-300 text-slate-800 text-xs font-semibold rounded-xl px-2.5 py-2 focus:ring-2 focus:ring-blue-500 cursor-pointer"
+              >
+                <option value="ALL">-- Todos los PDVs --</option>
+                {pdvs.map(p => (
+                  <option key={p.id} value={p.id}>{p.code} - {p.name}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Quick Search */}
+            <div className="w-full sm:w-44">
+              <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Buscar Colaborador</label>
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Nombre o CC..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-8 pr-2.5 py-2 bg-slate-50 border border-slate-300 text-slate-800 text-xs font-semibold rounded-xl focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+
+            {/* Collaborator Dropdown */}
+            <div className="w-full sm:w-64">
+              <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">
+                Colaborador ({filteredEmployees.length})
+              </label>
+              <select
+                value={selectedUserId}
+                onChange={(e) => setSelectedUserId(e.target.value)}
+                className="w-full bg-white border border-blue-400 text-slate-800 text-xs font-bold rounded-xl px-3 py-2 focus:ring-2 focus:ring-blue-500 cursor-pointer shadow-xs"
+              >
+                {filteredEmployees.map(emp => {
+                  const pObj = pdvs.find(p => p.id === emp.pdvId);
+                  return (
+                    <option key={emp.id} value={emp.id}>
+                      {emp.fullName} - CC {emp.documentId} {pObj ? `[${pObj.code}]` : ''}
+                    </option>
+                  );
+                })}
+              </select>
+            </div>
           </div>
         )}
       </div>
@@ -142,7 +206,7 @@ export default function EmployeeTrackingView({ currentUser, pdvs, supervisors, u
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
               <div className="flex items-center gap-4">
                 <div className="w-16 h-16 rounded-2xl bg-blue-600 border-2 border-blue-400 flex items-center justify-center font-black text-2xl text-white shadow-md">
-                  {empUser.name?.charAt(0) || 'C'}
+                  {empUser.fullName?.charAt(0) || empUser.name?.charAt(0) || 'C'}
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
@@ -153,8 +217,8 @@ export default function EmployeeTrackingView({ currentUser, pdvs, supervisors, u
                   </div>
                   <div className="text-xs text-slate-300 mt-1 flex flex-wrap items-center gap-x-4 gap-y-1">
                     <span><strong>Cargo:</strong> {empUser.position}</span>
-                    <span><strong>Cédula:</strong> {empUser.documentId}</span>
-                    <span><strong>Código:</strong> {empUser.code || `COD-${empUser.documentId?.slice(-4)}`}</span>
+                    <span><strong>Cédula:</strong> {empUser.documentId || 'Sin asignar'}</span>
+                    <span><strong>Código:</strong> {empUser.code || (empUser.documentId ? `COD-${empUser.documentId.slice(-4)}` : 'COD-COLAB')}</span>
                   </div>
                 </div>
               </div>
