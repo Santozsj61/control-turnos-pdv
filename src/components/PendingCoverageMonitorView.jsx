@@ -56,6 +56,11 @@ export default function PendingCoverageMonitorView({ currentUser, pdvs, supervis
       if (!weekData || !weekData.pdvs) return;
 
       weekData.pdvs.forEach(p => {
+        // Exclusión expresa: Q105 es apertura nueva y se excluye del concurso/cumplimiento para no afectar al líder
+        if (p.pdvCode === 'Q105' || p.pdvId === 'pdv-54' || p.pdvName?.includes('Q105')) {
+          return;
+        }
+
         if (!pdvMap.has(p.pdvId)) {
           pdvMap.set(p.pdvId, {
             pdvId: p.pdvId,
@@ -318,7 +323,7 @@ export default function PendingCoverageMonitorView({ currentUser, pdvs, supervis
               <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-3" />
               <input
                 type="text"
-                placeholder="Ej: Q105, Cali, Unicentro..."
+                placeholder="Ej: Q088, Cali, Unicentro..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-8 text-xs bg-slate-50 border border-slate-300 rounded-lg p-2 font-medium text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:bg-white"

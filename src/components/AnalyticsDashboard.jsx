@@ -542,7 +542,7 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
     if (activePayroll?.byPdv && activePayroll.byPdv.length > 0) {
       const activeSupId = isSupervisor ? (currentSupervisorObj?.id || '') : selectedZone;
 
-      let list = activePayroll.byPdv;
+      let list = activePayroll.byPdv.filter(p => !p.pdvName?.startsWith('Q105') && !p.pdvCode?.includes('Q105'));
 
       // Filter by Zone if set
       if (activeSupId) {
@@ -622,6 +622,7 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
     });
 
     activePayroll.byPdv.forEach(p => {
+      if (p.pdvName?.startsWith('Q105') || p.pdvCode?.includes('Q105')) return;
       const matchPdv = pdvs.find(item =>
         (item.code && p.pdvName.startsWith(item.code)) ||
         item.name?.toLowerCase().includes(p.pdvName.toLowerCase())
@@ -638,6 +639,7 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
 
     if (prevPayroll?.byPdv) {
       prevPayroll.byPdv.forEach(p => {
+        if (p.pdvName?.startsWith('Q105') || p.pdvCode?.includes('Q105')) return;
         const matchPdv = pdvs.find(item =>
           (item.code && p.pdvName.startsWith(item.code)) ||
           item.name?.toLowerCase().includes(p.pdvName.toLowerCase())
