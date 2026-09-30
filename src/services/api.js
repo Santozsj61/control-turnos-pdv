@@ -2163,13 +2163,70 @@ export const api = {
 
     // 2. Traer marcaciones biométricas reales del colaborador por cédula
     const doc = String(user.documentId || user.document_id || '').trim();
-    let punches = [];
+    let rawPunches = [];
     if (doc) {
-      punches = await api.getPunchRecords({ documentId: doc }).catch(() => []);
-      if (punches.length === 0 && doc.startsWith('0')) {
-        punches = await api.getPunchRecords({ documentId: doc.replace(/^0+/, '') }).catch(() => []);
+      rawPunches = await api.getPunchRecords({ documentId: doc }).catch(() => []);
+      if (rawPunches.length === 0 && doc.startsWith('0')) {
+        rawPunches = await api.getPunchRecords({ documentId: doc.replace(/^0+/, '') }).catch(() => []);
       }
     }
+
+    // 3. Cruce con la programación para resolver salidas o entradas faltantes
+    const allShifts = schedules.flatMap(sc => sc.shifts || []);
+    const punches = rawPunches.map(p => {
+      const hasRawEntry = !!p.entryTime && p.entryTime !== '-' && String(p.entryTime).trim() !== '';
+      const hasRawExit = !!p.exitTime && p.exitTime !== '-' && String(p.exitTime).trim() !== '';
+
+      const schedShift = allShifts.find(sh => sh.date === p.entryDate && !sh.isDayOff && (sh.endTime || sh.startTime));
+
+      let autoFilledExit = false;
+      let autoFilledEntry = false;
+      let realCalculations = p.realCalculations || {};
+
+      if (hasRawEntry && !hasRawExit) {
+        if (schedShift?.endTime) {
+          autoFilledExit = true;
+          realCalculations = calculateShiftHours(p.entryTime.substring(0, 5), schedShift.endTime, p.entryDate);
+        } else {
+          // Sin programación para cruzar y sin salida marcada: 0 horas (incompleta)
+          realCalculations = {
+            grossHours: 0,
+            lunchHours: 0,
+            netHours: 0,
+            dayHours: 0,
+            nightHours: 0,
+            lunchApplied: false,
+            lunchReason: 'Sin marcación de salida en biométrico'
+          };
+        }
+      } else if (!hasRawEntry && hasRawExit) {
+        if (schedShift?.startTime) {
+          autoFilledEntry = true;
+          realCalculations = calculateShiftHours(schedShift.startTime, p.exitTime.substring(0, 5), p.entryDate);
+        } else {
+          realCalculations = {
+            grossHours: 0,
+            lunchHours: 0,
+            netHours: 0,
+            dayHours: 0,
+            nightHours: 0,
+            lunchApplied: false,
+            lunchReason: 'Sin marcación de entrada en biométrico'
+          };
+        }
+      } else if (hasRawEntry && hasRawExit) {
+        realCalculations = calculateShiftHours(p.entryTime.substring(0, 5), p.exitTime.substring(0, 5), p.entryDate);
+      }
+
+      return {
+        ...p,
+        autoFilledExit,
+        autoFilledEntry,
+        scheduledStartTime: schedShift?.startTime || null,
+        scheduledEndTime: schedShift?.endTime || null,
+        realCalculations
+      };
+    });
 
     // Ordenar marcaciones de más reciente a más antigua
     punches.sort((a, b) => new Date(b.entryDate || 0) - new Date(a.entryDate || 0));

@@ -404,15 +404,22 @@ export default function EmployeeTrackingView({ currentUser, pdvs = [], superviso
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {punches.map((p, pIdx) => {
-                      const hasExit = !!p.exitTime && p.exitTime !== '';
+                      const hasExit = !!p.exitTime && p.exitTime !== '-' && p.exitTime !== '';
+                      const isAutoFilled = p.autoFilledExit || p.autoFilledEntry;
                       const net = p.realCalculations?.netHours || 0;
                       return (
                         <tr key={pIdx} className="hover:bg-slate-50 transition">
                           <td className="py-2.5 px-4 font-semibold text-slate-800">{p.entryDate || '-'}</td>
-                          <td className="py-2.5 px-4 font-mono text-emerald-700 font-bold">{p.entryTime || '-'}</td>
+                          <td className="py-2.5 px-4 font-mono text-emerald-700 font-bold">
+                            {p.entryTime || (p.autoFilledEntry ? `${p.scheduledStartTime}* (Prog)` : '-')}
+                          </td>
                           <td className="py-2.5 px-4 font-mono">
                             {hasExit ? (
                               <span className="text-slate-800 font-bold">{p.exitTime}</span>
+                            ) : p.autoFilledExit ? (
+                              <span className="text-indigo-700 font-bold underline decoration-indigo-400" title="Salida no registrada en biométrico; autocompletada con horario de programación">
+                                {p.scheduledEndTime}* (Prog)
+                              </span>
                             ) : (
                               <span className="text-rose-600 font-bold bg-rose-50 px-2 py-0.5 rounded text-[10px]">Sin Marcación</span>
                             )}
@@ -431,9 +438,15 @@ export default function EmployeeTrackingView({ currentUser, pdvs = [], superviso
                               </span>
                             )}
                           </td>
-                          <td className="py-2.5 px-4 text-right font-mono font-bold text-slate-900">{net}h</td>
+                          <td className="py-2.5 px-4 text-right font-mono font-bold text-slate-900">
+                            {net}h{isAutoFilled ? '*' : ''}
+                          </td>
                           <td className="py-2.5 px-4 text-center">
-                            {!hasExit ? (
+                            {p.autoFilledExit || p.autoFilledEntry ? (
+                              <span className="bg-indigo-100 text-indigo-800 text-[10px] font-bold px-2 py-0.5 rounded border border-indigo-200" title="Horario autocompletado desde la programación semanal">
+                                {p.autoFilledExit ? 'Salida Autocompletada*' : 'Entrada Autocompletada*'}
+                              </span>
+                            ) : !hasExit ? (
                               <span className="bg-rose-100 text-rose-800 text-[10px] font-bold px-2 py-0.5 rounded">Incompleta</span>
                             ) : net < 4.0 ? (
                               <span className="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded">Jornada Corta</span>

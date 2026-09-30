@@ -133,7 +133,11 @@ export function calculateShiftHours(startTime, endTime, dateStr, config = {}, sh
     ...config
   };
 
-  if (!startTime || !endTime) {
+  const cleanStart = String(startTime || '').trim();
+  const cleanEnd = String(endTime || '').trim();
+  const isInvalid = (t) => !t || t === '-' || t === '--:--' || t === 'Sin marcación' || t === 'null' || t === 'undefined';
+
+  if (isInvalid(cleanStart) || isInvalid(cleanEnd)) {
     return {
       grossHours: 0,
       lunchHours: 0,
@@ -144,7 +148,7 @@ export function calculateShiftHours(startTime, endTime, dateStr, config = {}, sh
       sundayDayHours: 0,
       sundayNightHours: 0,
       lunchApplied: false,
-      lunchReason: 'Sin horario establecido'
+      lunchReason: isInvalid(cleanEnd) ? 'Sin marcación de salida' : 'Sin marcación de entrada'
     };
   }
 
