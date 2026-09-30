@@ -417,7 +417,20 @@ export default function EmployeeTrackingView({ currentUser, pdvs = [], superviso
                               <span className="text-rose-600 font-bold bg-rose-50 px-2 py-0.5 rounded text-[10px]">Sin Marcación</span>
                             )}
                           </td>
-                          <td className="py-2.5 px-4 text-slate-500">{p.lunchDuration || '1:30'}</td>
+                          <td className="py-2.5 px-4 text-center">
+                            {(p.realCalculations?.lunchHours > 0 || p.realCalculations?.lunchApplied) ? (
+                              <span className="font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded text-[11px]">
+                                1:30
+                              </span>
+                            ) : (
+                              <span 
+                                className="font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded text-[10px]" 
+                                title={p.realCalculations?.lunchReason || 'Sin deducción de almuerzo (ingreso después de 12:30 PM o jornada corta)'}
+                              >
+                                0:00
+                              </span>
+                            )}
+                          </td>
                           <td className="py-2.5 px-4 text-right font-mono font-bold text-slate-900">{net}h</td>
                           <td className="py-2.5 px-4 text-center">
                             {!hasExit ? (
