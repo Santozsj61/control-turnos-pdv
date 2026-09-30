@@ -3171,6 +3171,77 @@ export const COVERAGE_MONITOR_BY_WEEK = {
         "status": "PENDIENTE_AMBOS"
       },
       {
+        "pdvId": "pdv-54",
+        "pdvCode": "Q105",
+        "pdvName": "Q105 - Pereira - Centro",
+        "city": "Pereira",
+        "zone": "ZONA EJE CAFETERO 1",
+        "supervisorName": "Andres Osorio",
+        "totalStaff": 5,
+        "programmedCount": 0,
+        "pendingProgramCount": 5,
+        "punchesCount": 0,
+        "pendingPunchesCount": 5,
+        "pendingCollaborators": [
+          {
+            "documentId": "1088236500",
+            "fullName": "WILSON LOAIZA",
+            "position": "ASESOR(A) DE IMAGEN",
+            "isPendingProgram": true,
+            "isPendingPunch": true,
+            "issues": [
+              "Sin turno programado",
+              "Sin marcación biométrica"
+            ]
+          },
+          {
+            "documentId": "1088333564",
+            "fullName": "CESAR LOPEZ",
+            "position": "ASESOR(A) DE IMAGEN",
+            "isPendingProgram": true,
+            "isPendingPunch": true,
+            "issues": [
+              "Sin turno programado",
+              "Sin marcación biométrica"
+            ]
+          },
+          {
+            "documentId": "1088303391",
+            "fullName": "PAOLA ARIAS",
+            "position": "ASESOR(A) DE IMAGEN",
+            "isPendingProgram": true,
+            "isPendingPunch": true,
+            "issues": [
+              "Sin turno programado",
+              "Sin marcación biométrica"
+            ]
+          },
+          {
+            "documentId": "1088286603",
+            "fullName": "ANDERSON PINEDA",
+            "position": "ASESOR(A) DE IMAGEN",
+            "isPendingProgram": true,
+            "isPendingPunch": true,
+            "issues": [
+              "Sin turno programado",
+              "Sin marcación biométrica"
+            ]
+          },
+          {
+            "documentId": "1002743905",
+            "fullName": "JACKELINE FRANCO",
+            "position": "ASESOR(A) DE IMAGEN",
+            "isPendingProgram": true,
+            "isPendingPunch": true,
+            "issues": [
+              "Sin turno programado",
+              "Sin marcación biométrica"
+            ]
+          }
+        ],
+        "status": "PENDIENTE_AMBOS"
+      },
+      {
         "pdvId": "pdv-55",
         "pdvCode": "Q106",
         "pdvName": "Q106 - Soledad - Cc Nuestro Atlantico",
