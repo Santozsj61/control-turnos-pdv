@@ -52,7 +52,7 @@ export default function HabitualSchedulesAuditView({ currentUser, pdvs = [], sup
         pdvId: selectedPdvId && selectedPdvId !== 'ALL' ? selectedPdvId : 'ALL',
         supervisorId: selectedSupervisorId || undefined
       });
-      if (data && data.habitualSummaries && data.habitualSummaries.length > 0) {
+      if (data && (data.pdvsSummary?.length > 0 || data.totals)) {
         setAuditData(data);
         setLoading(false);
         return;

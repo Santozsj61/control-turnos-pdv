@@ -7,6 +7,8 @@ import { initialNovelties } from '../data/initialNovelties.js';
 import { OFFICIAL_PAYROLL_BY_WEEK } from '../data/officialPayrollData.js';
 import { registerLoadedWeek, registerLoadedWeeks, ALL_WEEKS_2026, KNOWN_WEEKS_WITH_DATA } from '../utils/weeks.js';
 
+import { buildAuditDataLocally } from '../utils/auditCalculator.js';
+
 // Fallback helper for local dev server if Supabase keys aren't set yet
 async function fetchLocal(url, options = {}) {
   const res = await fetch(url, {
@@ -28,6 +30,7 @@ const memoryCache = {
   punchesByWeek: new Map(),
   schedulesByWeekAndPdv: new Map(),
   reconciliationByParams: new Map(),
+  auditByParams: new Map(),
   clearAll() {
     this.users = null;
     this.pdvs = null;
@@ -37,14 +40,17 @@ const memoryCache = {
     this.punchesByWeek.clear();
     this.schedulesByWeekAndPdv.clear();
     this.reconciliationByParams.clear();
+    this.auditByParams.clear();
   },
   clearReconciliation() {
     this.punchesByWeek.clear();
     this.reconciliationByParams.clear();
+    this.auditByParams.clear();
   },
   clearSchedules() {
     this.schedulesByWeekAndPdv.clear();
     this.reconciliationByParams.clear();
+    this.auditByParams.clear();
   }
 };
 
@@ -1229,70 +1235,51 @@ export const api = {
   },
 
   getHabitualVsPunchesAudit: async ({ weekStart = '2026-08-31', pdvId, supervisorId }) => {
+    const auditCacheKey = `audit_${weekStart}_${pdvId || 'ALL'}_${supervisorId || 'ALL'}`;
+    if (memoryCache.auditByParams.has(auditCacheKey)) {
+      return memoryCache.auditByParams.get(auditCacheKey);
+    }
+
     if (!isSupabaseConfigured) {
       const q = new URLSearchParams({
         weekStart,
         ...(pdvId ? { pdvId } : {}),
         ...(supervisorId ? { supervisorId } : {})
       }).toString();
-      return fetchLocal(`/api/audit/habitual-vs-punches${q ? '?' + q : ''}`);
+      try {
+        const localData = await fetchLocal(`/api/audit/habitual-vs-punches${q ? '?' + q : ''}`);
+        if (localData && (localData.pdvsSummary || localData.totals)) {
+          memoryCache.auditByParams.set(auditCacheKey, localData);
+          return localData;
+        }
+      } catch (e) {
+        // Fallback to local computation
+      }
     }
 
-    const [pdvs, supervisors, schedules, punches] = await Promise.all([
+    const [pdvs, supervisors, schedules, punches, users] = await Promise.all([
       api.getPDVs(),
       api.getSupervisors(),
       api.getSchedules({ weekStart }),
-      api.getPunchRecords({ weekStart })
+      api.getPunchRecords({ weekStart }),
+      api.getUsers()
     ]);
 
-    const isUnified = !pdvId || pdvId === 'ALL' || pdvId === 'ALL_PDVS';
-    let targetPdvs = isUnified 
-      ? (supervisorId ? pdvs.filter(p => p.supervisorId === supervisorId) : pdvs)
-      : pdvs.filter(p => p.id === pdvId || p.code === pdvId);
-
-    const start = new Date(weekStart + 'T12:00:00Z');
-    const dayNames = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
-    const weekDates = [];
-    for (let i = 0; i < 7; i++) {
-      const d = new Date(start.getTime() + i * 86400000);
-      weekDates.push({
-        date: d.toISOString().split('T')[0],
-        dayName: dayNames[i]
-      });
-    }
-
-    const pdvsSummary = targetPdvs.map(p => {
-      const pPunches = punches.filter(pu => pu.pdvName === p.name || pu.pdv_name === p.name);
-      const punchHours = +pPunches.reduce((sum, pu) => sum + (pu.realCalculations?.netHours || 0), 0).toFixed(2);
-      const habitualHours = 42; // standard weekly habitual baseline
-
-      return {
-        pdvId: p.id,
-        pdvCode: p.code,
-        pdvName: p.name,
-        city: p.city,
-        supervisorName: p.supervisorName || 'Sin asignar',
-        totalHabitualHours: habitualHours,
-        totalPunchHours: punchHours,
-        totalSupplementaryHours: 0,
-        totalNightSurchargeHours: 0,
-        totalSundaySurchargeHours: 0,
-        earlyArrivalCount: 0,
-        lateExitCount: 0,
-        complianceRate: punchHours > 0 ? 100 : 0
-      };
+    const result = buildAuditDataLocally({
+      pdvs,
+      supervisors,
+      users,
+      schedules,
+      punches,
+      weekStart,
+      selectedPdvId: pdvId,
+      selectedSupervisorId: supervisorId
     });
 
-    return {
-      habitualSummaries: pdvsSummary,
-      auditRows: [],
-      globalStats: {
-        totalPdvsAudited: targetPdvs.length,
-        totalHabitualHours: pdvsSummary.reduce((a, b) => a + b.totalHabitualHours, 0),
-        totalPunchHours: pdvsSummary.reduce((a, b) => a + b.totalPunchHours, 0),
-        totalSupplementaryHours: 0
-      }
-    };
+    if (result) {
+      memoryCache.auditByParams.set(auditCacheKey, result);
+    }
+    return result;
   },
 
   // ----------------------------------------------------
