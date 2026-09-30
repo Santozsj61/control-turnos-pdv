@@ -18,19 +18,65 @@ async function fetchLocal(url, options = {}) {
   return data.data !== undefined ? data.data : data;
 }
 
+// ⚡ Caché en Memoria de Alto Rendimiento para cambio instantáneo de semanas y eliminación de consultas duplicadas
+const memoryCache = {
+  users: null,
+  pdvs: null,
+  supervisors: null,
+  config: null,
+  novelties: null,
+  punchesByWeek: new Map(),
+  schedulesByWeekAndPdv: new Map(),
+  reconciliationByParams: new Map(),
+  clearAll() {
+    this.users = null;
+    this.pdvs = null;
+    this.supervisors = null;
+    this.config = null;
+    this.novelties = null;
+    this.punchesByWeek.clear();
+    this.schedulesByWeekAndPdv.clear();
+    this.reconciliationByParams.clear();
+  },
+  clearReconciliation() {
+    this.punchesByWeek.clear();
+    this.reconciliationByParams.clear();
+  },
+  clearSchedules() {
+    this.schedulesByWeekAndPdv.clear();
+    this.reconciliationByParams.clear();
+  }
+};
+
 export const api = {
   isConfigured: isSupabaseConfigured,
+
+  getCachedReconciliation: ({ weekStart, pdvId, supervisorId, documentId }) => {
+    const cacheKey = `${weekStart || ''}_${pdvId || ''}_${supervisorId || ''}_${documentId || ''}`;
+    return memoryCache.reconciliationByParams.get(cacheKey) || null;
+  },
+
+  clearCache: (scope = 'all') => {
+    if (scope === 'all') memoryCache.clearAll();
+    else if (scope === 'reconciliation') memoryCache.clearReconciliation();
+    else if (scope === 'schedules') memoryCache.clearSchedules();
+  },
 
   // ----------------------------------------------------
   // 1. App Configuration & CST Parameters
   // ----------------------------------------------------
   getConfig: async () => {
-    if (!isSupabaseConfigured) return fetchLocal('/api/config');
+    if (memoryCache.config) return memoryCache.config;
+    if (!isSupabaseConfigured) {
+      const cfg = await fetchLocal('/api/config');
+      if (cfg) memoryCache.config = cfg;
+      return cfg;
+    }
     const { data, error } = await supabase.from('app_config').select('*').single();
     if (error && error.code !== 'PGRST116') {
       console.error('Supabase getConfig error:', error);
     }
-    return data ? {
+    const res = data ? {
       lunchDurationHours: Number(data.lunch_duration_hours || 1.5),
       lunchCutoffTime: data.lunch_cutoff_time || '12:30',
       lunchMinShiftDuration: Number(data.lunch_min_shift_duration || 6.0),
@@ -53,9 +99,13 @@ export const api = {
       earlyExitToleranceMinutes: 10,
       maintenanceApprovalEmail: 'mantenimiento.obras@quest.com.co'
     };
+    memoryCache.config = res;
+    return res;
   },
 
   updateConfig: async (newConfig) => {
+    memoryCache.config = null;
+    memoryCache.clearReconciliation();
     if (!isSupabaseConfigured) {
       return fetchLocal('/api/config', { method: 'POST', body: JSON.stringify(newConfig) });
     }
@@ -81,17 +131,25 @@ export const api = {
   // 2. Supervisors / Zonas
   // ----------------------------------------------------
   getSupervisors: async () => {
+    if (memoryCache.supervisors) return memoryCache.supervisors;
     if (!isSupabaseConfigured) {
       try {
         const local = await fetchLocal('/api/supervisors');
-        if (local && local.length > 0) return local;
+        if (local && local.length > 0) {
+          memoryCache.supervisors = local;
+          return local;
+        }
       } catch (e) {}
+      memoryCache.supervisors = initialSupervisors;
       return initialSupervisors;
     }
     try {
       const { data, error } = await supabase.from('supervisors').select('*').order('name');
-      if (error || !data || data.length === 0) return initialSupervisors;
-      return data.map(s => ({
+      if (error || !data || data.length === 0) {
+        memoryCache.supervisors = initialSupervisors;
+        return initialSupervisors;
+      }
+      const res = data.map(s => ({
         id: s.id,
         name: s.name,
         zoneName: s.zone_name || s.name,
@@ -101,12 +159,17 @@ export const api = {
         phone: s.phone,
         email: s.email
       }));
+      memoryCache.supervisors = res;
+      return res;
     } catch (e) {
+      memoryCache.supervisors = initialSupervisors;
       return initialSupervisors;
     }
   },
 
   createSupervisor: async (sup) => {
+    memoryCache.supervisors = null;
+    memoryCache.clearReconciliation();
     if (!isSupabaseConfigured) return fetchLocal('/api/zonas', { method: 'POST', body: JSON.stringify(sup) });
     const id = sup.id || `zone-${Date.now()}`;
     const payload = {
@@ -123,6 +186,8 @@ export const api = {
   },
 
   updateSupervisor: async (id, sup) => {
+    memoryCache.supervisors = null;
+    memoryCache.clearReconciliation();
     if (!isSupabaseConfigured) return fetchLocal(`/api/zonas/${id}`, { method: 'PUT', body: JSON.stringify(sup) });
     const payload = {
       name: sup.name?.trim().toUpperCase(),
@@ -138,6 +203,8 @@ export const api = {
   },
 
   deleteSupervisor: async (id) => {
+    memoryCache.supervisors = null;
+    memoryCache.clearReconciliation();
     if (!isSupabaseConfigured) return fetchLocal(`/api/zonas/${id}`, { method: 'DELETE' });
     const { data, error } = await supabase.from('supervisors').delete().eq('id', id).select().single();
     if (error) throw new Error(error.message);
@@ -148,17 +215,25 @@ export const api = {
   // 3. PDVs (Puntos de Venta)
   // ----------------------------------------------------
   getPDVs: async () => {
+    if (memoryCache.pdvs) return memoryCache.pdvs;
     if (!isSupabaseConfigured) {
       try {
         const local = await fetchLocal('/api/pdvs');
-        if (local && local.length > 0) return local;
+        if (local && local.length > 0) {
+          memoryCache.pdvs = local;
+          return local;
+        }
       } catch (e) {}
+      memoryCache.pdvs = initialPDVs;
       return initialPDVs;
     }
     try {
       const { data, error } = await supabase.from('pdvs').select('*').order('name');
-      if (error || !data || data.length === 0) return initialPDVs;
-      return data.map(p => ({
+      if (error || !data || data.length === 0) {
+        memoryCache.pdvs = initialPDVs;
+        return initialPDVs;
+      }
+      const res = data.map(p => ({
         id: p.id,
         code: p.code,
         name: p.name,
@@ -172,12 +247,17 @@ export const api = {
         allowedShifts: p.allowed_shifts || ['10:00-20:30', '10:00-18:00', '11:00-19:00', '12:00-20:30', '13:00-20:30'],
         habitualSchedule: p.habitual_schedule || {}
       }));
+      memoryCache.pdvs = res;
+      return res;
     } catch (e) {
+      memoryCache.pdvs = initialPDVs;
       return initialPDVs;
     }
   },
 
   createPDV: async (pdv) => {
+    memoryCache.pdvs = null;
+    memoryCache.clearAll();
     if (!isSupabaseConfigured) return fetchLocal('/api/pdvs', { method: 'POST', body: JSON.stringify(pdv) });
     const id = pdv.id || `pdv-${Date.now()}`;
     const payload = {
@@ -422,55 +502,52 @@ export const api = {
   },
 
   getUsers: async (filters = {}) => {
-    if (!isSupabaseConfigured) {
-      try {
-        const q = new URLSearchParams(filters).toString();
-        const local = await fetchLocal(`/api/users${q ? '?' + q : ''}`);
-        if (local && local.length > 0) return local;
-      } catch (e) {}
-      let res = initialUsers;
-      if (filters.role) res = res.filter(u => u.role === filters.role);
-      if (filters.pdvId) res = res.filter(u => u.pdvId === filters.pdvId);
-      if (filters.supervisorId) res = res.filter(u => u.supervisorId === filters.supervisorId);
-      return res;
-    }
-    try {
-      let query = supabase.from('users').select('*').eq('is_active', true);
-      if (filters.role) query = query.eq('role', filters.role);
-      if (filters.pdvId) query = query.eq('pdv_id', filters.pdvId);
-      if (filters.supervisorId) query = query.eq('supervisor_id', filters.supervisorId);
-      const { data, error } = await query.order('full_name');
-      if (error || !data || data.length === 0) {
-        let res = initialUsers;
-        if (filters.role) res = res.filter(u => u.role === filters.role);
-        if (filters.pdvId) res = res.filter(u => u.pdvId === filters.pdvId);
-        if (filters.supervisorId) res = res.filter(u => u.supervisorId === filters.supervisorId);
-        return res;
+    let allUsers = memoryCache.users;
+    if (!allUsers) {
+      if (!isSupabaseConfigured) {
+        try {
+          const local = await fetchLocal('/api/users');
+          if (local && local.length > 0) allUsers = local;
+        } catch (e) {}
+        if (!allUsers) allUsers = initialUsers;
+      } else {
+        try {
+          const { data, error } = await supabase.from('users').select('*').eq('is_active', true).order('full_name');
+          if (error || !data || data.length === 0) {
+            allUsers = initialUsers;
+          } else {
+            allUsers = data.map(u => ({
+              id: u.id,
+              username: u.username,
+              fullName: u.full_name,
+              documentId: u.document_id,
+              code: u.code,
+              role: u.role,
+              position: u.position,
+              area: u.area,
+              contractType: u.contract_type || 'FIJO',
+              pdvId: u.pdv_id,
+              supervisorId: u.supervisor_id,
+              weeklyMaxHours: u.weekly_max_hours || 42
+            }));
+          }
+        } catch (e) {
+          allUsers = initialUsers;
+        }
       }
-      return data.map(u => ({
-        id: u.id,
-        username: u.username,
-        fullName: u.full_name,
-        documentId: u.document_id,
-        code: u.code,
-        role: u.role,
-        position: u.position,
-        area: u.area,
-        contractType: u.contract_type || 'FIJO',
-        pdvId: u.pdv_id,
-        supervisorId: u.supervisor_id,
-        weeklyMaxHours: u.weekly_max_hours || 42
-      }));
-    } catch (e) {
-      let res = initialUsers;
-      if (filters.role) res = res.filter(u => u.role === filters.role);
-      if (filters.pdvId) res = res.filter(u => u.pdvId === filters.pdvId);
-      if (filters.supervisorId) res = res.filter(u => u.supervisorId === filters.supervisorId);
-      return res;
+      memoryCache.users = allUsers;
     }
+
+    let res = allUsers;
+    if (filters.role) res = res.filter(u => u.role === filters.role);
+    if (filters.pdvId) res = res.filter(u => u.pdvId === filters.pdvId);
+    if (filters.supervisorId) res = res.filter(u => u.supervisorId === filters.supervisorId);
+    return res;
   },
 
   addPdvMember: async ({ pdvId, documentId, fullName, position, code, contractType }) => {
+    memoryCache.users = null;
+    memoryCache.clearSchedules();
     if (!isSupabaseConfigured) {
       return fetchLocal('/api/users/pdv-member', {
         method: 'POST',
@@ -540,6 +617,8 @@ export const api = {
   },
 
   removePdvMember: async (userId, pdvId, weekStart) => {
+    memoryCache.users = null;
+    memoryCache.clearSchedules();
     if (!isSupabaseConfigured) {
       return fetchLocal(`/api/users/${userId}/pdv-member?pdvId=${pdvId || ''}&weekStart=${weekStart || ''}`, {
         method: 'DELETE'
@@ -575,6 +654,12 @@ export const api = {
       user: s.users || null
     });
 
+    const isCacheableSched = filters.weekStart && !filters.userId;
+    const schedCacheKey = isCacheableSched ? `sched_${filters.weekStart}_${filters.pdvId || 'ALL'}` : null;
+    if (schedCacheKey && memoryCache.schedulesByWeekAndPdv.has(schedCacheKey)) {
+      return memoryCache.schedulesByWeekAndPdv.get(schedCacheKey);
+    }
+
     if (!filters.userId && !filters.weekStart && (!filters.pdvId || filters.pdvId === 'ALL')) {
       let allData = [];
       let from = 0;
@@ -595,10 +680,15 @@ export const api = {
     if (filters.pdvId && filters.pdvId !== 'ALL') query = query.eq('pdv_id', filters.pdvId);
     const { data, error } = await query.limit(filters.limit || 5000);
     if (error) throw new Error(error.message);
-    return (data || []).map(mapSchedule);
+    const mapped = (data || []).map(mapSchedule);
+    if (schedCacheKey) {
+      memoryCache.schedulesByWeekAndPdv.set(schedCacheKey, mapped);
+    }
+    return mapped;
   },
 
   saveBatchPdvSchedules: async ({ pdvId, weekStart, weekEnd, schedules }) => {
+    memoryCache.clearSchedules();
     if (weekStart) registerLoadedWeek(weekStart);
     if (!isSupabaseConfigured) {
       return fetchLocal('/api/schedules/batch-pdv', {
@@ -840,9 +930,17 @@ export const api = {
   },
 
   getPunchRecords: async (filters = {}) => {
+    const isWeekOnly = filters.weekStart && !filters.batchId && !filters.documentId && !filters.date;
+    const weekCacheKey = isWeekOnly ? `punch_week_${filters.weekStart}` : null;
+    if (weekCacheKey && memoryCache.punchesByWeek.has(weekCacheKey)) {
+      return memoryCache.punchesByWeek.get(weekCacheKey);
+    }
+
     if (!isSupabaseConfigured) {
       const q = new URLSearchParams(filters).toString();
-      return fetchLocal(`/api/punches${q ? '?' + q : ''}`);
+      const res = await fetchLocal(`/api/punches${q ? '?' + q : ''}`);
+      if (weekCacheKey && Array.isArray(res)) memoryCache.punchesByWeek.set(weekCacheKey, res);
+      return res;
     }
     let allData = [];
     let page = 0;
@@ -853,9 +951,11 @@ export const api = {
       if (filters.documentId) query = query.eq('document_id', filters.documentId);
       if (filters.date) query = query.eq('entry_date', filters.date);
       if (filters.weekStart) {
+        // Incluir margen de 1 día antes y 1 día después para capturar turnos nocturnos que cruzan medianoche
         const d = new Date(filters.weekStart + 'T12:00:00Z');
-        const dEnd = new Date(d.getTime() + 6 * 86400000);
-        query = query.gte('entry_date', filters.weekStart).lte('entry_date', dEnd.toISOString().split('T')[0]);
+        const dStart = new Date(d.getTime() - 1 * 86400000);
+        const dEnd = new Date(d.getTime() + 7 * 86400000);
+        query = query.gte('entry_date', dStart.toISOString().split('T')[0]).lte('entry_date', dEnd.toISOString().split('T')[0]);
       }
       const { data, error } = await query;
       if (error) throw new Error(error.message);
@@ -864,7 +964,7 @@ export const api = {
       if (data.length < pageSize) break;
       page++;
     }
-    return allData.map(r => ({
+    const mapped = allData.map(r => ({
       id: r.id,
       batchId: r.batch_id,
       documentId: r.document_id,
@@ -879,9 +979,15 @@ export const api = {
       exitTime: r.exit_time,
       realCalculations: r.real_calculations
     }));
+
+    if (weekCacheKey) {
+      memoryCache.punchesByWeek.set(weekCacheKey, mapped);
+    }
+    return mapped;
   },
 
   savePunchBatch: async (batchInfo, parsedRecords) => {
+    memoryCache.clearReconciliation();
     if (batchInfo?.weekStart) registerLoadedWeek(batchInfo.weekStart);
     if (!isSupabaseConfigured) {
       return fetchLocal('/api/punches/upload', {
@@ -958,24 +1064,32 @@ export const api = {
   // 8. Reconciliation & Auditor VRX Engine
   // ----------------------------------------------------
   getNovelties: async () => {
+    if (memoryCache.novelties) return memoryCache.novelties;
     if (typeof window !== 'undefined' && window.localStorage) {
       try {
         const stored = localStorage.getItem('control_turnos_novelties');
         if (stored) {
           const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            memoryCache.novelties = parsed;
+            return parsed;
+          }
         }
         // Initialize default seed novelties
         localStorage.setItem('control_turnos_novelties', JSON.stringify(initialNovelties));
+        memoryCache.novelties = initialNovelties;
         return initialNovelties;
       } catch (e) {
         console.error('Error reading novelties:', e);
       }
     }
+    memoryCache.novelties = initialNovelties;
     return initialNovelties;
   },
 
   uploadNoveltiesFile: async (file) => {
+    memoryCache.novelties = null;
+    memoryCache.clearReconciliation();
     let parsedNovelties = [];
     if (file.name.endsWith('.csv') || file.type?.includes('csv') || file.type?.includes('text')) {
       const text = await file.text();
@@ -1067,6 +1181,11 @@ export const api = {
   },
 
   getReconciliation: async ({ weekStart, pdvId, supervisorId, documentId }) => {
+    const cacheKey = `${weekStart || ''}_${pdvId || ''}_${supervisorId || ''}_${documentId || ''}`;
+    if (memoryCache.reconciliationByParams.has(cacheKey)) {
+      return memoryCache.reconciliationByParams.get(cacheKey);
+    }
+
     if (!isSupabaseConfigured) {
       const q = new URLSearchParams({
         ...(weekStart ? { weekStart } : {}),
@@ -1074,7 +1193,9 @@ export const api = {
         ...(supervisorId ? { supervisorId } : {}),
         ...(documentId ? { documentId } : {})
       }).toString();
-      return fetchLocal(`/api/reconciliation${q ? '?' + q : ''}`);
+      const res = await fetchLocal(`/api/reconciliation${q ? '?' + q : ''}`);
+      if (res) memoryCache.reconciliationByParams.set(cacheKey, res);
+      return res;
     }
 
     const [users, pdvs, supervisors, schedules, punches, config, novelties] = await Promise.all([
@@ -1082,12 +1203,12 @@ export const api = {
       api.getPDVs(),
       api.getSupervisors(),
       api.getSchedules({ weekStart, pdvId, supervisorId }),
-      api.getPunchRecords(),
+      api.getPunchRecords({ weekStart }),
       api.getConfig(),
       api.getNovelties()
     ]);
 
-    return runReconciliation({
+    const result = runReconciliation({
       users,
       pdvs,
       supervisors,
@@ -1100,6 +1221,11 @@ export const api = {
       supervisorId,
       documentId
     });
+
+    if (result) {
+      memoryCache.reconciliationByParams.set(cacheKey, result);
+    }
+    return result;
   },
 
   getHabitualVsPunchesAudit: async ({ weekStart = '2026-08-31', pdvId, supervisorId }) => {
@@ -1116,7 +1242,7 @@ export const api = {
       api.getPDVs(),
       api.getSupervisors(),
       api.getSchedules({ weekStart }),
-      api.getPunchRecords()
+      api.getPunchRecords({ weekStart })
     ]);
 
     const isUnified = !pdvId || pdvId === 'ALL' || pdvId === 'ALL_PDVS';
@@ -1257,8 +1383,13 @@ export const api = {
   },
 
   getReconciliationIntegrity: async ({ weekStart, pdvId, supervisorId } = {}) => {
+    const cacheKey = `integrity_${weekStart || ''}_${pdvId || ''}_${supervisorId || ''}`;
+    if (memoryCache.reconciliationByParams.has(cacheKey)) {
+      return memoryCache.reconciliationByParams.get(cacheKey);
+    }
+
     const [punches, users, pdvs] = await Promise.all([
-      api.getPunchRecords().catch(() => []),
+      api.getPunchRecords({ weekStart }).catch(() => []),
       api.getUsers().catch(() => []),
       api.getPDVs().catch(() => [])
     ]);
@@ -1313,19 +1444,29 @@ export const api = {
       }
     });
 
-    return {
+    const result = {
       incompleteCount: incompleteList.length,
       shortShiftCount: shortShiftList.length,
       incompleteList,
       shortShiftList
     };
+    memoryCache.reconciliationByParams.set(cacheKey, result);
+    return result;
   },
 
   getMonthlyReconciliationDashboard: async ({ pdvId, periodType = 'MONTH', month = '2026-09', weekStart = '2026-09-21' } = {}) => {
+    const cacheKey = `monthlyDash_${pdvId || ''}_${periodType}_${month}_${weekStart}`;
+    if (memoryCache.reconciliationByParams.has(cacheKey)) {
+      return memoryCache.reconciliationByParams.get(cacheKey);
+    }
+
+    const schedFilters = periodType === 'WEEK' ? { weekStart, pdvId } : { pdvId };
+    const punchFilters = periodType === 'WEEK' ? { weekStart } : {};
+
     const [pdvs, schedules, punches, users] = await Promise.all([
       api.getPDVs().catch(() => []),
-      api.getSchedules().catch(() => []),
-      api.getPunchRecords().catch(() => []),
+      api.getSchedules(schedFilters).catch(() => []),
+      api.getPunchRecords(punchFilters).catch(() => []),
       api.getUsers().catch(() => [])
     ]);
 
@@ -1501,7 +1642,7 @@ export const api = {
 
     const monthLabel = month === '2026-09' ? 'Septiembre 2026' : (month === '2026-08' ? 'Agosto 2026' : month);
 
-    return {
+    const result = {
       pdv,
       monthLabel,
       diffTotals,
@@ -1513,6 +1654,8 @@ export const api = {
       employees,
       kpis: { overtimeRealHours: diffTotals.totalSpecial }
     };
+    memoryCache.reconciliationByParams.set(cacheKey, result);
+    return result;
   },
 
   uploadPunchFile: async (file) => {

@@ -89,20 +89,32 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
   }, []);
 
   async function fetchReconciliation() {
-    setLoading(true);
+    let targetPdvId = null;
+    let targetSupId = null;
+    if (isEmployee) {
+      targetPdvId = currentPdvId || allowedPdvs[0]?.id || null;
+    } else if (isSupervisor) {
+      targetSupId = currentSupervisorObj?.id;
+      if (selectedPdv) targetPdvId = selectedPdv;
+    } else if (isAdmin || isHrAdmin || isAuditorVrx) {
+      if (selectedPdv) targetPdvId = selectedPdv;
+      if (selectedSupervisor) targetSupId = selectedSupervisor;
+    }
+
+    // ⚡ Stale-While-Revalidate: Si ya existe en memoria caché, pintar de inmediato (0ms) sin spinner
+    const cached = api.getCachedReconciliation({
+      weekStart,
+      pdvId: targetPdvId,
+      supervisorId: targetSupId
+    });
+    if (cached) {
+      setReconciliationData(cached);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
+
     try {
-      let targetPdvId = null;
-      let targetSupId = null;
-      if (isEmployee) {
-        targetPdvId = currentPdvId || allowedPdvs[0]?.id || null;
-      } else if (isSupervisor) {
-        targetSupId = currentSupervisorObj?.id;
-        if (selectedPdv) targetPdvId = selectedPdv;
-      } else if (isAdmin || isHrAdmin || isAuditorVrx) {
-        if (selectedPdv) targetPdvId = selectedPdv;
-        if (selectedSupervisor) targetSupId = selectedSupervisor;
-      }
-      
       const data = await api.getReconciliation({
         weekStart,
         pdvId: targetPdvId,
@@ -580,6 +592,20 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
     list.sort((a, b) => a.fullName.localeCompare(b.fullName));
     return list;
   }, [filteredRows]);
+
+  // ⚡ Renderizado progresivo ultrarrápido: renderiza los primeros 50 colaboradores al instante en vez de congelar con 792 a la vez
+  const [displayLimit, setDisplayLimit] = useState(50);
+
+  useEffect(() => {
+    setDisplayLimit(50);
+  }, [weekStart, selectedPdv, selectedSupervisor, searchTerm, statusFilter]);
+
+  const visibleHorizontalList = useMemo(() => {
+    if (searchTerm || statusFilter !== 'ALL') {
+      return horizontalPersonList;
+    }
+    return horizontalPersonList.slice(0, displayLimit);
+  }, [horizontalPersonList, displayLimit, searchTerm, statusFilter]);
 
   return (
     <div className="max-w-[98%] xl:max-w-[1700px] 2xl:max-w-[1900px] mx-auto px-2 sm:px-4 py-6 space-y-6">
@@ -1795,7 +1821,7 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {horizontalPersonList.map((collab, idx) => (
+                    {visibleHorizontalList.map((collab, idx) => (
                       <tr key={collab.key || idx} className="hover:bg-slate-50/80 transition">
                         {/* Colaborador Column */}
                         <td className="py-2 px-2.5 sticky left-0 z-10 bg-white shadow-xs w-[16%] min-w-[145px] max-w-[175px]">
@@ -2018,6 +2044,31 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                   </tbody>
                 </table>
               </div>
+
+              {/* ⚡ Controles de Visualización Progresiva para Alto Rendimiento */}
+              {horizontalPersonList.length > displayLimit && !searchTerm && statusFilter === 'ALL' && (
+                <div className="bg-slate-50 border-t border-slate-200 px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                  <div className="text-slate-600 font-medium">
+                    Mostrando <strong className="text-slate-900 font-bold">{visibleHorizontalList.length}</strong> de <strong className="text-slate-900 font-bold">{horizontalPersonList.length}</strong> colaboradores
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setDisplayLimit(prev => Math.min(prev + 50, horizontalPersonList.length))}
+                      className="px-3.5 py-1.5 bg-white hover:bg-slate-100 text-slate-800 font-bold rounded-xl border border-slate-300 shadow-2xs transition cursor-pointer"
+                    >
+                      Cargar 50 más
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDisplayLimit(horizontalPersonList.length)}
+                      className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-xs transition cursor-pointer"
+                    >
+                      Mostrar todos ({horizontalPersonList.length})
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
