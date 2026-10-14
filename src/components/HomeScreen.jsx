@@ -527,12 +527,7 @@ export default function HomeScreen({ users, pdvs, supervisors, currentUser, onSe
                     ref={passwordInputRef}
                     type={showPassword ? 'text' : 'password'}
                     required
-                    placeholder={
-                      activeModalProfile?.id === 'PDV' ? 'Código del PDV (ej. Q008, N10, QST505)' :
-                      activeModalProfile?.id === 'ZONA' ? 'Clave de Líder de Zona (200101)' :
-                      activeModalProfile?.id === 'HR' ? 'Clave Talento Humano (200102)' :
-                      'Digita tu contraseña'
-                    }
+                    placeholder="••••••••"
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 pr-10 text-xs text-white font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-hidden"

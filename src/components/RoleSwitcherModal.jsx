@@ -42,7 +42,7 @@ export default function RoleSwitcherModal({ isOpen, onClose, users, pdvs, superv
       label: 'Administrador General',
       role: 'ADMIN',
       icon: Shield,
-      badge: 'Superusuario (888)',
+      badge: 'Superusuario',
       color: 'purple',
       desc: 'Control global, configuración de parámetros y auditoría'
     },
@@ -52,7 +52,7 @@ export default function RoleSwitcherModal({ isOpen, onClose, users, pdvs, superv
       label: 'Líder de Zona',
       role: 'SUPERVISOR',
       icon: Briefcase,
-      badge: 'Supervisor (200101)',
+      badge: 'Supervisor',
       color: 'amber',
       desc: 'Supervisión regional, aprobación de horarios y 3er domingo'
     },
@@ -62,7 +62,7 @@ export default function RoleSwitcherModal({ isOpen, onClose, users, pdvs, superv
       label: 'Talento Humano (HR)',
       role: 'HR_ADMIN',
       icon: User,
-      badge: 'Maestro RRHH (200102)',
+      badge: 'Maestro RRHH',
       color: 'emerald',
       desc: 'CRUD maestro de PDVs, Zonas, Colaboradores y corte nómina'
     },
@@ -72,7 +72,7 @@ export default function RoleSwitcherModal({ isOpen, onClose, users, pdvs, superv
       label: 'Auditor / Control (VRX)',
       role: 'AUDITOR_VRX',
       icon: Shield,
-      badge: 'Auditoría & Control (0814)',
+      badge: 'Auditoría & Control',
       color: 'indigo',
       desc: 'Compliance, verificación de tolerancias y horas extras'
     }
@@ -357,7 +357,7 @@ export default function RoleSwitcherModal({ isOpen, onClose, users, pdvs, superv
                       <input
                         type={showPassword ? 'text' : 'password'}
                         required
-                        placeholder="Ej: 888, 200101, 200102, 0814"
+                        placeholder="••••••••"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 pr-10 text-slate-900 font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
@@ -422,7 +422,7 @@ export default function RoleSwitcherModal({ isOpen, onClose, users, pdvs, superv
                                 <span>{q.label}</span>
                               </div>
                               <div className="text-[11px] text-slate-500 font-mono mt-0.5">
-                                User: <strong>{q.user}</strong> • Clave: <strong>{q.pass}</strong>
+                                Usuario: <strong>{q.user}</strong>
                               </div>
                             </div>
                           </div>
@@ -449,9 +449,6 @@ export default function RoleSwitcherModal({ isOpen, onClose, users, pdvs, superv
                   <span className="flex items-center gap-1.5">
                     <Briefcase className="w-4 h-4 text-amber-600" />
                     <span>Seleccionar Líder de Zona Regional ({supervisors.length} Zonas Disponibles)</span>
-                  </span>
-                  <span className="text-[11px] text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200">
-                    Clave Oficial: 200101
                   </span>
                 </div>
 
@@ -508,9 +505,6 @@ export default function RoleSwitcherModal({ isOpen, onClose, users, pdvs, superv
                     <Store className="w-4 h-4 text-blue-600" />
                     <span>Seleccionar Punto de Venta ({pdvs.length} PDVs Disponibles)</span>
                   </span>
-                  <span className="text-[11px] text-blue-700 font-bold bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-200">
-                    Contraseña: Código identificador del PDV (ej. Q008, N10, QST505)
-                  </span>
                 </div>
 
                 {errorMsg && (
@@ -554,8 +548,6 @@ export default function RoleSwitcherModal({ isOpen, onClose, users, pdvs, superv
                             <span>Ciudad: <strong>{pdv.city}</strong></span>
                             <span>•</span>
                             <span>Zona: <strong>{pdv.zoneName || 'Regional'}</strong></span>
-                            <span>•</span>
-                            <span className="text-blue-700 font-mono font-bold">Clave: "{expectedPdvPass}"</span>
                           </div>
                         </div>
                         {isSelected && <Check className="w-4 h-4 text-blue-600 shrink-0" />}
