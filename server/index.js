@@ -4,6 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { db } from './db.js';
 import { runReconciliation } from './reconciliation.js';
+import { getPdvPassword, validatePdvPassword, AUTH_CREDENTIALS } from '../src/utils/authRules.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -56,11 +57,11 @@ app.post('/api/auth/login', (req, res) => {
       });
     }
 
-    // 2. Líder de Zona
+    // 2. Líder de Zona (Perfil #2: clave única 200101)
     if (supervisorId || cleanUser === 'supervisor' || cleanUser === 'zona') {
       const sups = db.getSupervisors();
       const sup = sups.find(s => s.id === supervisorId) || sups[0];
-      if (cleanPass === '200101' || cleanPass === '888' || cleanPass === 'admin') {
+      if (cleanPass === AUTH_CREDENTIALS.ZONA_PASSWORD || cleanPass === 'admin') {
         return res.json({
           success: true,
           user: {
@@ -76,11 +77,11 @@ app.post('/api/auth/login', (req, res) => {
       }
     }
 
-    // 3. PDV Store Access
+    // 3. PDV Store Access (Perfil #1: código identificador del PDV)
     if (pdvId || cleanUser === 'pdv') {
       const pdvs = db.getPDVs();
       const pdv = pdvs.find(p => p.id === pdvId) || pdvs[0];
-      if (cleanPass === '101888' || cleanPass === '888' || cleanPass === 'admin') {
+      if (validatePdvPassword(cleanPass, pdv)) {
         return res.json({
           success: true,
           user: {
@@ -97,15 +98,15 @@ app.post('/api/auth/login', (req, res) => {
       }
     }
 
-    // 4. Talento Humano
-    if ((cleanUser === 'th' || cleanUser === 'talentohumano') && (cleanPass === '888123' || cleanPass === '200102' || cleanPass === '888' || cleanPass === 'admin')) {
+    // 4. Talento Humano (Perfil #3: clave única 200102)
+    if ((cleanUser === 'th' || cleanUser === 'talentohumano' || cleanUser === 'thumano') && (cleanPass === AUTH_CREDENTIALS.HR_PASSWORD || cleanPass === 'admin')) {
       return res.json({
         success: true,
         user: {
           id: 'user-th',
           username: 'TalentoHumano',
           fullName: 'DIRECCIÓN DE TALENTO HUMANO',
-          role: 'HR',
+          role: 'HR_ADMIN',
           position: 'ANALISTA DE NÓMINA Y ASISTENCIA',
           area: 'GESTIÓN HUMANA'
         }

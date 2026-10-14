@@ -6,6 +6,7 @@ import {
 
 import { api } from '../services/api.js';
 import { initialSupervisors, initialPDVs } from '../data/seedData.js';
+import { getPdvPassword, validatePdvPassword, AUTH_CREDENTIALS } from '../utils/authRules.js';
 import ConnectionStatusBadge from './ConnectionStatusBadge.jsx';
 
 export default function HomeScreen({ users, pdvs, supervisors, currentUser, onSelectUser, onEnterPlatform, onOpenNetworkMonitor }) {
@@ -178,7 +179,7 @@ export default function HomeScreen({ users, pdvs, supervisors, currentUser, onSe
       // Fallback local matching
       const cleanP = loginPassword.trim();
 
-      if (activeModalProfile.id === 'ZONA' && (cleanP === '200101' || cleanP === '888' || cleanP === 'admin')) {
+      if (activeModalProfile.id === 'ZONA' && (cleanP === AUTH_CREDENTIALS.ZONA_PASSWORD || cleanP === 'admin')) {
         const chosenSup = effectiveSupervisors.find(s => s.id === selectedSupervisorId) || effectiveSupervisors[0];
         onSelectUser({
           id: `user-${chosenSup.id}`,
@@ -191,23 +192,27 @@ export default function HomeScreen({ users, pdvs, supervisors, currentUser, onSe
           area: 'OPERACIONES COMERCIALES'
         });
         handleCloseModal();
-      } else if (activeModalProfile.id === 'HR' && (cleanP === '888123' || cleanP === '200102' || cleanP === '888')) {
+      } else if (activeModalProfile.id === 'HR' && (cleanP === AUTH_CREDENTIALS.HR_PASSWORD || cleanP === 'admin')) {
         onSelectUser({ id: 'user-thumano', username: 'THumano', fullName: 'TALENTO HUMANO (HR)', role: 'HR_ADMIN' });
         handleCloseModal();
-      } else if (activeModalProfile.id === 'VRX' && cleanP === '0814') {
+      } else if (activeModalProfile.id === 'VRX' && cleanP === AUTH_CREDENTIALS.AUDITOR_VRX_PASSWORD) {
         onSelectUser({ id: 'user-vrx', username: 'AuditorVRX', fullName: 'AUDITORÍA DE ASISTENCIA VRX', role: 'AUDITOR_VRX' });
         handleCloseModal();
-      } else if (activeModalProfile.id === 'PDV' && (cleanP === '101888' || cleanP === '888')) {
+      } else if (activeModalProfile.id === 'PDV') {
         const pdv = effectivePdvs.find(p => p.id === selectedPdvId) || effectivePdvs[0];
-        onSelectUser({
-          id: `user-${pdv.id}`,
-          username: pdv.code,
-          fullName: pdv.name,
-          role: 'PDV',
-          pdvId: pdv.id,
-          supervisorId: pdv.supervisorId
-        });
-        handleCloseModal();
+        if (validatePdvPassword(cleanP, pdv)) {
+          onSelectUser({
+            id: `user-${pdv.id}`,
+            username: pdv.code,
+            fullName: pdv.name,
+            role: 'PDV',
+            pdvId: pdv.id,
+            supervisorId: pdv.supervisorId
+          });
+          handleCloseModal();
+        } else {
+          triggerPasswordError();
+        }
       } else {
         triggerPasswordError();
       }
@@ -522,7 +527,12 @@ export default function HomeScreen({ users, pdvs, supervisors, currentUser, onSe
                     ref={passwordInputRef}
                     type={showPassword ? 'text' : 'password'}
                     required
-                    placeholder="Digita tu contraseña"
+                    placeholder={
+                      activeModalProfile?.id === 'PDV' ? 'Código del PDV (ej. Q008, N10, QST505)' :
+                      activeModalProfile?.id === 'ZONA' ? 'Clave de Líder de Zona (200101)' :
+                      activeModalProfile?.id === 'HR' ? 'Clave Talento Humano (200102)' :
+                      'Digita tu contraseña'
+                    }
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 pr-10 text-xs text-white font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-hidden"

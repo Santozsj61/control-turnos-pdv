@@ -4,6 +4,7 @@ import {
   ArrowRight, AlertCircle, Sparkles, Building2, Search, Eye, EyeOff
 } from 'lucide-react';
 import { initialSupervisors, initialPDVs, initialUsers } from '../data/seedData.js';
+import { getPdvPassword, validatePdvPassword, AUTH_CREDENTIALS } from '../utils/authRules.js';
 import { api } from '../services/api.js';
 
 export default function RoleSwitcherModal({ isOpen, onClose, users, pdvs, supervisors, currentUser, onSelectUser }) {
@@ -20,7 +21,7 @@ export default function RoleSwitcherModal({ isOpen, onClose, users, pdvs, superv
   const [pdvSearch, setPdvSearch] = useState('');
   const [zoneSearch, setZoneSearch] = useState('');
   const [selectedPdvId, setSelectedPdvId] = useState(effectivePdvs[0]?.id || 'pdv-1');
-  const [pdvPassword, setPdvPassword] = useState(effectivePdvs[0]?.name ? effectivePdvs[0].name.substring(0, 4) : '');
+  const [pdvPassword, setPdvPassword] = useState(effectivePdvs[0] ? getPdvPassword(effectivePdvs[0]) : '');
   const [errorMsg, setErrorMsg] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -189,6 +190,11 @@ export default function RoleSwitcherModal({ isOpen, onClose, users, pdvs, superv
     const targetPdv = effectivePdvs.find(p => p.id === selectedPdvId) || effectivePdvs[0];
     if (!targetPdv) return;
 
+    if (!validatePdvPassword(pdvPassword, targetPdv)) {
+      setErrorMsg(`Contraseña de PDV incorrecta. La clave es el código identificador: "${getPdvPassword(targetPdv)}".`);
+      return;
+    }
+
     setLoading(true);
     setErrorMsg(null);
 
@@ -206,17 +212,21 @@ export default function RoleSwitcherModal({ isOpen, onClose, users, pdvs, superv
       }
     } catch (err) {
       console.error('Error logging into PDV:', err);
-      const pdvUser = {
-        id: `usr-${targetPdv.id}-admin`,
-        username: targetPdv.code || targetPdv.id,
-        fullName: `ADMINISTRADOR ${targetPdv.name.toUpperCase()}`,
-        role: 'EMPLOYEE',
-        position: 'ADMINISTRADOR(A) PUNTO DE VENTA',
-        pdvId: targetPdv.id,
-        supervisorId: targetPdv.supervisorId
-      };
-      onSelectUser(pdvUser);
-      onClose();
+      if (validatePdvPassword(pdvPassword, targetPdv)) {
+        const pdvUser = {
+          id: `usr-${targetPdv.id}-admin`,
+          username: targetPdv.code || targetPdv.id,
+          fullName: `ADMINISTRADOR ${targetPdv.name.toUpperCase()}`,
+          role: 'PDV',
+          position: 'ADMINISTRADOR(A) PUNTO DE VENTA',
+          pdvId: targetPdv.id,
+          supervisorId: targetPdv.supervisorId
+        };
+        onSelectUser(pdvUser);
+        onClose();
+      } else {
+        setErrorMsg(`Contraseña de PDV incorrecta. La clave es el código identificador: "${getPdvPassword(targetPdv)}".`);
+      }
     } finally {
       setLoading(false);
     }
@@ -499,7 +509,7 @@ export default function RoleSwitcherModal({ isOpen, onClose, users, pdvs, superv
                     <span>Seleccionar Punto de Venta ({pdvs.length} PDVs Disponibles)</span>
                   </span>
                   <span className="text-[11px] text-blue-700 font-bold bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-200">
-                    Contraseña: 4 primeros dígitos del nombre
+                    Contraseña: Código identificador del PDV (ej. Q008, N10, QST505)
                   </span>
                 </div>
 
@@ -524,14 +534,14 @@ export default function RoleSwitcherModal({ isOpen, onClose, users, pdvs, superv
                 <div className="max-h-56 overflow-y-auto space-y-1.5 pr-1">
                   {filteredPdvs.map(pdv => {
                     const isSelected = selectedPdvId === pdv.id;
-                    const prefix = pdv.name.substring(0, 4);
+                    const expectedPdvPass = getPdvPassword(pdv);
                     return (
                       <button
                         key={pdv.id}
                         type="button"
                         onClick={() => {
                           setSelectedPdvId(pdv.id);
-                          setPdvPassword(prefix);
+                          setPdvPassword(expectedPdvPass);
                           setErrorMsg(null);
                         }}
                         className={`w-full p-2.5 rounded-xl border text-left flex items-center justify-between transition ${
@@ -545,7 +555,7 @@ export default function RoleSwitcherModal({ isOpen, onClose, users, pdvs, superv
                             <span>•</span>
                             <span>Zona: <strong>{pdv.zoneName || 'Regional'}</strong></span>
                             <span>•</span>
-                            <span className="text-blue-700 font-mono font-bold">Clave: "{prefix}"</span>
+                            <span className="text-blue-700 font-mono font-bold">Clave: "{expectedPdvPass}"</span>
                           </div>
                         </div>
                         {isSelected && <Check className="w-4 h-4 text-blue-600 shrink-0" />}
@@ -557,7 +567,7 @@ export default function RoleSwitcherModal({ isOpen, onClose, users, pdvs, superv
                 {/* Selected PDV credentials summary & password input */}
                 {selectedPdvId && (() => {
                   const targetPdv = pdvs.find(p => p.id === selectedPdvId) || pdvs[0];
-                  const expectedPass = targetPdv ? targetPdv.name.substring(0, 4) : '';
+                  const expectedPass = targetPdv ? getPdvPassword(targetPdv) : '';
                   return (
                     <div className="pt-3 border-t border-slate-200 space-y-2.5">
                       <div className="bg-white p-2.5 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
@@ -573,7 +583,7 @@ export default function RoleSwitcherModal({ isOpen, onClose, users, pdvs, superv
                       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                         <div className="flex items-center gap-2 w-full sm:w-auto">
                           <label className="font-bold text-slate-700 text-xs shrink-0">
-                            Contraseña (4 primeros dígitos):
+                            Contraseña (Código Identificador PDV):
                           </label>
                           <input
                             type="text"

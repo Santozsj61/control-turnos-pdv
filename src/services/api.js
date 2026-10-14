@@ -8,6 +8,7 @@ import { OFFICIAL_PAYROLL_BY_WEEK } from '../data/officialPayrollData.js';
 import { registerLoadedWeek, registerLoadedWeeks, ALL_WEEKS_2026, KNOWN_WEEKS_WITH_DATA } from '../utils/weeks.js';
 
 import { buildAuditDataLocally } from '../utils/auditCalculator.js';
+import { getPdvPassword, validatePdvPassword, AUTH_CREDENTIALS } from '../utils/authRules.js';
 
 // Fallback helper for local dev server if Supabase keys aren't set yet
 async function fetchLocal(url, options = {}) {
@@ -369,7 +370,7 @@ export const api = {
       };
     }
 
-    // 2. Líder de Zona (200101 / 888 / admin)
+    // 2. Líder de Zona (Perfil #2: clave única 200101)
     if (supervisorId) {
       let sup = null;
       if (isSupabaseConfigured) {
@@ -381,7 +382,7 @@ export const api = {
       if (!sup) {
         sup = initialSupervisors.find(s => s.id === supervisorId || s.name === supervisorId);
       }
-      if (cleanPass === '200101' || cleanPass === '888' || cleanPass === 'admin') {
+      if (cleanPass === AUTH_CREDENTIALS.ZONA_PASSWORD || cleanPass === 'admin') {
         return {
           id: sup ? `user-${sup.id}` : `user-${supervisorId}`,
           username: sup ? (sup.code || sup.name) : 'Líder de Zona',
@@ -393,9 +394,10 @@ export const api = {
           area: 'OPERACIONES COMERCIALES'
         };
       }
+      throw new Error(`Contraseña de Líder de Zona incorrecta (clave única: ${AUTH_CREDENTIALS.ZONA_PASSWORD})`);
     }
 
-    // 3. Store PDV Access (101888 / admin)
+    // 3. Store PDV Access (Perfil #1: código identificador del PDV)
     if (pdvId) {
       let pdv = null;
       if (isSupabaseConfigured) {
@@ -407,7 +409,7 @@ export const api = {
       if (!pdv) {
         pdv = initialPDVs.find(p => p.id === pdvId || p.code === pdvId);
       }
-      if (cleanPass === '101888' || cleanPass === 'admin') {
+      if (validatePdvPassword(cleanPass, pdv)) {
         return {
           id: `user-${pdvId}`,
           username: pdv ? pdv.code : 'PDV',
@@ -419,15 +421,16 @@ export const api = {
           area: 'VENTAS RETAIL'
         };
       }
+      throw new Error(`Contraseña de PDV incorrecta (clave requerida: ${getPdvPassword(pdv)})`);
     }
 
-    // 4. Talento Humano (888123 / admin)
-    if ((cleanUser === 'th' || cleanUser === 'talentohumano') && (cleanPass === '888123' || cleanPass === 'admin')) {
+    // 4. Talento Humano (Perfil #3: clave única 200102)
+    if ((cleanUser === 'th' || cleanUser === 'talentohumano' || cleanUser === 'thumano') && (cleanPass === AUTH_CREDENTIALS.HR_PASSWORD || cleanPass === 'admin')) {
       return {
         id: 'user-th',
         username: 'TalentoHumano',
         fullName: 'DIRECCIÓN DE TALENTO HUMANO',
-        role: 'HR',
+        role: 'HR_ADMIN',
         position: 'ANALISTA DE NÓMINA Y ASISTENCIA',
         area: 'GESTIÓN HUMANA'
       };

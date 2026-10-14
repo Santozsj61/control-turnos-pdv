@@ -2235,7 +2235,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-1",
     "username": "n10",
-    "password": "101888",
+    "password": "N10",
     "code": "N10",
     "fullName": "N10-Carpa Quest Medellin-CC DEMODA Outle",
     "role": "PDV",
@@ -2247,7 +2247,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-2",
     "username": "q003",
-    "password": "101888",
+    "password": "Q003",
     "code": "Q003",
     "fullName": "Q003 - Cali - Calle 23",
     "role": "PDV",
@@ -2259,7 +2259,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-3",
     "username": "q007",
-    "password": "101888",
+    "password": "Q007",
     "code": "Q007",
     "fullName": "Q007 - Tulua - Centro",
     "role": "PDV",
@@ -2271,7 +2271,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-4",
     "username": "q008",
-    "password": "101888",
+    "password": "Q008",
     "code": "Q008",
     "fullName": "Q008 - Cali - Alameda",
     "role": "PDV",
@@ -2283,7 +2283,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-5",
     "username": "q014",
-    "password": "101888",
+    "password": "Q014",
     "code": "Q014",
     "fullName": "Q014 - Tulua - Cc Herradura",
     "role": "PDV",
@@ -2295,7 +2295,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-6",
     "username": "q016",
-    "password": "101888",
+    "password": "Q016",
     "code": "Q016",
     "fullName": "Q016 - Cali - Cc Palmetto",
     "role": "PDV",
@@ -2307,7 +2307,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-7",
     "username": "q018",
-    "password": "101888",
+    "password": "Q018",
     "code": "Q018",
     "fullName": "Q018 - Cali - Cc Jardin Plaza",
     "role": "PDV",
@@ -2319,7 +2319,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-8",
     "username": "q021",
-    "password": "101888",
+    "password": "Q021",
     "code": "Q021",
     "fullName": "Q021 - Cali - Cc Chipichape",
     "role": "PDV",
@@ -2331,7 +2331,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-9",
     "username": "q023",
-    "password": "101888",
+    "password": "Q023",
     "code": "Q023",
     "fullName": "Q023 - Barranquilla - Cc Portal",
     "role": "PDV",
@@ -2343,7 +2343,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-10",
     "username": "q027",
-    "password": "101888",
+    "password": "Q027",
     "code": "Q027",
     "fullName": "Q027 - Cucuta - Cc Ventura Plaza",
     "role": "PDV",
@@ -2355,7 +2355,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-11",
     "username": "q028",
-    "password": "101888",
+    "password": "Q028",
     "code": "Q028",
     "fullName": "Q028 - Cali - Centro Calle 13",
     "role": "PDV",
@@ -2367,7 +2367,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-12",
     "username": "q029",
-    "password": "101888",
+    "password": "Q029",
     "code": "Q029",
     "fullName": "Q029 - Cali - Cc Unico 1",
     "role": "PDV",
@@ -2379,7 +2379,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-13",
     "username": "q030",
-    "password": "101888",
+    "password": "Q030",
     "code": "Q030",
     "fullName": "Q030 - Popayan - Cc Campanario",
     "role": "PDV",
@@ -2391,7 +2391,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-14",
     "username": "q031",
-    "password": "101888",
+    "password": "Q031",
     "code": "Q031",
     "fullName": "Q031 - Cali - Centro 1",
     "role": "PDV",
@@ -2403,7 +2403,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-15",
     "username": "q033",
-    "password": "101888",
+    "password": "Q033",
     "code": "Q033",
     "fullName": "Q033 - Cartagena - Cc Caribe Plaza",
     "role": "PDV",
@@ -2415,7 +2415,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-16",
     "username": "q035",
-    "password": "101888",
+    "password": "Q035",
     "code": "Q035",
     "fullName": "Q035 - Barranquilla - Cc Unico",
     "role": "PDV",
@@ -2427,7 +2427,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-17",
     "username": "q038",
-    "password": "101888",
+    "password": "Q038",
     "code": "Q038",
     "fullName": "Q038 - Pereira - Cc Unicentro",
     "role": "PDV",
@@ -2439,7 +2439,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-18",
     "username": "q039",
-    "password": "101888",
+    "password": "Q039",
     "code": "Q039",
     "fullName": "Q039 - Cali - Cc Unico 2",
     "role": "PDV",
@@ -2451,7 +2451,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-19",
     "username": "q040",
-    "password": "101888",
+    "password": "Q040",
     "code": "Q040",
     "fullName": "Q040 - Cali - Cc Unicentro 2",
     "role": "PDV",
@@ -2463,7 +2463,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-20",
     "username": "q041",
-    "password": "101888",
+    "password": "Q041",
     "code": "Q041",
     "fullName": "Q041 - Cali - Cc Calima",
     "role": "PDV",
@@ -2475,7 +2475,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-21",
     "username": "q044",
-    "password": "101888",
+    "password": "Q044",
     "code": "Q044",
     "fullName": "Q044 - Popayan - Centro",
     "role": "PDV",
@@ -2487,7 +2487,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-22",
     "username": "q045",
-    "password": "101888",
+    "password": "Q045",
     "code": "Q045",
     "fullName": "Q045 - Pasto - Cc Unicentro",
     "role": "PDV",
@@ -2499,7 +2499,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-23",
     "username": "q046",
-    "password": "101888",
+    "password": "Q046",
     "code": "Q046",
     "fullName": "Q046 - Cucuta - Centro 2",
     "role": "PDV",
@@ -2511,7 +2511,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-24",
     "username": "q049",
-    "password": "101888",
+    "password": "Q049",
     "code": "Q049",
     "fullName": "Q049 - Dosquebradas - Cc Unico",
     "role": "PDV",
@@ -2523,7 +2523,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-25",
     "username": "q053",
-    "password": "101888",
+    "password": "Q053",
     "code": "Q053",
     "fullName": "Q053 - Neiva - Cc San Pedro Plaza",
     "role": "PDV",
@@ -2535,7 +2535,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-26",
     "username": "q054",
-    "password": "101888",
+    "password": "Q054",
     "code": "Q054",
     "fullName": "Q054 - Sincelejo - Centro",
     "role": "PDV",
@@ -2547,7 +2547,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-27",
     "username": "q056",
-    "password": "101888",
+    "password": "Q056",
     "code": "Q056",
     "fullName": "Q056 - Pitalito - Cc San Antonio",
     "role": "PDV",
@@ -2559,7 +2559,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-28",
     "username": "q057",
-    "password": "101888",
+    "password": "Q057",
     "code": "Q057",
     "fullName": "Q057 - Pasto - Cc Unico",
     "role": "PDV",
@@ -2571,7 +2571,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-29",
     "username": "q058",
-    "password": "101888",
+    "password": "Q058",
     "code": "Q058",
     "fullName": "Q058 - Pereira - Cc Victoria Plaza",
     "role": "PDV",
@@ -2583,7 +2583,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-30",
     "username": "q061",
-    "password": "101888",
+    "password": "Q061",
     "code": "Q061",
     "fullName": "Q061 - Armenia - Cc Unicentro",
     "role": "PDV",
@@ -2595,7 +2595,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-31",
     "username": "q062",
-    "password": "101888",
+    "password": "Q062",
     "code": "Q062",
     "fullName": "Q062 - Monteria - Cc Alamedas",
     "role": "PDV",
@@ -2607,7 +2607,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-32",
     "username": "q068",
-    "password": "101888",
+    "password": "Q068",
     "code": "Q068",
     "fullName": "Q068 - Cartagena - Cc Outlet del Bosque",
     "role": "PDV",
@@ -2619,7 +2619,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-33",
     "username": "q069",
-    "password": "101888",
+    "password": "Q069",
     "code": "Q069",
     "fullName": "Q069 - Ibague - Centro",
     "role": "PDV",
@@ -2631,7 +2631,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-34",
     "username": "q071",
-    "password": "101888",
+    "password": "Q071",
     "code": "Q071",
     "fullName": "Q071 - Neiva - Centro",
     "role": "PDV",
@@ -2643,7 +2643,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-35",
     "username": "q073",
-    "password": "101888",
+    "password": "Q073",
     "code": "Q073",
     "fullName": "Q073 - Yumbo - Cc Unico",
     "role": "PDV",
@@ -2655,7 +2655,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-36",
     "username": "q074",
-    "password": "101888",
+    "password": "Q074",
     "code": "Q074",
     "fullName": "Q074 - Villavicencio - Cc Unico",
     "role": "PDV",
@@ -2667,7 +2667,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-37",
     "username": "q076",
-    "password": "101888",
+    "password": "Q076",
     "code": "Q076",
     "fullName": "Q076 - Medellin - Cc Florida",
     "role": "PDV",
@@ -2679,7 +2679,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-38",
     "username": "q077",
-    "password": "101888",
+    "password": "Q077",
     "code": "Q077",
     "fullName": "Q077 - Florencia - Cc Gran Plaza",
     "role": "PDV",
@@ -2691,7 +2691,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-39",
     "username": "q078",
-    "password": "101888",
+    "password": "Q078",
     "code": "Q078",
     "fullName": "Q078 - Soledad - Cc Gran Plaza",
     "role": "PDV",
@@ -2703,7 +2703,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-40",
     "username": "q080",
-    "password": "101888",
+    "password": "Q080",
     "code": "Q080",
     "fullName": "Q080 - Valledupar - Cc Mayales",
     "role": "PDV",
@@ -2715,7 +2715,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-41",
     "username": "q083",
-    "password": "101888",
+    "password": "Q083",
     "code": "Q083",
     "fullName": "Q083 - Yopal - Cc Unicentro",
     "role": "PDV",
@@ -2727,7 +2727,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-42",
     "username": "q084",
-    "password": "101888",
+    "password": "Q084",
     "code": "Q084",
     "fullName": "Q084 - Santa Marta - Centro",
     "role": "PDV",
@@ -2739,7 +2739,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-43",
     "username": "q085",
-    "password": "101888",
+    "password": "Q085",
     "code": "Q085",
     "fullName": "Q085 - Ibague - Cc La Estacion",
     "role": "PDV",
@@ -2751,7 +2751,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-44",
     "username": "q086",
-    "password": "101888",
+    "password": "Q086",
     "code": "Q086",
     "fullName": "Q086 - Villavicencio - Cc Viva",
     "role": "PDV",
@@ -2763,7 +2763,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-45",
     "username": "q087",
-    "password": "101888",
+    "password": "Q087",
     "code": "Q087",
     "fullName": "Q087 - Palmira - Centro",
     "role": "PDV",
@@ -2775,7 +2775,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-46",
     "username": "q088",
-    "password": "101888",
+    "password": "Q088",
     "code": "Q088",
     "fullName": "Q088 - Palmira - Cc Llanogrande",
     "role": "PDV",
@@ -2787,7 +2787,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-47",
     "username": "q089",
-    "password": "101888",
+    "password": "Q089",
     "code": "Q089",
     "fullName": "Q089 - Palmira - Cc Unicentro",
     "role": "PDV",
@@ -2799,7 +2799,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-48",
     "username": "q090",
-    "password": "101888",
+    "password": "Q090",
     "code": "Q090",
     "fullName": "Q090 - Ipiales - Cc Gran Plaza",
     "role": "PDV",
@@ -2811,7 +2811,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-49",
     "username": "q091",
-    "password": "101888",
+    "password": "Q091",
     "code": "Q091",
     "fullName": "Q091 - Armenia - Centro",
     "role": "PDV",
@@ -2823,7 +2823,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-50",
     "username": "q092",
-    "password": "101888",
+    "password": "Q092",
     "code": "Q092",
     "fullName": "Q092 - Cartagena - Cc San Fernando",
     "role": "PDV",
@@ -2835,7 +2835,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-51",
     "username": "q094",
-    "password": "101888",
+    "password": "Q094",
     "code": "Q094",
     "fullName": "Q094 - Medellin - Cc Aventura",
     "role": "PDV",
@@ -2847,7 +2847,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-52",
     "username": "q097",
-    "password": "101888",
+    "password": "Q097",
     "code": "Q097",
     "fullName": "Q097 - Cartago - Centro",
     "role": "PDV",
@@ -2859,7 +2859,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-53",
     "username": "q102",
-    "password": "101888",
+    "password": "Q102",
     "code": "Q102",
     "fullName": "Q102 - Valledupar - Cc Guatapuri",
     "role": "PDV",
@@ -2871,7 +2871,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-54",
     "username": "q105",
-    "password": "101888",
+    "password": "Q105",
     "code": "Q105",
     "fullName": "Q105 - Pereira - Centro",
     "role": "PDV",
@@ -2883,7 +2883,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-55",
     "username": "q106",
-    "password": "101888",
+    "password": "Q106",
     "code": "Q106",
     "fullName": "Q106 - Soledad - Cc Nuestro Atlantico",
     "role": "PDV",
@@ -2895,7 +2895,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-56",
     "username": "q107",
-    "password": "101888",
+    "password": "Q107",
     "code": "Q107",
     "fullName": "Q107 - Monteria - Cc Nuestro Monteria",
     "role": "PDV",
@@ -2907,7 +2907,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-57",
     "username": "q109",
-    "password": "101888",
+    "password": "Q109",
     "code": "Q109",
     "fullName": "Q109 - Cartagena - Cc La Castellana",
     "role": "PDV",
@@ -2919,7 +2919,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-58",
     "username": "q112",
-    "password": "101888",
+    "password": "Q112",
     "code": "Q112",
     "fullName": "Q112 - Medellin - Cc Molinos Medellin",
     "role": "PDV",
@@ -2931,7 +2931,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-59",
     "username": "q113",
-    "password": "101888",
+    "password": "Q113",
     "code": "Q113",
     "fullName": "Q113 - Envigado - Cc Viva Local-221",
     "role": "PDV",
@@ -2943,7 +2943,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-60",
     "username": "q115",
-    "password": "101888",
+    "password": "Q115",
     "code": "Q115",
     "fullName": "Q115 - Cucuta - Centro",
     "role": "PDV",
@@ -2955,7 +2955,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-61",
     "username": "q116",
-    "password": "101888",
+    "password": "Q116",
     "code": "Q116",
     "fullName": "Q116 - Cartago - Cc Nuestro Cartago",
     "role": "PDV",
@@ -2967,7 +2967,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-62",
     "username": "q117",
-    "password": "101888",
+    "password": "Q117",
     "code": "Q117",
     "fullName": "Q117 - Neiva - Cc Unico",
     "role": "PDV",
@@ -2979,7 +2979,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-63",
     "username": "q118",
-    "password": "101888",
+    "password": "Q118",
     "code": "Q118",
     "fullName": "Q118 - Sincelejo - Cc Guacari",
     "role": "PDV",
@@ -2991,7 +2991,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-64",
     "username": "q120",
-    "password": "101888",
+    "password": "Q120",
     "code": "Q120",
     "fullName": "Q120 - Cali - Plaza Q",
     "role": "PDV",
@@ -3003,7 +3003,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-65",
     "username": "q122",
-    "password": "101888",
+    "password": "Q122",
     "code": "Q122",
     "fullName": "Q122 - Tulua - Centro Calle 27",
     "role": "PDV",
@@ -3015,7 +3015,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-66",
     "username": "q124",
-    "password": "101888",
+    "password": "Q124",
     "code": "Q124",
     "fullName": "Q124 - Bogotáá - Cc Nuestro Bogotáá",
     "role": "PDV",
@@ -3027,7 +3027,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-67",
     "username": "q125",
-    "password": "101888",
+    "password": "Q125",
     "code": "Q125",
     "fullName": "Q125 - Bello - Cc Plaza Fabricato",
     "role": "PDV",
@@ -3039,7 +3039,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-68",
     "username": "q126",
-    "password": "101888",
+    "password": "Q126",
     "code": "Q126",
     "fullName": "Q126 - Ipiales - Centro",
     "role": "PDV",
@@ -3051,7 +3051,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-69",
     "username": "q127",
-    "password": "101888",
+    "password": "Q127",
     "code": "Q127",
     "fullName": "Q127 - Sabaneta - CC Mayorca",
     "role": "PDV",
@@ -3063,7 +3063,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-70",
     "username": "q128",
-    "password": "101888",
+    "password": "Q128",
     "code": "Q128",
     "fullName": "Q128 - Barranquilla - CC Parque Alegra",
     "role": "PDV",
@@ -3075,7 +3075,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-71",
     "username": "q129",
-    "password": "101888",
+    "password": "Q129",
     "code": "Q129",
     "fullName": "Q129 - Bogotáá - CC Plaza de las Américas",
     "role": "PDV",
@@ -3087,7 +3087,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-72",
     "username": "q131",
-    "password": "101888",
+    "password": "Q131",
     "code": "Q131",
     "fullName": "Q131 - Cúcuta - CC Jardin Plaza",
     "role": "PDV",
@@ -3099,7 +3099,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-73",
     "username": "q133",
-    "password": "101888",
+    "password": "Q133",
     "code": "Q133",
     "fullName": "Q133 - Popayán - CC Terra Plaza",
     "role": "PDV",
@@ -3111,7 +3111,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-74",
     "username": "q134",
-    "password": "101888",
+    "password": "Q134",
     "code": "Q134",
     "fullName": "Q134 - Cali - CC Cosmocentro",
     "role": "PDV",
@@ -3123,7 +3123,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-75",
     "username": "q135",
-    "password": "101888",
+    "password": "Q135",
     "code": "Q135",
     "fullName": "Q135 - Pasto - Centro",
     "role": "PDV",
@@ -3135,7 +3135,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-76",
     "username": "q136",
-    "password": "101888",
+    "password": "Q136",
     "code": "Q136",
     "fullName": "Q136 - Yopal - Centro",
     "role": "PDV",
@@ -3147,7 +3147,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-77",
     "username": "q138",
-    "password": "101888",
+    "password": "Q138",
     "code": "Q138",
     "fullName": "Q138 - Manizales - CC Fundadores",
     "role": "PDV",
@@ -3159,7 +3159,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-78",
     "username": "q139",
-    "password": "101888",
+    "password": "Q139",
     "code": "Q139",
     "fullName": "Q139 - Armenia - Centro 2",
     "role": "PDV",
@@ -3171,7 +3171,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-79",
     "username": "q140",
-    "password": "101888",
+    "password": "Q140",
     "code": "Q140",
     "fullName": "Q140 - Cartagena - CC Mall Plaza",
     "role": "PDV",
@@ -3183,7 +3183,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-80",
     "username": "q143",
-    "password": "101888",
+    "password": "Q143",
     "code": "Q143",
     "fullName": "Q143 - Sabaneta - CC Mayorca Etapa 1",
     "role": "PDV",
@@ -3195,7 +3195,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-81",
     "username": "q144",
-    "password": "101888",
+    "password": "Q144",
     "code": "Q144",
     "fullName": "Q144 - Popayán - Centro 2",
     "role": "PDV",
@@ -3207,7 +3207,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-82",
     "username": "q145",
-    "password": "101888",
+    "password": "Q145",
     "code": "Q145",
     "fullName": "Q145 - Neiva - CC Unicentro",
     "role": "PDV",
@@ -3219,7 +3219,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-83",
     "username": "q146",
-    "password": "101888",
+    "password": "Q146",
     "code": "Q146",
     "fullName": "Q146 - Palmira - Centro 2",
     "role": "PDV",
@@ -3231,7 +3231,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-84",
     "username": "q147",
-    "password": "101888",
+    "password": "Q147",
     "code": "Q147",
     "fullName": "Q147 - Cali - Mall Plaza",
     "role": "PDV",
@@ -3243,7 +3243,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-85",
     "username": "q148",
-    "password": "101888",
+    "password": "Q148",
     "code": "Q148",
     "fullName": "Q148 - Medellín - Carabobo Centro",
     "role": "PDV",
@@ -3255,7 +3255,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-86",
     "username": "q149",
-    "password": "101888",
+    "password": "Q149",
     "code": "Q149",
     "fullName": "Q149 - Medellín - Centro",
     "role": "PDV",
@@ -3267,7 +3267,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-87",
     "username": "q152",
-    "password": "101888",
+    "password": "Q152",
     "code": "Q152",
     "fullName": "Q152 - Rionegro - CC San Nicolás",
     "role": "PDV",
@@ -3279,7 +3279,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-88",
     "username": "q153",
-    "password": "101888",
+    "password": "Q153",
     "code": "Q153",
     "fullName": "Q153 - Palmira - CC Llanogrande 2",
     "role": "PDV",
@@ -3291,7 +3291,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-89",
     "username": "q154",
-    "password": "101888",
+    "password": "Q154",
     "code": "Q154",
     "fullName": "Q154 - Santa Marta - CC Buenavista",
     "role": "PDV",
@@ -3303,7 +3303,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-90",
     "username": "q155",
-    "password": "101888",
+    "password": "Q155",
     "code": "Q155",
     "fullName": "Q155 - Bogotáá - CC Outlet las Américas",
     "role": "PDV",
@@ -3315,7 +3315,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-91",
     "username": "q156",
-    "password": "101888",
+    "password": "Q156",
     "code": "Q156",
     "fullName": "Q156 - Medellín - CC Santa Fe",
     "role": "PDV",
@@ -3327,7 +3327,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-92",
     "username": "q157",
-    "password": "101888",
+    "password": "Q157",
     "code": "Q157",
     "fullName": "Q157 - Riohacha - CC Viva Wajira",
     "role": "PDV",
@@ -3339,7 +3339,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-93",
     "username": "qst501",
-    "password": "101888",
+    "password": "QST501",
     "code": "QST501",
     "fullName": "QST501 - Cali - Plaza Q",
     "role": "PDV",
@@ -3351,7 +3351,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-94",
     "username": "qst502",
-    "password": "101888",
+    "password": "QST502",
     "code": "QST502",
     "fullName": "QST502 - Cali - CC Único 2",
     "role": "PDV",
@@ -3363,7 +3363,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-95",
     "username": "qst503",
-    "password": "101888",
+    "password": "QST503",
     "code": "QST503",
     "fullName": "QST503 - Medellín - CC Florida",
     "role": "PDV",
@@ -3375,7 +3375,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-96",
     "username": "qst504",
-    "password": "101888",
+    "password": "QST504",
     "code": "QST504",
     "fullName": "QST504 - Cali - CC Jardín Plaza",
     "role": "PDV",
@@ -3387,7 +3387,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-97",
     "username": "qst505",
-    "password": "101888",
+    "password": "QST505",
     "code": "QST505",
     "fullName": "QST505 - Tuluá - CC La Herradura",
     "role": "PDV",
@@ -3399,7 +3399,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-98",
     "username": "qst506",
-    "password": "101888",
+    "password": "QST506",
     "code": "QST506",
     "fullName": "QST506 - Palmira - CC Llanogrande",
     "role": "PDV",
@@ -3411,7 +3411,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-99",
     "username": "qst508",
-    "password": "101888",
+    "password": "QST508",
     "code": "QST508",
     "fullName": "QST508 - Medellín - CC Mayorca",
     "role": "PDV",
@@ -3423,7 +3423,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-100",
     "username": "qst509",
-    "password": "101888",
+    "password": "QST509",
     "code": "QST509",
     "fullName": "QST509 - Cúcuta - CC Jardín Plaza",
     "role": "PDV",
@@ -3435,7 +3435,7 @@ export const initialUsers = [
   {
     "id": "user-pdv-101",
     "username": "qst510",
-    "password": "101888",
+    "password": "QST510",
     "code": "QST510",
     "fullName": "QST510 - YUMBO - CC UNICO",
     "role": "PDV",

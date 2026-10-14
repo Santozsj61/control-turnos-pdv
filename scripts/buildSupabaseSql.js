@@ -260,7 +260,7 @@ sql += `
 initialUsers.forEach(u => {
   sql += `INSERT INTO users (id, username, password, document_id, code, full_name, role, position, area, contract_type, pdv_id, supervisor_id, weekly_max_hours, is_active)
 VALUES (${esc(u.id)}, ${esc(u.username)}, ${esc(u.password)}, ${esc(u.documentId)}, ${esc(u.code)}, ${esc(u.fullName)}, ${esc(u.role)}, ${esc(u.position)}, ${esc(u.area)}, ${esc(u.contractType || 'FIJO')}, ${esc(u.pdvId)}, ${esc(u.supervisorId)}, ${u.weeklyMaxHours || 42}, ${u.isActive !== false})
-ON CONFLICT (id) DO UPDATE SET full_name = EXCLUDED.full_name, role = EXCLUDED.role, pdv_id = EXCLUDED.pdv_id;
+ON CONFLICT (id) DO UPDATE SET full_name = EXCLUDED.full_name, role = EXCLUDED.role, pdv_id = EXCLUDED.pdv_id, supervisor_id = EXCLUDED.supervisor_id, password = EXCLUDED.password;
 `;
 });
 
