@@ -21,6 +21,7 @@ import { calculateShiftHours, calculateMonSatHours, countMonthlySundays } from '
 import { api } from '../services/api.js';
 import { supabase } from '../services/supabaseClient.js';
 import { isCollaboratorActive, tagCollaboratorStatus, ACTIVE_371_DOCUMENTS } from '../data/activeCollaborators371.js';
+import { getHabitualScheduleForPdv, getHabitualDaySchedule, checkOutsideHabitualHours } from '../data/habitualSchedules.js';
 
 const DAYS_NAME = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
@@ -119,6 +120,18 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
 
   const activeSupervisor = currentSupervisorObj || supervisors.find(s => s.id === allowedPdvs[0]?.supervisorId);
   const activeSinglePdv = selectedPdvId !== 'ALL' ? (allowedPdvs.find(p => p.id === selectedPdvId) || allowedPdvs[0]) : null;
+
+  const currentHabitualPdv = useMemo(() => {
+    if (selectedPdvId && selectedPdvId !== 'ALL') {
+      const found = allowedPdvs.find(p => p.id === selectedPdvId || p.code === selectedPdvId);
+      if (found) return found;
+    }
+    if (isEmployee) {
+      const found = allowedPdvs.find(p => p.id === currentUser?.pdvId || p.code === currentUser?.code) || allowedPdvs[0];
+      if (found) return found;
+    }
+    return activeSinglePdv || allowedPdvs[0] || null;
+  }, [selectedPdvId, allowedPdvs, isEmployee, currentUser?.pdvId, currentUser?.code, activeSinglePdv]);
 
   const [showPlantillaModal, setShowPlantillaModal] = useState(false);
   const [plantillaSearchTerm, setPlantillaSearchTerm] = useState('');
@@ -2410,6 +2423,68 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 text-xs">
+              {/* FILA FIJA OFICIAL: HORARIO HABITUAL DEL PDV (NO MODIFICABLE) */}
+              {currentHabitualPdv && (
+                <tr className="bg-slate-50/95 border-b-2 border-slate-200">
+                  <td className="p-3 w-72 border-r border-slate-200 sticky left-0 bg-slate-50 z-10 shadow-2xs">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 rounded-lg bg-blue-100 text-blue-700 shrink-0">
+                        <Clock className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-black text-slate-800 text-[11px] uppercase tracking-wider">
+                            Horario Habitual PDV
+                          </span>
+                          <span className="text-[9px] bg-blue-600 text-white font-extrabold px-1.5 py-0.2 rounded-full uppercase tracking-wider">
+                            Fijo
+                          </span>
+                        </div>
+                        <div className="text-[10px] text-slate-500 font-semibold truncate" title={currentHabitualPdv.name}>
+                          {currentHabitualPdv.code ? `${currentHabitualPdv.code} - ${currentHabitualPdv.name?.split(' - ')[1] || currentHabitualPdv.name}` : currentHabitualPdv.name}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  {weekDates.map((wd, dayIdx) => {
+                    const daySched = getHabitualDaySchedule(currentHabitualPdv, dayIdx);
+                    const isSunday = wd.isSunday || dayIdx === 6;
+                    return (
+                      <td
+                        key={`hab-sch-${wd.date}`}
+                        className={`p-2 border-r border-slate-200 text-center align-middle ${
+                          isSunday ? 'bg-purple-50/40' : 'bg-slate-50/90'
+                        }`}
+                      >
+                        <div className="flex flex-col items-center justify-center">
+                          {daySched?.isClosed ? (
+                            <div className="w-full py-1.5 px-1 bg-slate-100/90 border border-slate-200 rounded-lg text-center text-slate-400">
+                              <span className="text-[10px] font-bold block leading-tight">Cerrado</span>
+                              <span className="text-[8px] uppercase tracking-wider font-semibold block">Sin apertura</span>
+                            </div>
+                          ) : (
+                            <div className="w-full py-1.5 px-1 bg-white border border-blue-200/90 rounded-lg shadow-2xs text-center">
+                              <span className="text-[10.5px] font-black text-slate-800 block leading-tight tracking-tight">
+                                {daySched?.label || '10:00 - 20:30'}
+                              </span>
+                              <span className="text-[8px] font-extrabold text-blue-600 uppercase tracking-wider block mt-0.5">
+                                Habitual
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    );
+                  })}
+                  <td colSpan={4} className="p-2 text-center bg-slate-50 text-[10px] font-bold text-slate-500 border-l border-slate-200">
+                    <div className="flex items-center justify-center gap-1.5 text-slate-600">
+                      <Lock className="w-3 h-3 text-slate-400" />
+                      <span>Horario Oficial Tienda (No modificable)</span>
+                    </div>
+                  </td>
+                </tr>
+              )}
+
               {filteredAndSortedEmployees.length === 0 ? (
                 <tr>
                   <td colSpan={12} className="p-10 text-center text-slate-400">
@@ -2543,6 +2618,25 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
                                       <span title="Deducción de 1:30 de almuerzo" className="text-amber-600 font-extrabold">☕</span>
                                     )}
                                   </div>
+                                  {(() => {
+                                    const outsideCheck = checkOutsideHabitualHours(
+                                      empPdv || currentHabitualPdv,
+                                      dayIdx,
+                                      formatExcelTime(shift.startTime),
+                                      formatExcelTime(shift.endTime)
+                                    );
+                                    if (outsideCheck?.isOutside) {
+                                      return (
+                                        <span
+                                          className="bg-amber-100 text-amber-900 border border-amber-300 text-[7.5px] font-black px-1 py-0.2 rounded mt-0.5 block truncate max-w-full"
+                                          title={`Programado fuera del horario habitual: ${outsideCheck.reason} (Habitual: ${outsideCheck.habitualRange})`}
+                                        >
+                                          ⚠️ Fuera Habitual
+                                        </span>
+                                      );
+                                    }
+                                    return null;
+                                  })()}
                                 </>
                               ) : (
                                 <>

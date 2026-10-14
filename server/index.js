@@ -156,7 +156,27 @@ app.get('/api/pdvs', (req, res) => res.json({ success: true, data: db.getPDVs() 
 app.get('/api/schedules', (req, res) => res.json({ success: true, data: db.getSchedules(req.query) }));
 app.post('/api/schedules/batch-pdv', (req, res) => res.json({ success: true, data: db.saveBatchPdvSchedules(req.body) }));
 app.get('/api/permissions', (req, res) => res.json({ success: true, data: db.getPermissions(req.query) }));
-app.post('/api/permissions', (req, res) => res.json({ success: true, data: db.createPermission(req.body) }));
+app.post('/api/permissions', (req, res) => {
+  const p = req.body;
+  if (p.isPdv || p.userRole === 'PDV' || p.userRole === 'EMPLOYEE' || p.role === 'PDV') {
+    if (p.date) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const [y, m, d] = p.date.split('-').map(Number);
+      if (y && m && d) {
+        const reqDate = new Date(y, m - 1, d, 0, 0, 0, 0);
+        const diffDays = Math.abs(Math.round((reqDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
+        if (diffDays > 7) {
+          return res.status(400).json({
+            success: false,
+            error: `Plazo no permitido: Los PDV solo tienen un plazo máximo de 1 semana (7 días) para realizar solicitudes de permisos. Diferencia: ${diffDays} días.`
+          });
+        }
+      }
+    }
+  }
+  res.json({ success: true, data: db.createPermission(p) });
+});
 app.patch('/api/permissions/:id/status', (req, res) => {
   const { status, supervisorNotes, reviewerId } = req.body;
   res.json({ success: true, data: db.updatePermissionStatus(req.params.id, status, supervisorNotes, reviewerId) });

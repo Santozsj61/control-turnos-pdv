@@ -140,6 +140,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "10:00 - 19:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "10:00 - 19:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "10:00 - 19:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "10:00 - 19:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "10:00 - 19:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "10:00 - 19:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "10:00 - 19:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "10:00 - 19:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "10:00 - 19:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "10:00 - 19:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "10:00 - 19:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "10:00 - 19:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      }
     ]
   },
   {
@@ -159,6 +304,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Calle",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "09:00",
+        "close": "13:00",
+        "isClosed": false,
+        "label": "09:00 - 13:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "09:00",
+        "close": "13:00",
+        "isClosed": false,
+        "label": "09:00 - 13:00"
+      }
     ]
   },
   {
@@ -178,6 +468,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Calle",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "09:00",
+        "close": "13:00",
+        "isClosed": false,
+        "label": "09:00 - 13:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "09:00",
+        "close": "13:00",
+        "isClosed": false,
+        "label": "09:00 - 13:00"
+      }
     ]
   },
   {
@@ -197,6 +632,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Calle",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": null,
+        "close": null,
+        "isClosed": true,
+        "label": "Cerrado"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": null,
+        "close": null,
+        "isClosed": true,
+        "label": "Cerrado"
+      }
     ]
   },
   {
@@ -216,6 +796,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:30",
+        "isClosed": false,
+        "label": "10:00 - 20:30"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:30",
+        "isClosed": false,
+        "label": "10:00 - 20:30"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "11:00 - 19:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:30",
+        "isClosed": false,
+        "label": "10:00 - 20:30"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:30",
+        "isClosed": false,
+        "label": "10:00 - 20:30"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "11:00 - 19:00"
+      }
     ]
   },
   {
@@ -235,6 +960,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:30",
+        "isClosed": false,
+        "label": "10:00 - 20:30"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:30",
+        "isClosed": false,
+        "label": "10:00 - 20:30"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
     ]
   },
   {
@@ -254,6 +1124,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:30",
+        "isClosed": false,
+        "label": "10:00 - 20:30"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:30",
+        "isClosed": false,
+        "label": "10:00 - 20:30"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      }
     ]
   },
   {
@@ -273,6 +1288,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:30",
+        "isClosed": false,
+        "label": "10:00 - 20:30"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:30",
+        "isClosed": false,
+        "label": "10:00 - 20:30"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      }
     ]
   },
   {
@@ -292,6 +1452,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
     ]
   },
   {
@@ -311,6 +1616,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "11:00 - 19:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "11:00 - 19:00"
+      }
     ]
   },
   {
@@ -330,6 +1780,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Calle",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "14:00",
+        "isClosed": false,
+        "label": "10:00 - 14:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "14:00",
+        "isClosed": false,
+        "label": "10:00 - 14:00"
+      }
     ]
   },
   {
@@ -349,6 +1944,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Unico",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      }
     ]
   },
   {
@@ -368,6 +2108,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:30",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:30 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:30",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:30 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:30",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:30 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:30",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:30 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:30",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:30 - 20:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:30",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:30 - 20:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:30",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:30 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:30",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:30 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:30",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:30 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:30",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:30 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:30",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:30 - 20:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:30",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:30 - 20:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
     ]
   },
   {
@@ -387,6 +2272,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Calle",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "14:00",
+        "isClosed": false,
+        "label": "10:00 - 14:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "14:00",
+        "isClosed": false,
+        "label": "10:00 - 14:00"
+      }
     ]
   },
   {
@@ -406,6 +2436,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
     ]
   },
   {
@@ -425,6 +2600,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Unico",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      }
     ]
   },
   {
@@ -444,6 +2764,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "19:30",
+        "isClosed": false,
+        "label": "10:00 - 19:30"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "19:30",
+        "isClosed": false,
+        "label": "10:00 - 19:30"
+      }
     ]
   },
   {
@@ -463,6 +2928,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Unico",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      }
     ]
   },
   {
@@ -482,6 +3092,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:30",
+        "isClosed": false,
+        "label": "10:00 - 20:30"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:30",
+        "isClosed": false,
+        "label": "10:00 - 20:30"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
     ]
   },
   {
@@ -501,6 +3256,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:30",
+        "isClosed": false,
+        "label": "10:00 - 20:30"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:30",
+        "isClosed": false,
+        "label": "10:00 - 20:30"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:30",
+        "isClosed": false,
+        "label": "10:00 - 20:30"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:30",
+        "isClosed": false,
+        "label": "10:00 - 20:30"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
     ]
   },
   {
@@ -520,6 +3420,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Calle",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "14:00",
+        "isClosed": false,
+        "label": "10:00 - 14:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "14:00",
+        "isClosed": false,
+        "label": "10:00 - 14:00"
+      }
     ]
   },
   {
@@ -539,6 +3584,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "10:00 - 19:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "10:00 - 19:00"
+      }
     ]
   },
   {
@@ -558,6 +3748,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Calle",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "14:00",
+        "isClosed": false,
+        "label": "10:00 - 14:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "14:00",
+        "isClosed": false,
+        "label": "10:00 - 14:00"
+      }
     ]
   },
   {
@@ -577,6 +3912,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Unico",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      }
     ]
   },
   {
@@ -596,6 +4076,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
     ]
   },
   {
@@ -615,6 +4240,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Calle",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "14:00",
+        "isClosed": false,
+        "label": "10:00 - 14:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "14:00",
+        "isClosed": false,
+        "label": "10:00 - 14:00"
+      }
     ]
   },
   {
@@ -634,6 +4404,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      }
     ]
   },
   {
@@ -653,6 +4568,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Unico",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      }
     ]
   },
   {
@@ -672,6 +4732,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "11:00 - 19:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "11:00 - 19:00"
+      }
     ]
   },
   {
@@ -691,6 +4896,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "11:00 - 19:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "11:00 - 19:00"
+      }
     ]
   },
   {
@@ -710,6 +5060,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "11:00 - 19:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "11:00 - 19:00"
+      }
     ]
   },
   {
@@ -729,6 +5224,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "09:00",
+        "close": "17:00",
+        "isClosed": false,
+        "label": "09:00 - 17:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "09:00",
+        "close": "17:00",
+        "isClosed": false,
+        "label": "09:00 - 17:00"
+      }
     ]
   },
   {
@@ -748,6 +5388,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Calle",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "14:00",
+        "isClosed": false,
+        "label": "10:00 - 14:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "14:00",
+        "isClosed": false,
+        "label": "10:00 - 14:00"
+      }
     ]
   },
   {
@@ -767,6 +5552,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Calle",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "14:00",
+        "isClosed": false,
+        "label": "10:00 - 14:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "14:00",
+        "isClosed": false,
+        "label": "10:00 - 14:00"
+      }
     ]
   },
   {
@@ -786,6 +5716,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Unico",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      }
     ]
   },
   {
@@ -805,6 +5880,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Unico",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      }
     ]
   },
   {
@@ -824,6 +6044,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "11:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "11:00 - 21:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "11:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "11:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "11:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "11:00 - 21:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "11:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "11:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
     ]
   },
   {
@@ -843,6 +6208,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
     ]
   },
   {
@@ -862,6 +6372,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      }
     ]
   },
   {
@@ -881,6 +6536,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      }
     ]
   },
   {
@@ -900,6 +6700,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
     ]
   },
   {
@@ -919,6 +6864,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Calle",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "14:00",
+        "isClosed": false,
+        "label": "10:00 - 14:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "14:00",
+        "isClosed": false,
+        "label": "10:00 - 14:00"
+      }
     ]
   },
   {
@@ -938,6 +7028,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
     ]
   },
   {
@@ -957,6 +7192,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
     ]
   },
   {
@@ -976,6 +7356,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Calle",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "09:00",
+        "close": "13:00",
+        "isClosed": false,
+        "label": "09:00 - 13:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "09:00",
+        "close": "13:00",
+        "isClosed": false,
+        "label": "09:00 - 13:00"
+      }
     ]
   },
   {
@@ -995,6 +7520,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:30",
+        "isClosed": false,
+        "label": "10:00 - 20:30"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:30",
+        "isClosed": false,
+        "label": "10:00 - 20:30"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "19:30",
+        "isClosed": false,
+        "label": "11:00 - 19:30"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:30",
+        "isClosed": false,
+        "label": "10:00 - 20:30"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:30",
+        "isClosed": false,
+        "label": "10:00 - 20:30"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "19:30",
+        "isClosed": false,
+        "label": "11:00 - 19:30"
+      }
     ]
   },
   {
@@ -1014,6 +7684,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:30",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:30 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:30",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:30 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:30",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:30 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:30",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:30 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:30",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:30 - 20:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:30",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:30 - 20:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:30",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:30 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:30",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:30 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:30",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:30 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:30",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:30 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:30",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:30 - 20:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:30",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:30 - 20:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
     ]
   },
   {
@@ -1033,6 +7848,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      }
     ]
   },
   {
@@ -1052,6 +8012,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Calle",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "14:00",
+        "isClosed": false,
+        "label": "10:00 - 14:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "14:00",
+        "isClosed": false,
+        "label": "10:00 - 14:00"
+      }
     ]
   },
   {
@@ -1071,6 +8176,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "10:00 - 19:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "10:00 - 19:00"
+      }
     ]
   },
   {
@@ -1090,6 +8340,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "10:00 - 19:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "10:00 - 19:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "10:00 - 19:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "10:00 - 19:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "12:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "12:00 - 19:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "10:00 - 19:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "10:00 - 19:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "10:00 - 19:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "10:00 - 19:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "12:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "12:00 - 19:00"
+      }
     ]
   },
   {
@@ -1109,6 +8504,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Calle",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": null,
+        "close": null,
+        "isClosed": true,
+        "label": "Cerrado"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": null,
+        "close": null,
+        "isClosed": true,
+        "label": "Cerrado"
+      }
     ]
   },
   {
@@ -1128,6 +8668,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
     ]
   },
   {
@@ -1147,6 +8832,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Calle",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "14:00",
+        "isClosed": false,
+        "label": "10:00 - 14:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "14:00",
+        "isClosed": false,
+        "label": "10:00 - 14:00"
+      }
     ]
   },
   {
@@ -1166,6 +8996,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
     ]
   },
   {
@@ -1185,6 +9160,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
     ]
   },
   {
@@ -1204,6 +9324,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "10:00 - 19:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "10:00 - 19:00"
+      }
     ]
   },
   {
@@ -1223,6 +9488,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
     ]
   },
   {
@@ -1242,6 +9652,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
     ]
   },
   {
@@ -1261,6 +9816,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Calle",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "14:00",
+        "isClosed": false,
+        "label": "10:00 - 14:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "14:00",
+        "isClosed": false,
+        "label": "10:00 - 14:00"
+      }
     ]
   },
   {
@@ -1280,6 +9980,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
     ]
   },
   {
@@ -1299,6 +10144,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Unico",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      }
     ]
   },
   {
@@ -1318,6 +10308,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
     ]
   },
   {
@@ -1337,6 +10472,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Calle",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "14:00",
+        "isClosed": false,
+        "label": "10:00 - 14:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "14:00",
+        "isClosed": false,
+        "label": "10:00 - 14:00"
+      }
     ]
   },
   {
@@ -1356,6 +10636,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Calle",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "09:00",
+        "close": "13:00",
+        "isClosed": false,
+        "label": "09:00 - 13:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "09:00",
+        "close": "13:00",
+        "isClosed": false,
+        "label": "09:00 - 13:00"
+      }
     ]
   },
   {
@@ -1375,6 +10800,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
     ]
   },
   {
@@ -1394,6 +10964,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
     ]
   },
   {
@@ -1413,6 +11128,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Calle",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "14:00",
+        "isClosed": false,
+        "label": "10:00 - 14:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "14:00",
+        "isClosed": false,
+        "label": "10:00 - 14:00"
+      }
     ]
   },
   {
@@ -1432,6 +11292,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
     ]
   },
   {
@@ -1451,6 +11456,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      }
     ]
   },
   {
@@ -1470,6 +11620,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
     ]
   },
   {
@@ -1489,6 +11784,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
     ]
   },
   {
@@ -1508,6 +11948,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
     ]
   },
   {
@@ -1527,6 +12112,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:30",
+        "isClosed": false,
+        "label": "10:00 - 20:30"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:30",
+        "isClosed": false,
+        "label": "10:00 - 20:30"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
     ]
   },
   {
@@ -1546,6 +12276,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Calle",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "14:00",
+        "isClosed": false,
+        "label": "10:00 - 14:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "14:00",
+        "isClosed": false,
+        "label": "10:00 - 14:00"
+      }
     ]
   },
   {
@@ -1565,6 +12440,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Calle",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "14:00",
+        "isClosed": false,
+        "label": "10:00 - 14:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "14:00",
+        "isClosed": false,
+        "label": "10:00 - 14:00"
+      }
     ]
   },
   {
@@ -1584,6 +12604,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      }
     ]
   },
   {
@@ -1603,6 +12768,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Calle",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "14:00",
+        "isClosed": false,
+        "label": "10:00 - 14:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "14:00",
+        "isClosed": false,
+        "label": "10:00 - 14:00"
+      }
     ]
   },
   {
@@ -1622,6 +12932,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
     ]
   },
   {
@@ -1641,6 +13096,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
     ]
   },
   {
@@ -1660,6 +13260,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Calle",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": null,
+        "close": null,
+        "isClosed": true,
+        "label": "Cerrado"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": null,
+        "close": null,
+        "isClosed": true,
+        "label": "Cerrado"
+      }
     ]
   },
   {
@@ -1679,6 +13424,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "11:00 - 19:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "11:00 - 19:00"
+      }
     ]
   },
   {
@@ -1698,6 +13588,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Calle",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "09:00",
+        "close": "13:00",
+        "isClosed": false,
+        "label": "09:00 - 13:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "09:00",
+        "close": "13:00",
+        "isClosed": false,
+        "label": "09:00 - 13:00"
+      }
     ]
   },
   {
@@ -1717,6 +13752,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:30",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:30 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:30",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:30 - 20:00"
+      }
     ]
   },
   {
@@ -1736,6 +13916,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "15:00",
+        "isClosed": false,
+        "label": "10:00 - 15:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "15:00",
+        "isClosed": false,
+        "label": "10:00 - 15:00"
+      }
     ]
   },
   {
@@ -1755,6 +14080,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Calle",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": null,
+        "close": null,
+        "isClosed": true,
+        "label": "Cerrado"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": null,
+        "close": null,
+        "isClosed": true,
+        "label": "Cerrado"
+      }
     ]
   },
   {
@@ -1774,6 +14244,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "11:00 - 19:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "11:00 - 19:00"
+      }
     ]
   },
   {
@@ -1793,6 +14408,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:30",
+        "isClosed": false,
+        "label": "10:00 - 20:30"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:30",
+        "isClosed": false,
+        "label": "10:00 - 20:30"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "19:30",
+        "isClosed": false,
+        "label": "11:00 - 19:30"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:30",
+        "isClosed": false,
+        "label": "10:00 - 20:30"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:30",
+        "isClosed": false,
+        "label": "10:00 - 20:30"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "19:30",
+        "isClosed": false,
+        "label": "11:00 - 19:30"
+      }
     ]
   },
   {
@@ -1812,6 +14572,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
     ]
   },
   {
@@ -1831,6 +14736,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "19:30",
+        "isClosed": false,
+        "label": "10:00 - 19:30"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "19:30",
+        "isClosed": false,
+        "label": "10:00 - 19:30"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "19:30",
+        "isClosed": false,
+        "label": "10:00 - 19:30"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "19:30",
+        "isClosed": false,
+        "label": "10:00 - 19:30"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "19:30",
+        "isClosed": false,
+        "label": "10:00 - 19:30"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "19:30",
+        "isClosed": false,
+        "label": "10:00 - 19:30"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "19:30",
+        "isClosed": false,
+        "label": "10:00 - 19:30"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "19:30",
+        "isClosed": false,
+        "label": "10:00 - 19:30"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "19:30",
+        "isClosed": false,
+        "label": "10:00 - 19:30"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "19:30",
+        "isClosed": false,
+        "label": "10:00 - 19:30"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "19:30",
+        "isClosed": false,
+        "label": "10:00 - 19:30"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "19:30",
+        "isClosed": false,
+        "label": "10:00 - 19:30"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "19:30",
+        "isClosed": false,
+        "label": "10:00 - 19:30"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "19:30",
+        "isClosed": false,
+        "label": "10:00 - 19:30"
+      }
     ]
   },
   {
@@ -1850,6 +14900,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      }
     ]
   },
   {
@@ -1869,6 +15064,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
     ]
   },
   {
@@ -1888,6 +15228,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Calle",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": null,
+        "close": null,
+        "isClosed": true,
+        "label": "Cerrado"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "09:30",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "09:30 - 19:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": null,
+        "close": null,
+        "isClosed": true,
+        "label": "Cerrado"
+      }
     ]
   },
   {
@@ -1907,6 +15392,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Unico",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      }
     ]
   },
   {
@@ -1926,6 +15556,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
     ]
   },
   {
@@ -1945,6 +15720,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      }
     ]
   },
   {
@@ -1964,6 +15884,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:30",
+        "isClosed": false,
+        "label": "10:00 - 20:30"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:30",
+        "isClosed": false,
+        "label": "10:00 - 20:30"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "11:00 - 19:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:30",
+        "isClosed": false,
+        "label": "10:00 - 20:30"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:30",
+        "isClosed": false,
+        "label": "10:00 - 20:30"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "19:00",
+        "isClosed": false,
+        "label": "11:00 - 19:00"
+      }
     ]
   },
   {
@@ -1983,6 +16048,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:30",
+        "isClosed": false,
+        "label": "10:00 - 20:30"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:30",
+        "isClosed": false,
+        "label": "10:00 - 20:30"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "19:30",
+        "isClosed": false,
+        "label": "11:00 - 19:30"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:30",
+        "isClosed": false,
+        "label": "10:00 - 20:30"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "20:30",
+        "isClosed": false,
+        "label": "10:00 - 20:30"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "19:30",
+        "isClosed": false,
+        "label": "11:00 - 19:30"
+      }
     ]
   },
   {
@@ -2002,6 +16212,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
     ]
   },
   {
@@ -2021,6 +16376,151 @@ export const initialPDVs = [
       "11:00-19:00",
       "12:00-20:30",
       "13:00-20:30"
+    ],
+    "locationType": "Centro Comercial",
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
+    },
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "11:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "11:00 - 20:00"
+      }
     ]
   },
   {
@@ -2041,7 +16541,151 @@ export const initialPDVs = [
       "12:00-20:30",
       "13:00-20:30"
     ],
-    "habitualSchedule": {}
+    "habitualSchedule": {
+      "lunes": {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "martes": {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "miercoles": {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "jueves": {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "viernes": {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      "sabado": {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      "domingo": {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      }
+    },
+    "locationType": "Unico",
+    "habitualScheduleList": [
+      {
+        "dayIndex": 0,
+        "dayKey": "lunes",
+        "dayName": "Lunes",
+        "shortDay": "LUN",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 1,
+        "dayKey": "martes",
+        "dayName": "Martes",
+        "shortDay": "MAR",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 2,
+        "dayKey": "miercoles",
+        "dayName": "Miércoles",
+        "shortDay": "MIÉ",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 3,
+        "dayKey": "jueves",
+        "dayName": "Jueves",
+        "shortDay": "JUE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 4,
+        "dayKey": "viernes",
+        "dayName": "Viernes",
+        "shortDay": "VIE",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      },
+      {
+        "dayIndex": 5,
+        "dayKey": "sabado",
+        "dayName": "Sábado",
+        "shortDay": "SÁB",
+        "open": "10:00",
+        "close": "21:00",
+        "isClosed": false,
+        "label": "10:00 - 21:00"
+      },
+      {
+        "dayIndex": 6,
+        "dayKey": "domingo",
+        "dayName": "Domingo",
+        "shortDay": "DOM",
+        "open": "10:00",
+        "close": "20:00",
+        "isClosed": false,
+        "label": "10:00 - 20:00"
+      }
+    ]
   }
 ];
 

@@ -33,3 +33,4 @@ server/data/database.json
 
 # Local binaries
 node.exe
+scratch/

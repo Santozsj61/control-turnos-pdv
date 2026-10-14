@@ -5,6 +5,7 @@ import * as XLSX from 'xlsx';
 import { ALL_WEEKS_2026, CURRENT_WEEK_START } from '../utils/weeks.js';
 import { api } from '../services/api.js';
 import { isCollaboratorActive } from '../data/activeCollaborators371.js';
+import { getHabitualScheduleForPdv, getHabitualDaySchedule, checkOutsideHabitualHours } from '../data/habitualSchedules.js';
 
 export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
   const isAdmin = currentUser?.role === 'ADMIN';
@@ -606,6 +607,26 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
     }
     return horizontalPersonList.slice(0, displayLimit);
   }, [horizontalPersonList, displayLimit, searchTerm, statusFilter]);
+
+  const currentHabitualPdv = useMemo(() => {
+    if (selectedPdv) {
+      const found = allowedPdvs.find(p => p.id === selectedPdv || p.code === selectedPdv);
+      if (found) return found;
+    }
+    if (isEmployee) {
+      const found = myPdv || allowedPdvs.find(p => p.id === currentPdvId || p.code === currentUser?.code);
+      if (found) return found;
+    }
+    if (visibleHorizontalList && visibleHorizontalList.length > 0) {
+      const first = visibleHorizontalList[0];
+      const found = allowedPdvs.find(p => p.id === first.pdvId || p.code === first.pdvId || p.name === first.pdvName);
+      if (found) return found;
+      if (first.pdvName) {
+        return { name: first.pdvName, code: first.pdvName.split(' - ')[0] };
+      }
+    }
+    return allowedPdvs[0] || myPdv || null;
+  }, [selectedPdv, allowedPdvs, isEmployee, myPdv, currentPdvId, currentUser?.code, visibleHorizontalList]);
 
   return (
     <div className="max-w-[98%] xl:max-w-[1700px] 2xl:max-w-[1900px] mx-auto px-2 sm:px-4 py-6 space-y-6">
@@ -1821,6 +1842,73 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
+                    {/* FILA FIJA OFICIAL: HORARIO HABITUAL DEL PDV (ESTRICTAMENTE NO MODIFICABLE) */}
+                    {currentHabitualPdv && (
+                      <tr className="bg-slate-50/95 border-b-2 border-slate-200">
+                        {/* Colaborador Header Cell */}
+                        <td className="py-2 px-2.5 sticky left-0 z-10 bg-slate-50 shadow-xs w-[16%] min-w-[145px] max-w-[175px]">
+                          <div className="flex items-center gap-1.5">
+                            <div className="p-1 rounded bg-blue-100 text-blue-700 shrink-0">
+                              <Clock className="w-3.5 h-3.5" />
+                            </div>
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1">
+                                <span className="font-extrabold text-[10px] text-slate-800 uppercase tracking-tight truncate">
+                                  Horario Habitual
+                                </span>
+                                <span className="text-[7.5px] bg-blue-600 text-white font-extrabold px-1 py-0.2 rounded shrink-0 uppercase tracking-wider">
+                                  Fijo
+                                </span>
+                              </div>
+                              <div className="text-[8.5px] text-slate-500 truncate" title={currentHabitualPdv?.name}>
+                                {currentHabitualPdv?.code ? `${currentHabitualPdv.code} (Tienda Oficial)` : (currentHabitualPdv?.name || 'Tienda Oficial')}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* 7 Day Habitual Hours Cells */}
+                        {weekDays.map(w => {
+                          const isSun = w.dayIndex === 6 || w.dayName.toLowerCase().includes('dom');
+                          const daySched = getHabitualDaySchedule(currentHabitualPdv, w.dayIndex);
+                          return (
+                            <td
+                              key={`hab-rec-${w.date}`}
+                              className={`py-1.5 px-1 text-center align-middle w-[10.5%] min-w-[90px] max-w-[120px] ${
+                                isSun ? 'bg-amber-50/40 border-x border-amber-200/50' : 'bg-slate-50/90 border-r border-slate-200'
+                              }`}
+                            >
+                              {daySched?.isClosed ? (
+                                <div className="bg-slate-100 border border-slate-200 rounded py-1 px-0.5 text-center text-slate-400">
+                                  <span className="text-[9.5px] font-bold block leading-tight">Cerrado</span>
+                                  <span className="text-[7.5px] uppercase font-semibold block">Sin apertura</span>
+                                </div>
+                              ) : (
+                                <div className="bg-white border border-blue-200/90 shadow-2xs rounded py-1 px-0.5 text-center">
+                                  <span className="text-[10px] font-black text-slate-900 block leading-tight tracking-tight">
+                                    {daySched?.label || '10:00 - 20:00'}
+                                  </span>
+                                  <span className="text-[7.5px] font-extrabold text-blue-600 uppercase tracking-wider block mt-0.5">
+                                    Habitual
+                                  </span>
+                                </div>
+                              )}
+                            </td>
+                          );
+                        })}
+
+                        {/* Balance Cell */}
+                        <td className="py-1.5 px-1 text-center align-middle w-[10.5%] min-w-[85px] max-w-[110px] bg-slate-100/80">
+                          <div className="text-[8.5px] font-extrabold text-slate-500 uppercase tracking-wider">
+                            Ref. Oficial
+                          </div>
+                          <div className="text-[7.5px] text-slate-400 font-medium">
+                            No editable
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+
                     {visibleHorizontalList.map((collab, idx) => (
                       <tr key={collab.key || idx} className="hover:bg-slate-50/80 transition">
                         {/* Colaborador Column */}

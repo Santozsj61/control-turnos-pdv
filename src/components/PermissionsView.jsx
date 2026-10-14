@@ -42,9 +42,36 @@ export default function PermissionsView({ currentUser, pdvs, supervisors, onRefr
   const [pdvEmployees, setPdvEmployees] = useState([]);
   const [selectedEmpId, setSelectedEmpId] = useState('');
 
+  // 1-Week deadline restriction for PDVs: min = today - 7 days, max = today + 7 days
+  const todayStr = useMemo(() => {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }, []);
+
+  const pdvMinDateStr = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 7);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }, []);
+
+  const pdvMaxDateStr = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 7);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }, []);
+
   // Form fields for employee request
   const [assignedArea, setAssignedArea] = useState('Líder de Zona');
-  const [requestDate, setRequestDate] = useState('2026-09-24');
+  const [requestDate, setRequestDate] = useState(todayStr);
   const [reqStartTime, setReqStartTime] = useState('10:00');
   const [reqEndTime, setReqEndTime] = useState('20:30');
   const [isDayOffChange, setIsDayOffChange] = useState(false);
@@ -124,6 +151,24 @@ export default function PermissionsView({ currentUser, pdvs, supervisors, onRefr
       return;
     }
 
+    // Strict Rule: Los PDV solo tienen un plazo máximo de 1 semana (7 días) para realizar la solicitud
+    if (isPdv) {
+      const todayMid = new Date();
+      todayMid.setHours(0, 0, 0, 0);
+      const [y, m, d] = requestDate.split('-').map(Number);
+      const reqMid = new Date(y, m - 1, d, 0, 0, 0, 0);
+      const diffMs = reqMid.getTime() - todayMid.getTime();
+      const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+      if (Math.abs(diffDays) > 7) {
+        setFormMsg({
+          type: 'error',
+          text: `Plazo no permitido: Los Puntos de Venta (PDV) solo tienen un plazo máximo de 1 semana (7 días) para radicar solicitudes de permisos o novedades. La fecha elegida (${requestDate}) excede este límite (diferencia: ${Math.abs(diffDays)} días).`
+        });
+        return;
+      }
+    }
+
     const targetEmployee = pdvEmployees.find(emp => emp.id === selectedEmpId) || currentUser;
 
     setSubmitting(true);
@@ -144,7 +189,9 @@ export default function PermissionsView({ currentUser, pdvs, supervisors, onRefr
         requestedEndTime: isDayOffChange ? '' : reqEndTime,
         isDayOffChange,
         reason,
-        assignedArea
+        assignedArea,
+        isPdv: isPdv,
+        userRole: currentUser.role
       });
 
       const destText = assignedArea === 'Mantenimiento y Obras'
@@ -437,14 +484,35 @@ export default function PermissionsView({ currentUser, pdvs, supervisors, onRefr
               )}
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">Fecha del Día a Modificar</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block font-bold text-slate-700">Fecha del Día a Modificar *</label>
+                  {isPdv && (
+                    <span className="text-[10px] bg-amber-100 text-amber-800 font-extrabold px-2 py-0.5 rounded border border-amber-300">
+                      Plazo Máximo: 1 Semana
+                    </span>
+                  )}
+                </div>
                 <input
                   type="date"
                   required
+                  min={isPdv ? pdvMinDateStr : undefined}
+                  max={isPdv ? pdvMaxDateStr : undefined}
                   value={requestDate}
                   onChange={(e) => setRequestDate(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 font-semibold text-slate-800"
+                  className="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 font-semibold text-slate-800 focus:ring-2 focus:ring-blue-500"
                 />
+                {isPdv ? (
+                  <div className="flex items-start gap-1.5 mt-1.5 text-[10.5px] font-bold text-amber-900 bg-amber-50/90 p-2 rounded-lg border border-amber-200">
+                    <Clock className="w-3.5 h-3.5 shrink-0 text-amber-600 mt-0.5" />
+                    <span>
+                      Regla Operativa PDV: Las solicitudes solo pueden radicarse dentro del plazo máximo de 1 semana (entre {pdvMinDateStr} y {pdvMaxDateStr}).
+                    </span>
+                  </div>
+                ) : (
+                  <span className="text-[10px] text-slate-400 mt-0.5 block">
+                    Selecciona la fecha exacta en la que se aplicará el permiso o la novedad.
+                  </span>
+                )}
               </div>
 
               <div className="flex items-center gap-2">
