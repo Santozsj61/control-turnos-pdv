@@ -6,6 +6,7 @@ import { ALL_WEEKS_2026, CURRENT_WEEK_START } from '../utils/weeks.js';
 import { api } from '../services/api.js';
 import { isCollaboratorActive } from '../data/activeCollaborators371.js';
 import { getHabitualScheduleForPdv, getHabitualDaySchedule, checkOutsideHabitualHours } from '../data/habitualSchedules.js';
+import HabitualSchedulesDirectoryModal from './HabitualSchedulesDirectoryModal.jsx';
 
 export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
   const isAdmin = currentUser?.role === 'ADMIN';
@@ -627,6 +628,330 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
     }
     return allowedPdvs[0] || myPdv || null;
   }, [selectedPdv, allowedPdvs, isEmployee, myPdv, currentPdvId, currentUser?.code, visibleHorizontalList]);
+
+  const [showDirectoryModal, setShowDirectoryModal] = useState(false);
+
+  // Group collaborators by PDV when viewing all PDVs
+  const groupedHorizontalByPdv = useMemo(() => {
+    if (selectedPdv) return null;
+    const map = new Map();
+    for (const collab of visibleHorizontalList) {
+      const pId = collab.pdvId || collab.pdv_id || collab.pdvName || 'pdv-unassigned';
+      if (!map.has(pId)) {
+        const pObj = allowedPdvs.find(p => p.id === pId || p.code === pId || p.name === collab.pdvName) || { id: pId, name: collab.pdvName || 'Punto de Venta' };
+        map.set(pId, { pdv: pObj, collabs: [] });
+      }
+      map.get(pId).collabs.push(collab);
+    }
+    return Array.from(map.values());
+  }, [selectedPdv, visibleHorizontalList, allowedPdvs]);
+
+
+  const renderHorizontalHabitualRow = (targetPdv, keyPrefix = 'hab-rec') => {
+    if (!targetPdv) return null;
+    return (
+      <tr key={`${keyPrefix}-${targetPdv.id || targetPdv.code || 'pdv'}`} className="bg-slate-50/95 border-b-2 border-slate-200">
+        {/* Colaborador Header Cell */}
+        <td className="py-2 px-2.5 sticky left-0 z-10 bg-slate-50 shadow-xs w-[16%] min-w-[145px] max-w-[175px]">
+          <div className="flex items-center gap-1.5">
+            <div className="p-1 rounded bg-blue-100 text-blue-700 shrink-0">
+              <Clock className="w-3.5 h-3.5" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1">
+                <span className="font-extrabold text-[10px] text-slate-800 uppercase tracking-tight truncate">
+                  Horario Habitual
+                </span>
+                <span className="text-[7.5px] bg-blue-600 text-white font-extrabold px-1 py-0.2 rounded shrink-0 uppercase tracking-wider">
+                  Fijo
+                </span>
+              </div>
+              <div className="text-[8.5px] text-slate-500 truncate" title={targetPdv?.name}>
+                {targetPdv?.code ? `${targetPdv.code} (Tienda Oficial)` : (targetPdv?.name || 'Tienda Oficial')}
+              </div>
+            </div>
+          </div>
+        </td>
+
+        {/* 7 Day Habitual Hours Cells */}
+        {weekDays.map(w => {
+          const isSun = w.dayIndex === 6 || w.dayName.toLowerCase().includes('dom');
+          const daySched = getHabitualDaySchedule(targetPdv, w.dayIndex);
+          return (
+            <td
+              key={`${keyPrefix}-${w.date}`}
+              className={`py-1.5 px-1 text-center align-middle w-[10.5%] min-w-[90px] max-w-[120px] ${
+                isSun ? 'bg-amber-50/40 border-x border-amber-200/50' : 'bg-slate-50/90 border-r border-slate-200'
+              }`}
+            >
+              {daySched?.isClosed ? (
+                <div className="bg-slate-100 border border-slate-200 rounded py-1 px-0.5 text-center text-slate-400">
+                  <span className="text-[9.5px] font-bold block leading-tight">Cerrado</span>
+                  <span className="text-[7.5px] uppercase font-semibold block">Sin apertura</span>
+                </div>
+              ) : (
+                <div className="bg-white border border-blue-200/90 shadow-2xs rounded py-1 px-0.5 text-center">
+                  <span className="text-[10px] font-black text-slate-900 block leading-tight tracking-tight">
+                    {daySched?.label || '10:00 - 20:00'}
+                  </span>
+                  <span className="text-[7.5px] font-extrabold text-blue-600 uppercase tracking-wider block mt-0.5">
+                    Habitual
+                  </span>
+                </div>
+              )}
+            </td>
+          );
+        })}
+
+        {/* Balance Cell */}
+        <td className="py-1.5 px-1 text-center align-middle w-[10.5%] min-w-[85px] max-w-[110px] bg-slate-100/80">
+          <div className="text-[8.5px] font-extrabold text-slate-500 uppercase tracking-wider">
+            Ref. Oficial
+          </div>
+          <div className="text-[7.5px] text-slate-400 font-medium">
+            No editable
+          </div>
+        </td>
+      </tr>
+    );
+  };
+
+
+  const renderHorizontalCollabRow = (collab, idx) => {
+    return (
+      <tr key={collab.key || idx} className="hover:bg-slate-50/80 transition">
+                        {/* Colaborador Column */}
+                        <td className="py-2 px-2.5 sticky left-0 z-10 bg-white shadow-xs w-[16%] min-w-[145px] max-w-[175px]">
+                          <div className="flex items-center gap-1 flex-wrap">
+                            <span className="font-extrabold text-slate-900 text-[11px] leading-snug truncate max-w-full block" title={collab.fullName}>
+                              {collab.fullName}
+                            </span>
+                            {(collab.isRetired || !isCollaboratorActive(collab.documentId)) && (
+                              <span className="bg-rose-100 text-rose-800 text-[8px] font-black px-1 py-0.2 rounded border border-rose-300">
+                                Retirado
+                              </span>
+                            )}
+                            {collab.isUnscheduledWorker && (
+                              <span className="bg-purple-100 text-purple-800 text-[8px] font-black px-1 py-0.2 rounded">
+                                No Prog
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-[9px] text-slate-500 font-mono leading-tight mt-0.5">CC: {collab.documentId}</div>
+                          <div className="text-[9px] text-blue-700 font-semibold truncate leading-tight mt-0.5" title={collab.position}>
+                            {collab.position}
+                          </div>
+                          <div className="text-[8.5px] text-slate-400 truncate leading-tight mt-0.5" title={collab.pdvName}>
+                            {collab.pdvName}
+                          </div>
+                        </td>
+
+                        {/* 7 Days Columns */}
+                        {weekDays.map(w => {
+                          const dayRow = collab.daysMap[w.date] || collab.daysMap[w.dayName.toLowerCase()];
+                          if (!dayRow) {
+                            return (
+                              <td key={w.date} className="py-1 px-0.5 text-center text-slate-300 w-[10.5%] min-w-[90px] max-w-[120px]">
+                                <span className="text-[10px]">-</span>
+                              </td>
+                            );
+                          }
+
+                          const isUnscheduled = dayRow.status === 'UNSCHEDULED_WORK';
+                          const collabPdv = allowedPdvs.find(p => p.id === collab.pdvId || p.code === collab.pdvId || p.name === collab.pdvName) || currentHabitualPdv;
+                          const outsidePunch = checkOutsideHabitualHours(collabPdv, w.dayIndex, dayRow.realStart, dayRow.realEnd);
+                          const outsideSched = checkOutsideHabitualHours(collabPdv, w.dayIndex, dayRow.scheduledStart, dayRow.scheduledEnd);
+                          const isAutoFilled = dayRow.autoFilledExit || dayRow.autoFilledEntry;
+                          const isLate = dayRow.status === 'LATE_ARRIVAL';
+                          const isEarly = dayRow.status === 'EARLY_DEPARTURE';
+                          const isAbsent = dayRow.status === 'ABSENT';
+                          const isNoShow = dayRow.status === 'NO_SHOW';
+                          const isDayOff = dayRow.status === 'DAY_OFF' || (!dayRow.isScheduled && !dayRow.hasPunch && !isNoShow);
+
+                          const diffFormatted = dayRow.hoursDiff > 0 
+                            ? `+${(+dayRow.hoursDiff).toFixed(1)}h` 
+                            : dayRow.hoursDiff < 0 
+                            ? `${(+dayRow.hoursDiff).toFixed(1)}h` 
+                            : '0h';
+
+                          const statusBadgeLabel = 
+                            isAutoFilled ? (dayRow.autoFilledExit ? 'Sal. Prog*' : 'Ent. Prog*') :
+                            dayRow.isNovelty7h && !dayRow.hasPunch ? (
+                              dayRow.status === 'DAY_OFF' ? 'Desc (7h)' :
+                              dayRow.status === 'INCAPACITY' ? 'Incap (7h)' :
+                              dayRow.status === 'VACATION' ? 'Vac (7h)' :
+                              dayRow.status === 'PERMISO' ? 'Perm (7h)' : 'Lic (7h)'
+                            ) :
+                            dayRow.status === 'OK_MATCH' ? 'OK' : 
+                            dayRow.status === 'LATE_ARRIVAL' ? 'Tarde' : 
+                            dayRow.status === 'EARLY_DEPARTURE' ? 'Sal. Ant' : 
+                            dayRow.status === 'ABSENT' ? 'Ausente' : 
+                            dayRow.status === 'NO_SHOW' ? 'No se presentó' :
+                            dayRow.status === 'UNSCHEDULED_WORK' ? 'No Prog' :
+                            dayRow.status === 'OVERTIME' ? 'Extra' :
+                            dayRow.status === 'DAY_OFF' ? 'Desc' : 'Novedad';
+
+                          return (
+                            <td
+                              key={w.date}
+                              className="py-1 px-0.5 align-top w-[10.5%] min-w-[90px] max-w-[120px]"
+                              onClick={() => setSelectedRowDetail(dayRow)}
+                            >
+                              <div
+                                className={`p-1.5 rounded-lg border text-[10px] cursor-pointer transition hover:shadow-xs space-y-1 ${
+                                  isNoShow
+                                    ? 'bg-rose-50/90 border-rose-300 ring-1 ring-rose-200'
+                                    : isUnscheduled
+                                    ? 'bg-purple-50/90 border-purple-300'
+                                    : isAutoFilled
+                                    ? 'bg-indigo-50/90 border-indigo-300 ring-1 ring-indigo-200'
+                                    : isAbsent
+                                    ? 'bg-rose-50/80 border-rose-200'
+                                    : isLate
+                                    ? 'bg-amber-50/80 border-amber-200'
+                                    : isEarly
+                                    ? 'bg-orange-50/80 border-orange-200'
+                                    : dayRow.hasPermission
+                                    ? 'bg-emerald-50/70 border-emerald-200'
+                                    : dayRow.isNovelty7h
+                                    ? 'bg-sky-50/60 border-sky-200/80 text-slate-700'
+                                    : isDayOff
+                                    ? 'bg-slate-50/70 border-slate-200/80 text-slate-500'
+                                    : 'bg-white border-slate-200'
+                                }`}
+                                title="Click para ver detalle completo"
+                              >
+                                {/* Cronograma Programado */}
+                                {outsideSched?.isOutside && dayRow.isScheduled && (
+                                  <div className="bg-rose-100 text-rose-800 text-[7.5px] font-black px-1 py-0.2 rounded border border-rose-300 truncate" title={`Programado fuera del horario habitual (${outsideSched.habitualRange}): ${outsideSched.reason}`}>
+                                    ⚠️ Prog Fuera Hab.
+                                  </div>
+                                )}
+                                <div className="flex items-center justify-between gap-0.5 text-[9px] leading-tight">
+                                  <span className="font-semibold text-slate-600 truncate flex items-center gap-0.5" title={dayRow.isNovelty7h ? `${dayRow.scheduleTypeLabel} (7h Ley)` : (dayRow.isScheduled ? `${dayRow.scheduledStart}-${dayRow.scheduledEnd}` : (isNoShow ? 'Sin Programar' : 'Sin Turno'))}>
+                                    <Calendar className="w-2.5 h-2.5 text-blue-500 shrink-0" />
+                                    {dayRow.isNovelty7h ? dayRow.scheduleTypeLabel : (dayRow.isScheduled ? `${dayRow.scheduledStart}-${dayRow.scheduledEnd}` : (isNoShow ? 'Sin Programar' : 'Sin Turno'))}
+                                  </span>
+                                  <span className="font-bold text-slate-500 shrink-0">{dayRow.scheduledNetHours || 0}h</span>
+                                </div>
+
+                                {outsidePunch?.isOutside && dayRow.hasPunch && (
+                                  <div className="bg-amber-100 text-amber-900 text-[7.5px] font-black px-1 py-0.2 rounded border border-amber-300 truncate" title={`Marcación fuera del horario habitual (${outsidePunch.habitualRange}): ${outsidePunch.reason}`}>
+                                    ⚠️ Marc Fuera Hab.
+                                  </div>
+                                )}
+                                {/* Marcación Real */}
+                                <div className="flex items-center justify-between gap-0.5 text-[9px] leading-tight">
+                                  <span className={`font-black truncate flex items-center gap-0.5 ${
+                                    isAutoFilled
+                                      ? 'text-indigo-900'
+                                      : isNoShow
+                                      ? 'text-rose-700 font-bold'
+                                      : dayRow.hasPunch
+                                      ? (isUnscheduled ? 'text-purple-900' : 'text-blue-900')
+                                      : dayRow.isNovelty7h
+                                      ? 'text-slate-600 font-medium'
+                                      : isDayOff
+                                      ? 'text-slate-400 font-normal'
+                                      : 'text-rose-600'
+                                  }`}>
+                                    <Clock className={`w-2.5 h-2.5 shrink-0 ${isAutoFilled ? 'text-indigo-600' : isNoShow ? 'text-rose-600' : 'text-slate-400'}`} />
+                                    {dayRow.hasPunch ? (
+                                      <span className="truncate">
+                                        <span className={dayRow.autoFilledEntry ? 'text-indigo-700 font-black underline decoration-indigo-400' : ''}>
+                                          {dayRow.autoFilledEntry ? `*${dayRow.realStart}` : (dayRow.realStart || '--:--')}
+                                        </span>
+                                        <span className="text-slate-300 mx-0.5">-</span>
+                                        <span className={dayRow.autoFilledExit ? 'text-indigo-700 font-black underline decoration-indigo-400' : ''}>
+                                          {dayRow.autoFilledExit ? `${dayRow.realEnd}*` : (dayRow.realEnd || '--:--')}
+                                        </span>
+                                      </span>
+                                    ) : isNoShow ? (
+                                      <span className="truncate text-rose-700 font-black">No se presentó</span>
+                                    ) : dayRow.isNovelty7h ? (
+                                      <span className="truncate">{dayRow.scheduleTypeLabel}</span>
+                                    ) : isDayOff ? (
+                                      'Sin Turno'
+                                    ) : (
+                                      'Sin Marc.'
+                                    )}
+                                  </span>
+                                  <span className={`font-bold shrink-0 ${
+                                    isAutoFilled ? 'text-indigo-950 font-black' : (dayRow.hasPunch || dayRow.isNovelty7h) ? 'text-slate-900' : (isNoShow ? 'text-rose-700 font-bold' : 'text-slate-400')
+                                  }`}>
+                                    {dayRow.realNetHours || 0}h
+                                  </span>
+                                </div>
+
+                                {/* Mini Footer Diferencia / Novedad */}
+                                {(dayRow.isScheduled || dayRow.hasPunch || dayRow.isNovelty7h || isNoShow) ? (
+                                  <div className={`pt-0.5 border-t border-slate-200/60 flex items-center ${isPdv ? 'justify-end' : 'justify-between'} text-[8px] leading-tight`}>
+                                    {!isPdv && (
+                                      <span className={`font-black ${
+                                        dayRow.hoursDiff > 0 ? 'text-blue-700' : dayRow.hoursDiff < 0 ? 'text-rose-600' : (isNoShow ? 'text-rose-600' : 'text-emerald-600')
+                                      }`}>
+                                        {diffFormatted}
+                                      </span>
+                                    )}
+                                    <span className={`px-1 py-0.2 rounded font-black uppercase tracking-tight text-[7.5px] truncate max-w-[62px] ${
+                                      isAutoFilled ? 'bg-indigo-100 text-indigo-800 border border-indigo-300/80' :
+                                      dayRow.isNovelty7h && !dayRow.hasPunch ? 'bg-sky-100 text-sky-800 border border-sky-200' :
+                                      dayRow.status === 'OK_MATCH' ? 'bg-emerald-100 text-emerald-800' :
+                                      dayRow.status === 'LATE_ARRIVAL' ? 'bg-amber-100 text-amber-800' :
+                                      dayRow.status === 'EARLY_DEPARTURE' ? 'bg-orange-100 text-orange-800' :
+                                      dayRow.status === 'NO_SHOW' ? 'bg-rose-100 text-rose-800 border border-rose-300 font-bold' :
+                                      dayRow.status === 'ABSENT' ? 'bg-rose-100 text-rose-800' :
+                                      dayRow.status === 'UNSCHEDULED_WORK' ? 'bg-purple-100 text-purple-800' :
+                                      dayRow.status === 'OVERTIME' ? 'bg-blue-100 text-blue-800' :
+                                      'bg-amber-100 text-amber-800'
+                                    }`} title={statusBadgeLabel}>
+                                      {statusBadgeLabel}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <div className="pt-0.5 border-t border-slate-200/40 text-center text-[8px]">
+                                    <span className="text-slate-400 font-medium">Libre</span>
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                          );
+                        })}
+
+                        {/* Balance Semanal Column (Lun - Sáb) */}
+                        <td className="py-1 px-1 text-center align-middle bg-slate-50/50 w-[10.5%] min-w-[85px] max-w-[110px]">
+                          <div className="p-1.5 bg-slate-900 text-white rounded-xl space-y-0.5">
+                            <div className="text-[8px] text-amber-300 font-bold uppercase leading-tight">Lun - Sáb</div>
+                            <div className="text-[10.5px] font-black leading-tight">
+                              {collab.totalRealHours}h <span className="text-slate-400 text-[8.5px] font-normal">/ {collab.totalScheduledHours}h</span>
+                            </div>
+                            {!isPdv && (
+                              <div className={`text-[8.5px] font-extrabold px-1 py-0.2 rounded inline-block ${
+                                collab.diffHours > 0 ? 'bg-blue-600 text-white' :
+                                collab.diffHours < 0 ? 'bg-rose-600 text-white' :
+                                'bg-emerald-600 text-white'
+                              }`}>
+                                {collab.diffHours > 0 ? `+${collab.diffHours}h` : collab.diffHours < 0 ? `${collab.diffHours}h` : '0h'}
+                              </div>
+                            )}
+                            {(collab.sundayRealHours > 0 || collab.sundayScheduledHours > 0) && (
+                              <div className="text-[7.5px] text-amber-300 font-bold leading-tight pt-0.5 border-t border-slate-700/60" title="Horas dominicales (liquidación separada de Lun a Sáb)">
+                                Dom: {collab.sundayRealHours}h{collab.sundayScheduledHours > 0 ? ` / ${collab.sundayScheduledHours}h` : ''}
+                              </div>
+                            )}
+                            {!isPdv && (collab.lateCount > 0 || collab.earlyCount > 0 || collab.absenceCount > 0 || collab.unscheduledCount > 0) && (
+                              <div className="pt-0.5 flex flex-wrap items-center justify-center gap-0.5 text-[7.5px] font-bold">
+                                {collab.lateCount > 0 && <span className="bg-amber-500/30 text-amber-200 px-1 rounded">{collab.lateCount}T</span>}
+                                {collab.earlyCount > 0 && <span className="bg-orange-500/30 text-orange-200 px-1 rounded">{collab.earlyCount}SA</span>}
+                                {collab.absenceCount > 0 && <span className="bg-rose-500/30 text-rose-200 px-1 rounded">{collab.absenceCount}A</span>}
+                                {collab.unscheduledCount > 0 && <span className="bg-purple-500/30 text-purple-200 px-1 rounded">{collab.unscheduledCount}NP</span>}
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+    );
+  };
 
   return (
     <div className="max-w-[98%] xl:max-w-[1700px] 2xl:max-w-[1900px] mx-auto px-2 sm:px-4 py-6 space-y-6">
@@ -1436,37 +1761,58 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {[
-                      ...(integrityFilter !== 'SHORT_SHIFT' ? integrityData.incompleteList : []),
-                      ...(integrityFilter !== 'MISSING_EXIT' ? integrityData.shortShiftList : [])
-                    ].map((item, idx) => (
-                      <tr key={idx} className="hover:bg-slate-50 transition">
-                        <td className="py-2.5 px-3">
-                          <div className="font-bold text-slate-900">{item.employeeName}</div>
-                          <div className="text-[10px] text-slate-400">CC: {item.documentId}</div>
-                        </td>
-                        <td className="py-2.5 px-3 font-medium text-slate-700">{item.pdvName}</td>
-                        <td className="py-2.5 px-3 text-slate-600">{item.entryDate}</td>
-                        <td className="py-2.5 px-3 font-mono text-emerald-700 font-bold">{item.entryTime || '-'}</td>
-                        <td className="py-2.5 px-3 font-mono">
-                          {item.exitTime ? (
-                            <span className="text-slate-800 font-bold">{item.exitTime}</span>
-                          ) : (
-                            <span className="text-rose-600 font-bold bg-rose-50 px-2 py-0.5 rounded text-[11px]">Falta Salida</span>
-                          )}
-                        </td>
-                        <td className="py-2.5 px-3 font-bold text-slate-800">
-                          {item.netHours ? `${item.netHours}h` : '-'}
-                        </td>
-                        <td className="py-2.5 px-3">
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                            item.type === 'MISSING_EXIT' ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-800'
-                          }`}>
-                            {item.reason}
-                          </span>
+                    {visibleHorizontalList.length === 0 ? (
+                      <tr>
+                        <td colSpan={9} className="py-8 text-center text-slate-400 font-semibold">
+                          No se encontraron colaboradores con los filtros seleccionados.
                         </td>
                       </tr>
-                    ))}
+                    ) : !selectedPdv && groupedHorizontalByPdv && groupedHorizontalByPdv.length > 0 ? (
+                      groupedHorizontalByPdv.map((group, gIdx) => {
+                        const groupPdv = group.pdv;
+                        const habitual = getHabitualScheduleForPdv(groupPdv);
+                        return (
+                          <React.Fragment key={`grp-rec-${groupPdv?.id || groupPdv?.code || gIdx}`}>
+                            {/* PDV GROUP HEADER BANNER */}
+                            <tr className="bg-slate-900 text-white font-bold border-t-2 border-slate-700">
+                              <td colSpan={9} className="py-2.5 px-3 sticky left-0 z-10 bg-slate-900">
+                                <div className="flex items-center justify-between flex-wrap gap-2">
+                                  <div className="flex items-center gap-2">
+                                    <Store className="w-4 h-4 text-blue-400" />
+                                    <span className="text-xs font-black tracking-wide">
+                                      {groupPdv?.code ? `${groupPdv.code} - ${groupPdv.name?.split(' - ')[1] || groupPdv.name}` : (groupPdv?.name || 'PDV')}
+                                    </span>
+                                    <span className="text-[10px] text-slate-400 font-medium">
+                                      ({groupPdv?.city || 'PDV'} • {group.collabs.length} {group.collabs.length === 1 ? 'colaborador' : 'colaboradores'})
+                                    </span>
+                                  </div>
+                                  {habitual && (
+                                    <div className="flex items-center gap-2 text-[10px]">
+                                      <span className="bg-blue-900/60 text-blue-200 border border-blue-700/50 px-2 py-0.5 rounded-md flex items-center gap-1 font-semibold">
+                                        <Clock className="w-3 h-3 text-blue-300" />
+                                        L-S: {habitual.hoursMondayToSaturday || 'N/A'}
+                                      </span>
+                                      {habitual.sundaySchedule && (
+                                        <span className="bg-purple-900/60 text-purple-200 border border-purple-700/50 px-2 py-0.5 rounded-md font-semibold">
+                                          Dom: {habitual.sundaySchedule}
+                                        </span>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                            {renderHorizontalHabitualRow(groupPdv, `hab-grp-${gIdx}`)}
+                            {group.collabs.map((collab, idx) => renderHorizontalCollabRow(collab, `${gIdx}-${idx}`))}
+                          </React.Fragment>
+                        );
+                      })
+                    ) : (
+                      <>
+                        {currentHabitualPdv && renderHorizontalHabitualRow(currentHabitualPdv, 'hab-rec-single')}
+                        {visibleHorizontalList.map((collab, idx) => renderHorizontalCollabRow(collab, idx))}
+                      </>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -1768,6 +2114,17 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
               Restablecer
             </button>
           )}
+          {/* BOTÓN DIRECTORIO DE HORARIOS HABITUALES (Visible para todos los perfiles) */}
+          <button
+            type="button"
+            onClick={() => setShowDirectoryModal(true)}
+            className="flex items-center gap-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 font-bold text-xs px-3.5 py-1.5 rounded-xl transition shadow-xs cursor-pointer"
+            title="Consultar directorio oficial de horarios habituales de los 101 PDVs"
+          >
+            <Clock className="w-3.5 h-3.5 text-indigo-600" />
+            <span>Ver Horarios Habituales (101 PDVs)</span>
+          </button>
+
           <span className="text-xs text-slate-500 font-semibold hidden sm:inline-block">
             {ALL_WEEKS_2026.find(w => w.weekStart === weekStart)?.label?.split('(')[0] || `Semana ${weekStart}`} • {filteredRows.length} registros
           </span>
@@ -2204,6 +2561,23 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                         <div className="text-xs text-slate-300 mt-0.5">
                           Jefe Directo: <strong>{pdvSummary.supervisorName}</strong>
                         </div>
+                        {(() => {
+                          const habitual = getHabitualScheduleForPdv({ id: pdvSummary.pdvId, code: pdvSummary.pdvCode, name: pdvSummary.pdvName });
+                          if (!habitual) return null;
+                          return (
+                            <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                              <span className="text-[10px] bg-slate-800 text-indigo-300 px-2 py-0.5 rounded border border-indigo-500/30 flex items-center gap-1 font-semibold">
+                                <Clock className="w-3 h-3 text-indigo-400" />
+                                Lun-Sáb: {habitual.hoursMondayToSaturday || 'N/A'}
+                              </span>
+                              {habitual.sundaySchedule && (
+                                <span className="text-[10px] bg-slate-800 text-purple-300 px-2 py-0.5 rounded border border-purple-500/30 font-semibold">
+                                  Dom: {habitual.sundaySchedule}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </div>
                     </div>
 
@@ -2251,7 +2625,36 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
 
                   {/* PDV Collaborators Table */}
                   {isExpanded && (
-                    <div className="overflow-x-auto">
+                    <div>
+                      {(() => {
+                        const habitual = getHabitualScheduleForPdv({ id: pdvSummary.pdvId, code: pdvSummary.pdvCode, name: pdvSummary.pdvName });
+                        if (!habitual) return null;
+                        return (
+                          <div className="bg-indigo-50/70 border-b border-indigo-100 px-4 py-2 flex flex-wrap items-center justify-between gap-3 text-xs">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <div className="p-1 rounded bg-indigo-100 text-indigo-700">
+                                <Clock className="w-3.5 h-3.5" />
+                              </div>
+                              <span className="font-extrabold text-indigo-950 text-[11px] uppercase tracking-wide">
+                                Horario Habitual Oficial:
+                              </span>
+                              <span className="text-indigo-900 font-semibold text-[11px]">
+                                {habitual.hoursMondayToSaturday || 'N/A'}
+                              </span>
+                              {habitual.sundaySchedule && (
+                                <span className="text-indigo-700 text-[11px] font-medium">
+                                  • Domingos: {habitual.sundaySchedule}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1 text-[10px] text-slate-500 font-medium">
+                              <Lock className="w-3 h-3 text-slate-400" />
+                              <span>Horario oficial de referencia (No modificable)</span>
+                            </div>
+                          </div>
+                        );
+                      })()}
+                      <div className="overflow-x-auto">
                       <table className="w-full text-left text-xs border-collapse">
                         <thead>
                           <tr className="bg-slate-100 text-slate-700 uppercase tracking-wider text-[10px] font-bold border-b border-slate-200">
@@ -2450,6 +2853,7 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                           )}
                         </tbody>
                       </table>
+                    </div>
                     </div>
                   )}
                 </div>
@@ -3220,6 +3624,12 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
           </div>
         </div>
       )}
+      {/* 5. MODAL: DIRECTORIO DE HORARIOS HABITUALES OFICIALES (101 PDVs) */}
+      <HabitualSchedulesDirectoryModal
+        isOpen={showDirectoryModal}
+        onClose={() => setShowDirectoryModal(false)}
+        currentPdv={currentHabitualPdv}
+      />
     </div>
   );
 }

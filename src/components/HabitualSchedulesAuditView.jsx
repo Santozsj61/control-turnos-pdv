@@ -16,11 +16,24 @@ import { api } from '../services/api.js';
 
 export default function HabitualSchedulesAuditView({ currentUser, pdvs = [], supervisors = [] }) {
   const isAdmin = currentUser?.role === 'ADMIN';
+  const isHrAdmin = currentUser?.role === 'HR_ADMIN';
   const isAuditorVrx = currentUser?.role === 'AUDITOR_VRX';
+  const isSupervisor = currentUser?.role === 'SUPERVISOR';
+  const isEmployee = currentUser?.role === 'EMPLOYEE' || currentUser?.role === 'PDV' || (!isAdmin && !isHrAdmin && !isAuditorVrx && !isSupervisor);
+
+  const currentSupervisorObj = supervisors.find(s => s.name === currentUser?.fullName || currentUser?.id?.includes(s.id));
+  const myPdv = pdvs.find(p => p.id === currentUser?.pdvId || p.code === currentUser?.code || p.id === currentUser?.pdv_id);
+
+  // Allowed PDVs based on profile scope
+  const allowedPdvs = (isAdmin || isHrAdmin || isAuditorVrx)
+    ? pdvs
+    : isSupervisor
+    ? pdvs.filter(p => p.supervisorId === currentSupervisorObj?.id || p.supervisorId === currentUser?.supervisorId || p.supervisor_id === currentSupervisorObj?.id)
+    : myPdv ? [myPdv] : pdvs.filter(p => p.id === currentUser?.pdvId || p.code === currentUser?.code);
 
   const [weekStart, setWeekStart] = useState(CURRENT_WEEK_START);
-  const [selectedPdvId, setSelectedPdvId] = useState('ALL'); // 'ALL' for unified comparison or specific pdvId
-  const [selectedSupervisorId, setSelectedSupervisorId] = useState('');
+  const [selectedPdvId, setSelectedPdvId] = useState(isEmployee ? (myPdv?.id || currentUser?.pdvId || allowedPdvs[0]?.id || 'pdv-1') : 'ALL');
+  const [selectedSupervisorId, setSelectedSupervisorId] = useState(isSupervisor ? (currentSupervisorObj?.id || '') : '');
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [chartViewMode, setChartViewMode] = useState('PDVS_COMPARISON'); // 'PDVS_COMPARISON' | 'DAILY_HOURS' | 'SUPPLEMENTARY' | 'OFFSETS'
@@ -407,9 +420,11 @@ export default function HabitualSchedulesAuditView({ currentUser, pdvs = [], sup
               isUnified ? 'bg-indigo-50 text-indigo-900 border-indigo-300' : 'bg-slate-50 text-slate-800 border-slate-300'
             }`}
           >
-            <option value="ALL">🌐 -- TODOS LOS PUNTOS DE VENTA (UNIFICADO) --</option>
-            <optgroup label="Tiendas Individuales:">
-              {pdvs.map(pdv => (
+            {!isEmployee && (
+              <option value="ALL">🌐 -- TODOS LOS PUNTOS DE VENTA (UNIFICADO) --</option>
+            )}
+            <optgroup label="Tiendas:">
+              {allowedPdvs.map(pdv => (
                 <option key={pdv.id} value={pdv.id}>
                   {pdv.code} - {pdv.name} ({pdv.city})
                 </option>

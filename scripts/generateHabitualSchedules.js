@@ -25,7 +25,8 @@ const dayKeys = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 
 const dayNames = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 const shortDays = ['LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB', 'DOM'];
 
-const storeSchedules = {};
+// 1. Parse Excel rows by code
+const storeSchedulesByCode = {};
 
 for (let i = 1; i < rows.length; i++) {
   const r = rows[i];
@@ -58,7 +59,7 @@ for (let i = 1; i < rows.length; i++) {
     byDayIndex.push(dayData);
   }
 
-  storeSchedules[code] = {
+  storeSchedulesByCode[code] = {
     co,
     code,
     name: rawName,
@@ -68,7 +69,44 @@ for (let i = 1; i < rows.length; i++) {
   };
 }
 
-const codeMapStr = JSON.stringify(storeSchedules, null, 2);
+// 2. Read seedData to map pdv.id ('pdv-1', 'pdv-2', ...) to schedule
+const seedDataPath = path.join(__dirname, '../src/data/seedData.js');
+const seedContent = fs.readFileSync(seedDataPath, 'utf8');
+const pdvStart = seedContent.indexOf('export const initialPDVs =');
+const pdvEnd = seedContent.indexOf('export const initialUsers =');
+
+let initialPdvs = [];
+if (pdvStart !== -1 && pdvEnd !== -1) {
+  initialPdvs = JSON.parse(seedContent.substring(pdvStart + 'export const initialPDVs ='.length, pdvEnd).trim().replace(/;$/, ''));
+}
+
+const storeSchedulesById = {};
+const allSchedulesList = [];
+
+for (const pdv of initialPdvs) {
+  const codeUpper = (pdv.code || '').toUpperCase();
+  const baseSched = storeSchedulesByCode[codeUpper];
+  const fullSched = {
+    id: pdv.id,
+    code: pdv.code,
+    name: pdv.name,
+    city: pdv.city,
+    locationType: baseSched ? baseSched.locationType : (pdv.locationType || 'Centro Comercial'),
+    days: baseSched ? baseSched.days : {},
+    byDayIndex: baseSched ? baseSched.byDayIndex : []
+  };
+
+  storeSchedulesById[pdv.id] = fullSched;
+  if (baseSched) {
+    baseSched.id = pdv.id;
+    baseSched.city = pdv.city;
+  }
+  allSchedulesList.push(fullSched);
+}
+
+const codeMapStr = JSON.stringify(storeSchedulesByCode, null, 2);
+const idMapStr = JSON.stringify(storeSchedulesById, null, 2);
+const allListStr = JSON.stringify(allSchedulesList, null, 2);
 
 const outputContent = `/**
  * Horarios Habituales Oficiales por Punto de Venta (PDV)
@@ -78,38 +116,82 @@ const outputContent = `/**
  */
 
 export const HABITUAL_SCHEDULES_BY_CODE = ${codeMapStr};
+export const HABITUAL_SCHEDULES_BY_ID = ${idMapStr};
+export const ALL_HABITUAL_SCHEDULES = ${allListStr};
 
 /**
- * Normaliza y busca el horario habitual para un PDV dado (por ID, código, nombre u objeto)
+ * Normaliza y busca el horario habitual para un PDV dado (por ID, código, nombre, usuario u objeto)
  */
 export function getHabitualScheduleForPdv(pdvOrCode) {
   if (!pdvOrCode) return null;
   
-  // Si es un objeto PDV
-  let code = null;
+  // 1. Si ya es un objeto PDV con su lista de horarios
   if (typeof pdvOrCode === 'object') {
-    code = pdvOrCode.code;
-    if (!code && pdvOrCode.name) {
+    if (Array.isArray(pdvOrCode.byDayIndex) && pdvOrCode.byDayIndex.length === 7) {
+      return pdvOrCode;
+    }
+    if (Array.isArray(pdvOrCode.habitualScheduleList) && pdvOrCode.habitualScheduleList.length === 7) {
+      return {
+        id: pdvOrCode.id,
+        code: pdvOrCode.code,
+        name: pdvOrCode.name,
+        city: pdvOrCode.city,
+        locationType: pdvOrCode.locationType,
+        days: pdvOrCode.habitualSchedule || {},
+        byDayIndex: pdvOrCode.habitualScheduleList
+      };
+    }
+    // Buscar por ID del objeto
+    if (pdvOrCode.id && HABITUAL_SCHEDULES_BY_ID[pdvOrCode.id]) {
+      return HABITUAL_SCHEDULES_BY_ID[pdvOrCode.id];
+    }
+    // Buscar por código del objeto
+    if (pdvOrCode.code && HABITUAL_SCHEDULES_BY_CODE[pdvOrCode.code.toUpperCase()]) {
+      return HABITUAL_SCHEDULES_BY_CODE[pdvOrCode.code.toUpperCase()];
+    }
+    // Buscar por nombre del objeto
+    if (pdvOrCode.name) {
       const m = pdvOrCode.name.match(/^([A-Za-z0-9]+)/);
-      if (m) code = m[1];
+      if (m && HABITUAL_SCHEDULES_BY_CODE[m[1].toUpperCase()]) {
+        return HABITUAL_SCHEDULES_BY_CODE[m[1].toUpperCase()];
+      }
     }
-  } else if (typeof pdvOrCode === 'string') {
-    const clean = pdvOrCode.trim();
-    if (HABITUAL_SCHEDULES_BY_CODE[clean.toUpperCase()]) {
-      return HABITUAL_SCHEDULES_BY_CODE[clean.toUpperCase()];
-    }
-    const m = clean.match(/^([A-Za-z0-9]+)/);
-    if (m) code = m[1];
   }
 
-  if (code) {
-    const upper = code.toUpperCase();
+  // 2. Si es string
+  if (typeof pdvOrCode === 'string') {
+    const clean = pdvOrCode.trim();
+    const upper = clean.toUpperCase();
+    const lower = clean.toLowerCase();
+
+    // Buscar por ID exacto (ej: 'pdv-1', 'pdv-2', ...)
+    if (HABITUAL_SCHEDULES_BY_ID[lower]) {
+      return HABITUAL_SCHEDULES_BY_ID[lower];
+    }
+    if (HABITUAL_SCHEDULES_BY_ID[clean]) {
+      return HABITUAL_SCHEDULES_BY_ID[clean];
+    }
+
+    // Buscar por código exacto (ej: 'N10', 'Q003', 'Q138', 'QST508')
     if (HABITUAL_SCHEDULES_BY_CODE[upper]) {
       return HABITUAL_SCHEDULES_BY_CODE[upper];
     }
+
+    // Extraer código del inicio (ej: 'Q138 - Manizales...', 'q003')
+    const m = clean.match(/^([A-Za-z0-9]+)/);
+    if (m && HABITUAL_SCHEDULES_BY_CODE[m[1].toUpperCase()]) {
+      return HABITUAL_SCHEDULES_BY_CODE[m[1].toUpperCase()];
+    }
+
+    // Buscar en la lista completa por nombre o ciudad
+    const foundByName = ALL_HABITUAL_SCHEDULES.find(s => 
+      s.name.toLowerCase().includes(lower) || 
+      (s.code && lower.includes(s.code.toLowerCase()))
+    );
+    if (foundByName) return foundByName;
   }
 
-  // Fallback si no coincide exactamente
+  // Fallback seguro si no coincide
   const defaultDays = [
     { dayIndex: 0, dayKey: 'lunes', dayName: 'Lunes', shortDay: 'LUN', open: '10:00', close: '20:30', isClosed: false, label: '10:00 - 20:30' },
     { dayIndex: 1, dayKey: 'martes', dayName: 'Martes', shortDay: 'MAR', open: '10:00', close: '20:30', isClosed: false, label: '10:00 - 20:30' },
@@ -120,6 +202,7 @@ export function getHabitualScheduleForPdv(pdvOrCode) {
     { dayIndex: 6, dayKey: 'domingo', dayName: 'Domingo', shortDay: 'DOM', open: '11:00', close: '19:00', isClosed: false, label: '11:00 - 19:00' },
   ];
   return {
+    id: 'pdv-default',
     co: 0,
     code: 'DEFAULT',
     name: 'Horario Habitual Estándar',
@@ -183,40 +266,4 @@ export function checkOutsideHabitualHours(pdvOrCode, dayIndex, startTime, endTim
 `;
 
 fs.writeFileSync(path.join(__dirname, '../src/data/habitualSchedules.js'), outputContent, 'utf8');
-console.log('Successfully generated src/data/habitualSchedules.js with 101 PDVs!');
-
-// Also update initialPDVs in src/data/seedData.js and server/data/database.json
-const seedDataPath = path.join(__dirname, '../src/data/seedData.js');
-let seedContent = fs.readFileSync(seedDataPath, 'utf8');
-
-const pdvStart = seedContent.indexOf('export const initialPDVs =');
-const pdvEnd = seedContent.indexOf('export const initialUsers =');
-if (pdvStart !== -1 && pdvEnd !== -1) {
-  const oldPdvs = JSON.parse(seedContent.substring(pdvStart + 'export const initialPDVs ='.length, pdvEnd).trim().replace(/;$/, ''));
-  const updatedPdvs = oldPdvs.map(p => {
-    const code = p.code ? p.code.toUpperCase() : '';
-    const hab = storeSchedules[code];
-    return {
-      ...p,
-      locationType: hab ? hab.locationType : (p.locationType || 'Centro Comercial'),
-      habitualSchedule: hab ? hab.days : {},
-      habitualScheduleList: hab ? hab.byDayIndex : []
-    };
-  });
-
-  const newPdvsStr = 'export const initialPDVs = ' + JSON.stringify(updatedPdvs, null, 2) + ';\n\n';
-  seedContent = seedContent.substring(0, pdvStart) + newPdvsStr + seedContent.substring(pdvEnd);
-  fs.writeFileSync(seedDataPath, seedContent, 'utf8');
-  console.log('Successfully updated initialPDVs in src/data/seedData.js!');
-
-  // Update server/data/database.json if it exists
-  const dbPath = path.join(__dirname, '../server/data/database.json');
-  if (fs.existsSync(dbPath)) {
-    const db = JSON.parse(fs.readFileSync(dbPath, 'utf8'));
-    if (db.pdvs) {
-      db.pdvs = updatedPdvs;
-      fs.writeFileSync(dbPath, JSON.stringify(db, null, 2), 'utf8');
-      console.log('Successfully updated pdvs in server/data/database.json!');
-    }
-  }
-}
+console.log('Successfully updated src/data/habitualSchedules.js with HABITUAL_SCHEDULES_BY_ID, HABITUAL_SCHEDULES_BY_CODE, and ALL_HABITUAL_SCHEDULES!');

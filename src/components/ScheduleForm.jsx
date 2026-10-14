@@ -135,6 +135,7 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
 
   const [showPlantillaModal, setShowPlantillaModal] = useState(false);
   const [plantillaSearchTerm, setPlantillaSearchTerm] = useState('');
+  const [showDirectoryModal, setShowDirectoryModal] = useState(false);
 
   // Modal de colaboradores con turnos pendientes por programar
   const [isUnprogrammedModalOpen, setIsUnprogrammedModalOpen] = useState(false);
@@ -1563,6 +1564,27 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
     return result;
   }, [allEmployees, scheduleMatrix, selectedPdvId, filterHours, filterSundays, searchTerm, sortBy, sortDirection]);
 
+  // Group collaborators by PDV when viewing all PDVs
+  const groupedEmployeesByPdv = useMemo(() => {
+    if (selectedPdvId !== 'ALL') return [];
+    const map = new Map();
+    filteredAndSortedEmployees.forEach(emp => {
+      const userRow = scheduleMatrix[emp.id];
+      const pdvObj = (userRow?.pdv?.name || userRow?.pdv?.code)
+        ? userRow.pdv
+        : (pdvs.find(p => p.id === emp.pdvId || p.code === emp.pdvId) || 
+           allowedPdvs.find(p => p.id === emp.pdvId || p.code === emp.pdvId) || 
+           { id: emp.pdvId || 'PDV', name: emp.pdvName || 'Punto de Venta' });
+      const key = pdvObj.id || pdvObj.code || pdvObj.name || 'UNKNOWN';
+      if (!map.has(key)) {
+        map.set(key, { pdv: pdvObj, employees: [] });
+      }
+      map.get(key).employees.push(emp);
+    });
+    return Array.from(map.values());
+  }, [selectedPdvId, filteredAndSortedEmployees, scheduleMatrix, pdvs, allowedPdvs]);
+
+
   function handleToggleSort(field) {
     if (sortBy === field) {
       setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
@@ -1617,6 +1639,286 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
     });
     return map;
   }, [unprogrammedEmployees]);
+
+
+  const renderHabitualRow = (targetPdv, keyPrefix = 'hab-sch') => {
+    if (!targetPdv) return null;
+    return (
+      <tr key={`${keyPrefix}-${targetPdv.id || targetPdv.code}`} className="bg-slate-50/95 border-b-2 border-slate-200">
+        <td className="p-3 w-72 border-r border-slate-200 sticky left-0 bg-slate-50 z-10 shadow-2xs">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 rounded-lg bg-blue-100 text-blue-700 shrink-0">
+              <Clock className="w-4 h-4" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="font-black text-slate-800 text-[11px] uppercase tracking-wider">
+                  Horario Habitual PDV
+                </span>
+                <span className="text-[9px] bg-blue-600 text-white font-extrabold px-1.5 py-0.2 rounded-full uppercase tracking-wider">
+                  Fijo
+                </span>
+              </div>
+              <div className="text-[10px] text-slate-500 font-semibold truncate" title={targetPdv.name}>
+                {targetPdv.code ? `${targetPdv.code} - ${targetPdv.name?.split(' - ')[1] || targetPdv.name}` : targetPdv.name}
+              </div>
+            </div>
+          </div>
+        </td>
+        {weekDates.map((wd, dayIdx) => {
+          const daySched = getHabitualDaySchedule(targetPdv, dayIdx);
+          const isSunday = wd.isSunday || dayIdx === 6;
+          return (
+            <td
+              key={`${keyPrefix}-${wd.date}-${dayIdx}`}
+              className={`p-2 border-r border-slate-200 text-center align-middle ${
+                isSunday ? 'bg-purple-50/40' : 'bg-slate-50/90'
+              }`}
+            >
+              <div className="flex flex-col items-center justify-center">
+                {daySched?.isClosed ? (
+                  <div className="w-full py-1.5 px-1 bg-slate-100/90 border border-slate-200 rounded-lg text-center text-slate-400">
+                    <span className="text-[10px] font-bold block leading-tight">Cerrado</span>
+                    <span className="text-[8px] uppercase tracking-wider font-semibold block">Sin apertura</span>
+                  </div>
+                ) : (
+                  <div className="w-full py-1.5 px-1 bg-white border border-blue-200/90 rounded-lg shadow-2xs text-center">
+                    <span className="text-[10.5px] font-black text-slate-800 block leading-tight tracking-tight">
+                      {daySched?.label || '10:00 - 20:30'}
+                    </span>
+                    <span className="text-[8px] font-extrabold text-blue-600 uppercase tracking-wider block mt-0.5">
+                      Habitual
+                    </span>
+                  </div>
+                )}
+              </div>
+            </td>
+          );
+        })}
+        <td colSpan={4} className="p-2 text-center bg-slate-50 text-[10px] font-bold text-slate-500 border-l border-slate-200">
+          <div className="flex items-center justify-center gap-1.5 text-slate-600">
+            <Lock className="w-3 h-3 text-slate-400" />
+            <span>Horario Oficial Tienda (No modificable)</span>
+          </div>
+        </td>
+      </tr>
+    );
+  };
+
+
+  const renderEmployeeRow = (emp, empIdx) => {
+    const userRow = scheduleMatrix[emp.id] || { shifts: [], monSatStats: {}, sundayStats: {}, pdv: {} };
+                  const monSatHours = userRow.monSatStats?.monSatHours || 0;
+                  const excessHours = userRow.monSatStats?.excessHours || 0;
+                  const exceeds42 = userRow.monSatStats?.exceeds42;
+                  const sundayHours = userRow.monSatStats?.sundayHours || 0;
+                  const totalWeekHours = userRow.monSatStats?.totalHours || 0;
+                  const workedSundaysCount = userRow.sundayStats?.workedSundaysCount || 0;
+                  const requiresApproval = userRow.sundayStats?.requiresApproval;
+                  const isTemporal = (emp.contractType || 'FIJO').toUpperCase() === 'TEMPORAL';
+                  const empPdv = userRow.pdv || pdvs.find(p => p.id === emp.pdvId) || {};
+
+                  return (
+                    <tr key={emp.id} className={`hover:bg-slate-50/80 transition ${empIdx % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'}`}>
+                      {/* Employee Identity Column (Sticky) with Fijo vs Temporal Badge & PDV Name */}
+                      <td className="p-3 border-r border-slate-200 sticky left-0 bg-white z-10 shadow-xs">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-extrabold text-slate-900 leading-tight">{emp.fullName}</span>
+                          {(emp.isRetired || !isCollaboratorActive(emp.documentId)) && (
+                            <span className="text-[9px] font-black px-1.5 py-0.2 rounded border bg-rose-100 text-rose-800 border-rose-300">
+                              Retirado
+                            </span>
+                          )}
+                          <span className={`text-[9px] font-extrabold px-1.5 py-0.2 rounded border ${
+                            isTemporal 
+                              ? 'bg-amber-100 text-amber-800 border-amber-300' 
+                              : 'bg-blue-100 text-blue-800 border-blue-300'
+                          }`}>
+                            {isTemporal ? 'Temporal' : 'Fijo'}
+                          </span>
+                        </div>
+                        <div className="text-[10px] text-slate-500 mt-1 flex items-center gap-1.5 flex-wrap">
+                          <span className="bg-slate-100 text-slate-700 px-1.5 py-0.2 rounded font-mono font-bold">CC: {emp.documentId}</span>
+                          <span className="truncate text-slate-600">{emp.position}</span>
+                        </div>
+                        {empPdv.name && (
+                          <div className="text-[10px] font-bold text-blue-700 mt-1 flex items-center gap-1">
+                            <Store className="w-3 h-3 text-blue-500" />
+                            <span className="truncate">{empPdv.name}</span>
+                          </div>
+                        )}
+                        <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {userRow.isSubmitted ? (
+                              <span className="text-[9px] font-bold bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded flex items-center gap-0.5">
+                                <Lock className="w-2.5 h-2.5" /> Oficial
+                              </span>
+                            ) : (
+                              <span className="text-[9px] font-bold bg-amber-100 text-amber-800 px-1.5 py-0.2 rounded">
+                                Borrador
+                              </span>
+                            )}
+                            {unprogrammedMap.get(emp.id) && (
+                              <span className="text-[9px] font-black bg-rose-100 text-rose-800 border border-rose-300 px-1.5 py-0.2 rounded flex items-center gap-1 animate-pulse" title={unprogrammedMap.get(emp.id).reason}>
+                                <AlertTriangle className="w-2.5 h-2.5 text-rose-600" />
+                                Falta Turno
+                              </span>
+                            )}
+                          </div>
+
+                          {/* STRICT ROLE RESTRICTION: Hide "Eliminar Línea" for isSupervisor & isHrAdmin */}
+                          {!isSupervisor && !isHrAdmin && (!userRow.isSubmitted || isAdmin || isAuditorVrx) && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveEmployeeLine(emp)}
+                              title="Eliminar esta línea de la programación antes de guardar y bloquear"
+                              className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 px-1.5 py-0.5 rounded transition flex items-center gap-1 text-[10px] font-bold border border-transparent hover:border-rose-200"
+                            >
+                              <Trash2 className="w-3 h-3 text-rose-500" />
+                              <span className="text-rose-600">Eliminar Línea</span>
+                            </button>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* 7 Day Shift Columns (Lunes a Domingo) */}
+                      {weekDates.map((wd, dayIdx) => {
+                        const shift = userRow.shifts?.[dayIdx] || {};
+                        const shiftType = shift.shiftType || (shift.isDayOff ? 'DESCANSO' : 'ORDINARIO');
+                        const isCellEditing = editingCell?.userId === emp.id && editingCell?.dayIndex === dayIdx;
+                        const isShiftLocked = isSupervisor || isHrAdmin || (userRow.isSubmitted && !shift.correctionRequested && !isAdmin && !isAuditorVrx);
+
+                        let badgeColor = 'bg-blue-50 text-blue-800 border-blue-200 hover:bg-blue-100';
+                        if (shiftType === 'DESCANSO') badgeColor = 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200';
+                        else if (shiftType === 'INCAPACIDAD') badgeColor = 'bg-rose-50 text-rose-800 border-rose-200 hover:bg-rose-100';
+                        else if (shiftType === 'VACACIONES') badgeColor = 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100';
+                        else if (shiftType === 'LICENCIA') badgeColor = 'bg-indigo-50 text-indigo-800 border-indigo-200 hover:bg-indigo-100';
+                        else if (shiftType === 'NO_PROGRAMADO') badgeColor = 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100';
+
+                        return (
+                          <td
+                            key={wd.date}
+                            className={`p-2 border-r border-slate-200 text-center align-middle ${
+                              wd.isSunday ? 'bg-purple-50/30' : ''
+                            }`}
+                          >
+                            {/* In-Cell Display Pill */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (!isShiftLocked) setEditingCell({ userId: emp.id, dayIndex: dayIdx });
+                              }}
+                              disabled={isShiftLocked}
+                              className={`w-full p-2 rounded-xl border text-center transition flex flex-col items-center justify-center gap-0.5 ${badgeColor} ${
+                                isCellEditing ? 'ring-2 ring-blue-600 shadow-md bg-blue-100/90 font-bold' : ''
+                              } ${
+                                isShiftLocked ? 'cursor-default opacity-90' : 'cursor-pointer hover:shadow-xs'
+                              }`}
+                            >
+                              {shiftType === 'ORDINARIO' ? (
+                                <>
+                                  <div className="font-extrabold text-[11px] leading-tight text-slate-900">
+                                    {formatExcelTime(shift.startTime) || '--:--'} - {formatExcelTime(shift.endTime) || '--:--'}
+                                  </div>
+                                  <div className="text-[9px] font-bold text-slate-500 flex items-center gap-1">
+                                    <span>{shift.netHours || 0} hrs</span>
+                                    {shift.lunchApplied && (
+                                      <span title="Deducción de 1:30 de almuerzo" className="text-amber-600 font-extrabold">☕</span>
+                                    )}
+                                  </div>
+                                  {(() => {
+                                    const outsideCheck = checkOutsideHabitualHours(
+                                      empPdv || currentHabitualPdv,
+                                      dayIdx,
+                                      formatExcelTime(shift.startTime),
+                                      formatExcelTime(shift.endTime)
+                                    );
+                                    if (outsideCheck?.isOutside) {
+                                      return (
+                                        <span
+                                          className="bg-amber-100 text-amber-900 border border-amber-300 text-[7.5px] font-black px-1 py-0.2 rounded mt-0.5 block truncate max-w-full"
+                                          title={`Programado fuera del horario habitual: ${outsideCheck.reason} (Habitual: ${outsideCheck.habitualRange})`}
+                                        >
+                                          ⚠️ Fuera Habitual
+                                        </span>
+                                      );
+                                    }
+                                    return null;
+                                  })()}
+                                </>
+                              ) : (
+                                <>
+                                  <div className="font-extrabold text-[10px] uppercase leading-tight">
+                                    {shiftType}
+                                  </div>
+                                  <div className="text-[9px] font-semibold text-slate-500">
+                                    {shiftType === 'NO_PROGRAMADO' ? '0.0 hrs' : '7.0 hrs'}
+                                  </div>
+                                </>
+                              )}
+
+                              {shift.correctionRequested && (
+                                <span className="bg-rose-600 text-white text-[8px] px-1 py-0.2 rounded font-extrabold animate-pulse mt-0.5">
+                                  ⚠️ Corrección
+                                </span>
+                              )}
+                            </button>
+                          </td>
+                        );
+                      })}
+
+                      {/* Mon-Sat Hours Total (with 42h limit warning) */}
+                      <td className="p-3 text-center border-r border-slate-200 bg-slate-50/50">
+                        <div className={`font-black text-sm ${exceeds42 ? 'text-rose-700' : 'text-slate-900'}`}>
+                          {monSatHours} hrs
+                        </div>
+                        {exceeds42 ? (
+                          <span className="bg-rose-100 text-rose-800 text-[9px] font-black px-1.5 py-0.2 rounded-full border border-rose-300 block mt-0.5">
+                            +{excessHours}h excede 42h
+                          </span>
+                        ) : (
+                          <span className="text-[9px] text-emerald-700 font-bold block mt-0.5">
+                            ✓ L-S Cumple
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Sunday / Holiday Hours */}
+                      <td className="p-3 text-center border-r border-slate-200 bg-slate-50/50">
+                        <div className="font-bold text-purple-900 text-xs">
+                          {sundayHours > 0 ? `${sundayHours}h` : '0h'}
+                        </div>
+                      </td>
+
+                      {/* Total Weekly Hours */}
+                      <td className="p-3 text-center border-r border-slate-200 bg-blue-50/40">
+                        <div className="font-black text-blue-900 text-sm">
+                          {totalWeekHours} hrs
+                        </div>
+                      </td>
+
+                      {/* Monthly Sundays Counter (max 2/month limit) */}
+                      <td className="p-3 text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                            requiresApproval
+                              ? 'bg-rose-100 text-rose-800 border border-rose-300'
+                              : workedSundaysCount === 2
+                              ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                              : 'bg-slate-100 text-slate-700'
+                          }`}>
+                            {workedSundaysCount} / 2 domingos
+                          </span>
+                        </div>
+                        {requiresApproval && (
+                          <span className="text-[9px] text-rose-700 font-bold block mt-0.5">
+                            ⚠️ Requiere Aprobación
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+    );
+  };
 
   return (
     <div className="max-w-[98%] xl:max-w-[1650px] 2xl:max-w-[1850px] mx-auto px-2 sm:px-4 py-6 space-y-6">
@@ -1845,6 +2147,24 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
                     <span>{pdv.city} • <strong>{empCount} colab.</strong></span>
                     <span className="font-mono font-bold text-slate-800">{totalHours}h sem</span>
                   </div>
+
+                  {(() => {
+                    const pdvHabitual = getHabitualScheduleForPdv(pdv);
+                    if (!pdvHabitual) return null;
+                    return (
+                      <div className="mt-1.5 pt-1.5 border-t border-slate-200/60 flex items-center justify-between text-[10px] text-indigo-700 font-medium">
+                        <span className="flex items-center gap-1 truncate" title={`L-S: ${pdvHabitual.hoursMondayToSaturday || 'N/A'}`}>
+                          <Clock className="w-2.5 h-2.5 text-indigo-500 shrink-0" />
+                          <span className="truncate">L-S: {pdvHabitual.hoursMondayToSaturday || 'N/A'}</span>
+                        </span>
+                        {pdvHabitual.sundaySchedule && (
+                          <span className="text-[9px] bg-indigo-50 text-indigo-700 px-1 py-0.2 rounded font-semibold shrink-0 ml-1">
+                            Dom: {pdvHabitual.sundaySchedule}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })()}
 
                   {overtimeCount > 0 && (
                     <div className="mt-1 text-[10px] font-bold text-rose-600 flex items-center gap-1">
@@ -2132,6 +2452,17 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
                 <span>Descargar Excel Horarios</span>
               </button>
             )}
+
+            {/* BOTÓN DIRECTORIO DE HORARIOS HABITUALES (Visible para todos los perfiles) */}
+            <button
+              type="button"
+              onClick={() => setShowDirectoryModal(true)}
+              className="flex items-center gap-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 font-bold text-xs px-3.5 py-2 rounded-xl transition shadow-xs cursor-pointer"
+              title="Consultar directorio oficial de horarios habituales de los 101 PDVs"
+            >
+              <Clock className="w-3.5 h-3.5 text-indigo-600" />
+              <span>Ver Horarios Habituales (101 PDVs)</span>
+            </button>
 
             {/* Guardar y Bloquear: Exclusivo PDV / Admin / Auditor VRX (Oculto para HR y Supervisor) */}
             {!isSupervisor && !isHrAdmin && (
@@ -2423,68 +2754,6 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 text-xs">
-              {/* FILA FIJA OFICIAL: HORARIO HABITUAL DEL PDV (NO MODIFICABLE) */}
-              {currentHabitualPdv && (
-                <tr className="bg-slate-50/95 border-b-2 border-slate-200">
-                  <td className="p-3 w-72 border-r border-slate-200 sticky left-0 bg-slate-50 z-10 shadow-2xs">
-                    <div className="flex items-center gap-2">
-                      <div className="p-1.5 rounded-lg bg-blue-100 text-blue-700 shrink-0">
-                        <Clock className="w-4 h-4" />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-black text-slate-800 text-[11px] uppercase tracking-wider">
-                            Horario Habitual PDV
-                          </span>
-                          <span className="text-[9px] bg-blue-600 text-white font-extrabold px-1.5 py-0.2 rounded-full uppercase tracking-wider">
-                            Fijo
-                          </span>
-                        </div>
-                        <div className="text-[10px] text-slate-500 font-semibold truncate" title={currentHabitualPdv.name}>
-                          {currentHabitualPdv.code ? `${currentHabitualPdv.code} - ${currentHabitualPdv.name?.split(' - ')[1] || currentHabitualPdv.name}` : currentHabitualPdv.name}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  {weekDates.map((wd, dayIdx) => {
-                    const daySched = getHabitualDaySchedule(currentHabitualPdv, dayIdx);
-                    const isSunday = wd.isSunday || dayIdx === 6;
-                    return (
-                      <td
-                        key={`hab-sch-${wd.date}`}
-                        className={`p-2 border-r border-slate-200 text-center align-middle ${
-                          isSunday ? 'bg-purple-50/40' : 'bg-slate-50/90'
-                        }`}
-                      >
-                        <div className="flex flex-col items-center justify-center">
-                          {daySched?.isClosed ? (
-                            <div className="w-full py-1.5 px-1 bg-slate-100/90 border border-slate-200 rounded-lg text-center text-slate-400">
-                              <span className="text-[10px] font-bold block leading-tight">Cerrado</span>
-                              <span className="text-[8px] uppercase tracking-wider font-semibold block">Sin apertura</span>
-                            </div>
-                          ) : (
-                            <div className="w-full py-1.5 px-1 bg-white border border-blue-200/90 rounded-lg shadow-2xs text-center">
-                              <span className="text-[10.5px] font-black text-slate-800 block leading-tight tracking-tight">
-                                {daySched?.label || '10:00 - 20:30'}
-                              </span>
-                              <span className="text-[8px] font-extrabold text-blue-600 uppercase tracking-wider block mt-0.5">
-                                Habitual
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                    );
-                  })}
-                  <td colSpan={4} className="p-2 text-center bg-slate-50 text-[10px] font-bold text-slate-500 border-l border-slate-200">
-                    <div className="flex items-center justify-center gap-1.5 text-slate-600">
-                      <Lock className="w-3 h-3 text-slate-400" />
-                      <span>Horario Oficial Tienda (No modificable)</span>
-                    </div>
-                  </td>
-                </tr>
-              )}
-
               {filteredAndSortedEmployees.length === 0 ? (
                 <tr>
                   <td colSpan={12} className="p-10 text-center text-slate-400">
@@ -2497,220 +2766,50 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
                     </p>
                   </td>
                 </tr>
-              ) : (
-                filteredAndSortedEmployees.map((emp, empIdx) => {
-                  const userRow = scheduleMatrix[emp.id] || { shifts: [], monSatStats: {}, sundayStats: {}, pdv: {} };
-                  const monSatHours = userRow.monSatStats?.monSatHours || 0;
-                  const excessHours = userRow.monSatStats?.excessHours || 0;
-                  const exceeds42 = userRow.monSatStats?.exceeds42;
-                  const sundayHours = userRow.monSatStats?.sundayHours || 0;
-                  const totalWeekHours = userRow.monSatStats?.totalHours || 0;
-                  const workedSundaysCount = userRow.sundayStats?.workedSundaysCount || 0;
-                  const requiresApproval = userRow.sundayStats?.requiresApproval;
-                  const isTemporal = (emp.contractType || 'FIJO').toUpperCase() === 'TEMPORAL';
-                  const empPdv = userRow.pdv || pdvs.find(p => p.id === emp.pdvId) || {};
-
+              ) : selectedPdvId === 'ALL' && groupedEmployeesByPdv.length > 0 ? (
+                groupedEmployeesByPdv.map((group, gIdx) => {
+                  const groupPdv = group.pdv;
+                  const habitual = getHabitualScheduleForPdv(groupPdv);
                   return (
-                    <tr key={emp.id} className={`hover:bg-slate-50/80 transition ${empIdx % 2 === 0 ? 'bg-white' : 'bg-slate-50/40'}`}>
-                      {/* Employee Identity Column (Sticky) with Fijo vs Temporal Badge & PDV Name */}
-                      <td className="p-3 border-r border-slate-200 sticky left-0 bg-white z-10 shadow-xs">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="font-extrabold text-slate-900 leading-tight">{emp.fullName}</span>
-                          {(emp.isRetired || !isCollaboratorActive(emp.documentId)) && (
-                            <span className="text-[9px] font-black px-1.5 py-0.2 rounded border bg-rose-100 text-rose-800 border-rose-300">
-                              Retirado
-                            </span>
-                          )}
-                          <span className={`text-[9px] font-extrabold px-1.5 py-0.2 rounded border ${
-                            isTemporal 
-                              ? 'bg-amber-100 text-amber-800 border-amber-300' 
-                              : 'bg-blue-100 text-blue-800 border-blue-300'
-                          }`}>
-                            {isTemporal ? 'Temporal' : 'Fijo'}
-                          </span>
-                        </div>
-                        <div className="text-[10px] text-slate-500 mt-1 flex items-center gap-1.5 flex-wrap">
-                          <span className="bg-slate-100 text-slate-700 px-1.5 py-0.2 rounded font-mono font-bold">CC: {emp.documentId}</span>
-                          <span className="truncate text-slate-600">{emp.position}</span>
-                        </div>
-                        {empPdv.name && (
-                          <div className="text-[10px] font-bold text-blue-700 mt-1 flex items-center gap-1">
-                            <Store className="w-3 h-3 text-blue-500" />
-                            <span className="truncate">{empPdv.name}</span>
-                          </div>
-                        )}
-                        <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between gap-1">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            {userRow.isSubmitted ? (
-                              <span className="text-[9px] font-bold bg-emerald-100 text-emerald-800 px-1.5 py-0.2 rounded flex items-center gap-0.5">
-                                <Lock className="w-2.5 h-2.5" /> Oficial
+                    <React.Fragment key={`grp-${groupPdv?.id || groupPdv?.code || gIdx}`}>
+                      <tr className="bg-slate-900 text-white font-bold border-t-2 border-slate-700">
+                        <td colSpan={12} className="px-4 py-2.5 sticky left-0 z-10 bg-slate-900">
+                          <div className="flex items-center justify-between flex-wrap gap-2">
+                            <div className="flex items-center gap-2">
+                              <Store className="w-4 h-4 text-blue-400" />
+                              <span className="text-xs font-black tracking-wide">
+                                {groupPdv?.code ? `${groupPdv.code} - ${groupPdv.name?.split(' - ')[1] || groupPdv.name}` : (groupPdv?.name || 'PDV')}
                               </span>
-                            ) : (
-                              <span className="text-[9px] font-bold bg-amber-100 text-amber-800 px-1.5 py-0.2 rounded">
-                                Borrador
+                              <span className="text-[10px] text-slate-400 font-medium">
+                                ({groupPdv?.city || 'PDV'} • {group.employees.length} {group.employees.length === 1 ? 'colaborador' : 'colaboradores'})
                               </span>
-                            )}
-                            {unprogrammedMap.get(emp.id) && (
-                              <span className="text-[9px] font-black bg-rose-100 text-rose-800 border border-rose-300 px-1.5 py-0.2 rounded flex items-center gap-1 animate-pulse" title={unprogrammedMap.get(emp.id).reason}>
-                                <AlertTriangle className="w-2.5 h-2.5 text-rose-600" />
-                                Falta Turno
-                              </span>
-                            )}
-                          </div>
-
-                          {/* STRICT ROLE RESTRICTION: Hide "Eliminar Línea" for isSupervisor & isHrAdmin */}
-                          {!isSupervisor && !isHrAdmin && (!userRow.isSubmitted || isAdmin || isAuditorVrx) && (
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveEmployeeLine(emp)}
-                              title="Eliminar esta línea de la programación antes de guardar y bloquear"
-                              className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 px-1.5 py-0.5 rounded transition flex items-center gap-1 text-[10px] font-bold border border-transparent hover:border-rose-200"
-                            >
-                              <Trash2 className="w-3 h-3 text-rose-500" />
-                              <span className="text-rose-600">Eliminar Línea</span>
-                            </button>
-                          )}
-                        </div>
-                      </td>
-
-                      {/* 7 Day Shift Columns (Lunes a Domingo) */}
-                      {weekDates.map((wd, dayIdx) => {
-                        const shift = userRow.shifts?.[dayIdx] || {};
-                        const shiftType = shift.shiftType || (shift.isDayOff ? 'DESCANSO' : 'ORDINARIO');
-                        const isCellEditing = editingCell?.userId === emp.id && editingCell?.dayIndex === dayIdx;
-                        const isShiftLocked = isSupervisor || isHrAdmin || (userRow.isSubmitted && !shift.correctionRequested && !isAdmin && !isAuditorVrx);
-
-                        let badgeColor = 'bg-blue-50 text-blue-800 border-blue-200 hover:bg-blue-100';
-                        if (shiftType === 'DESCANSO') badgeColor = 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200';
-                        else if (shiftType === 'INCAPACIDAD') badgeColor = 'bg-rose-50 text-rose-800 border-rose-200 hover:bg-rose-100';
-                        else if (shiftType === 'VACACIONES') badgeColor = 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100';
-                        else if (shiftType === 'LICENCIA') badgeColor = 'bg-indigo-50 text-indigo-800 border-indigo-200 hover:bg-indigo-100';
-                        else if (shiftType === 'NO_PROGRAMADO') badgeColor = 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100';
-
-                        return (
-                          <td
-                            key={wd.date}
-                            className={`p-2 border-r border-slate-200 text-center align-middle ${
-                              wd.isSunday ? 'bg-purple-50/30' : ''
-                            }`}
-                          >
-                            {/* In-Cell Display Pill */}
-                            <button
-                              type="button"
-                              onClick={() => {
-                                if (!isShiftLocked) setEditingCell({ userId: emp.id, dayIndex: dayIdx });
-                              }}
-                              disabled={isShiftLocked}
-                              className={`w-full p-2 rounded-xl border text-center transition flex flex-col items-center justify-center gap-0.5 ${badgeColor} ${
-                                isCellEditing ? 'ring-2 ring-blue-600 shadow-md bg-blue-100/90 font-bold' : ''
-                              } ${
-                                isShiftLocked ? 'cursor-default opacity-90' : 'cursor-pointer hover:shadow-xs'
-                              }`}
-                            >
-                              {shiftType === 'ORDINARIO' ? (
-                                <>
-                                  <div className="font-extrabold text-[11px] leading-tight text-slate-900">
-                                    {formatExcelTime(shift.startTime) || '--:--'} - {formatExcelTime(shift.endTime) || '--:--'}
-                                  </div>
-                                  <div className="text-[9px] font-bold text-slate-500 flex items-center gap-1">
-                                    <span>{shift.netHours || 0} hrs</span>
-                                    {shift.lunchApplied && (
-                                      <span title="Deducción de 1:30 de almuerzo" className="text-amber-600 font-extrabold">☕</span>
-                                    )}
-                                  </div>
-                                  {(() => {
-                                    const outsideCheck = checkOutsideHabitualHours(
-                                      empPdv || currentHabitualPdv,
-                                      dayIdx,
-                                      formatExcelTime(shift.startTime),
-                                      formatExcelTime(shift.endTime)
-                                    );
-                                    if (outsideCheck?.isOutside) {
-                                      return (
-                                        <span
-                                          className="bg-amber-100 text-amber-900 border border-amber-300 text-[7.5px] font-black px-1 py-0.2 rounded mt-0.5 block truncate max-w-full"
-                                          title={`Programado fuera del horario habitual: ${outsideCheck.reason} (Habitual: ${outsideCheck.habitualRange})`}
-                                        >
-                                          ⚠️ Fuera Habitual
-                                        </span>
-                                      );
-                                    }
-                                    return null;
-                                  })()}
-                                </>
-                              ) : (
-                                <>
-                                  <div className="font-extrabold text-[10px] uppercase leading-tight">
-                                    {shiftType}
-                                  </div>
-                                  <div className="text-[9px] font-semibold text-slate-500">
-                                    {shiftType === 'NO_PROGRAMADO' ? '0.0 hrs' : '7.0 hrs'}
-                                  </div>
-                                </>
-                              )}
-
-                              {shift.correctionRequested && (
-                                <span className="bg-rose-600 text-white text-[8px] px-1 py-0.2 rounded font-extrabold animate-pulse mt-0.5">
-                                  ⚠️ Corrección
+                            </div>
+                            {habitual && (
+                              <div className="flex items-center gap-2 text-[10px]">
+                                <span className="bg-blue-900/60 text-blue-200 border border-blue-700/50 px-2 py-0.5 rounded-md flex items-center gap-1 font-semibold">
+                                  <Clock className="w-3 h-3 text-blue-300" />
+                                  L-S: {habitual.hoursMondayToSaturday || 'N/A'}
                                 </span>
-                              )}
-                            </button>
-                          </td>
-                        );
-                      })}
-
-                      {/* Mon-Sat Hours Total (with 42h limit warning) */}
-                      <td className="p-3 text-center border-r border-slate-200 bg-slate-50/50">
-                        <div className={`font-black text-sm ${exceeds42 ? 'text-rose-700' : 'text-slate-900'}`}>
-                          {monSatHours} hrs
-                        </div>
-                        {exceeds42 ? (
-                          <span className="bg-rose-100 text-rose-800 text-[9px] font-black px-1.5 py-0.2 rounded-full border border-rose-300 block mt-0.5">
-                            +{excessHours}h excede 42h
-                          </span>
-                        ) : (
-                          <span className="text-[9px] text-emerald-700 font-bold block mt-0.5">
-                            ✓ L-S Cumple
-                          </span>
-                        )}
-                      </td>
-
-                      {/* Sunday / Holiday Hours */}
-                      <td className="p-3 text-center border-r border-slate-200 bg-slate-50/50">
-                        <div className="font-bold text-purple-900 text-xs">
-                          {sundayHours > 0 ? `${sundayHours}h` : '0h'}
-                        </div>
-                      </td>
-
-                      {/* Total Weekly Hours */}
-                      <td className="p-3 text-center border-r border-slate-200 bg-blue-50/40">
-                        <div className="font-black text-blue-900 text-sm">
-                          {totalWeekHours} hrs
-                        </div>
-                      </td>
-
-                      {/* Monthly Sundays Counter (max 2/month limit) */}
-                      <td className="p-3 text-center">
-                        <div className="flex items-center justify-center gap-1">
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
-                            requiresApproval
-                              ? 'bg-rose-100 text-rose-800 border border-rose-300'
-                              : workedSundaysCount === 2
-                              ? 'bg-amber-100 text-amber-800 border border-amber-300'
-                              : 'bg-slate-100 text-slate-700'
-                          }`}>
-                            {workedSundaysCount} / 2 domingos
-                          </span>
-                        </div>
-                        {requiresApproval && (
-                          <span className="text-[9px] text-rose-700 font-bold block mt-0.5">
-                            ⚠️ Requiere Aprobación
-                          </span>
-                        )}
-                      </td>
-                    </tr>
+                                {habitual.sundaySchedule && (
+                                  <span className="bg-purple-900/60 text-purple-200 border border-purple-700/50 px-2 py-0.5 rounded-md font-semibold">
+                                    Dom: {habitual.sundaySchedule}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                      {renderHabitualRow(groupPdv, `hab-grp-${gIdx}`)}
+                      {group.employees.map((emp, empIdx) => renderEmployeeRow(emp, `${gIdx}-${empIdx}`))}
+                    </React.Fragment>
                   );
                 })
+              ) : (
+                <>
+                  {currentHabitualPdv && renderHabitualRow(currentHabitualPdv, 'hab-single')}
+                  {filteredAndSortedEmployees.map((emp, empIdx) => renderEmployeeRow(emp, empIdx))}
+                </>
               )}
             </tbody>
           </table>
@@ -3161,6 +3260,12 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
           </div>
         </div>
       )}
+      {/* 9. MODAL: DIRECTORIO DE HORARIOS HABITUALES OFICIALES (101 PDVs) */}
+      <HabitualSchedulesDirectoryModal
+        isOpen={showDirectoryModal}
+        onClose={() => setShowDirectoryModal(false)}
+        currentPdv={currentHabitualPdv}
+      />
     </div>
   );
 }
