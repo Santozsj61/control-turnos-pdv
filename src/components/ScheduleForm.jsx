@@ -22,6 +22,7 @@ import { api } from '../services/api.js';
 import { supabase } from '../services/supabaseClient.js';
 import { isCollaboratorActive, tagCollaboratorStatus, ACTIVE_371_DOCUMENTS } from '../data/activeCollaborators371.js';
 import { getHabitualScheduleForPdv, getHabitualDaySchedule, checkOutsideHabitualHours } from '../data/habitualSchedules.js';
+import HabitualSchedulesDirectoryModal from './HabitualSchedulesDirectoryModal.jsx';
 
 const DAYS_NAME = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 

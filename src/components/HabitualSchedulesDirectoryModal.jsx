@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Clock, Search, X, Store, Building2, MapPin, CheckCircle2, Lock, Filter, ExternalLink } from 'lucide-react';
 import { ALL_HABITUAL_SCHEDULES, getHabitualDaySchedule } from '../data/habitualSchedules.js';
 
-export default function HabitualSchedulesDirectoryModal({ isOpen, onClose, onSelectPdv, currentPdvId }) {
+export default function HabitualSchedulesDirectoryModal({ isOpen, onClose, onSelectPdv, currentPdvId, currentPdv }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterLocation, setFilterLocation] = useState('ALL'); // 'ALL' | 'Calle' | 'Centro Comercial'
   const [filterSunday, setFilterSunday] = useState('ALL'); // 'ALL' | 'OPEN' | 'CLOSED'
@@ -142,7 +142,8 @@ export default function HabitualSchedulesDirectoryModal({ isOpen, onClose, onSel
                 </tr>
               ) : (
                 filteredStores.map((store, sIdx) => {
-                  const isCurrent = store.id === currentPdvId || store.code === currentPdvId;
+                  const effectiveCurrentId = currentPdvId || currentPdv?.id || currentPdv?.code;
+                  const isCurrent = effectiveCurrentId && (store.id === effectiveCurrentId || store.code === effectiveCurrentId);
                   const domSched = store.days?.domingo || store.byDayIndex?.[6];
                   const isDomClosed = domSched?.isClosed;
 
