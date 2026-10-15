@@ -55,7 +55,36 @@ export default function PendingCoverageMonitorView({ currentUser, pdvs, supervis
       const weekData = COVERAGE_MONITOR_BY_WEEK[w];
       if (!weekData || !weekData.pdvs) return;
 
+      // Check if store submitted schedules in localStorage for this week
+      let localWeekSchedules = null;
+      if (typeof window !== 'undefined' && window.localStorage && weekData.start) {
+        try {
+          const raw = window.localStorage.getItem('control_turnos_schedules_' + weekData.start);
+          if (raw) localWeekSchedules = JSON.parse(raw);
+        } catch (e) {}
+      }
+
       weekData.pdvs.forEach(p => {
+        let programmedCount = p.programmedCount;
+        let pendingProgramCount = p.pendingProgramCount;
+        let pendingCollabs = p.pendingCollaborators;
+
+        if (localWeekSchedules && Array.isArray(localWeekSchedules) && localWeekSchedules.length > 0) {
+          const storeScheds = localWeekSchedules.filter(s => s.pdvId === p.pdvId);
+          if (storeScheds.length > 0) {
+            const programmedDocIds = new Set(
+              storeScheds.map(s => s.user?.document_id || (s.userId?.startsWith('emp-') ? s.userId.replace('emp-', '') : s.userId)).filter(Boolean)
+            );
+            pendingCollabs = p.pendingCollaborators.map(c => {
+              const isProg = programmedDocIds.has(c.documentId);
+              return isProg ? { ...c, isPendingProgram: false, issues: (c.issues || []).filter(i => !i.toLowerCase().includes('turno')) } : c;
+            });
+            const stillPendingProg = pendingCollabs.filter(c => c.isPendingProgram).length;
+            programmedCount = Math.max(programmedCount, p.totalStaff - stillPendingProg);
+            pendingProgramCount = stillPendingProg;
+          }
+        }
+
         if (!pdvMap.has(p.pdvId)) {
           pdvMap.set(p.pdvId, {
             pdvId: p.pdvId,
@@ -64,27 +93,26 @@ export default function PendingCoverageMonitorView({ currentUser, pdvs, supervis
             city: p.city,
             zone: p.zone,
             supervisorName: p.supervisorName,
+            supervisorId: p.supervisorId,
             totalStaff: p.totalStaff,
-            programmedCount: p.programmedCount,
-            pendingProgramCount: p.pendingProgramCount,
+            programmedCount,
+            pendingProgramCount,
             punchesCount: p.punchesCount,
             pendingPunchesCount: p.pendingPunchesCount,
             weeksCovered: 1,
-            pendingCollaborators: [...p.pendingCollaborators]
+            pendingCollaborators: pendingCollabs.map(c => ({ ...c, week: w }))
           });
         } else {
           const item = pdvMap.get(p.pdvId);
           item.weeksCovered++;
-          // Take highest or average staff
           item.totalStaff = Math.max(item.totalStaff, p.totalStaff);
-          item.programmedCount += p.programmedCount;
-          item.pendingProgramCount += p.pendingProgramCount;
-          item.punchesCount += p.punchesCount;
-          item.pendingPunchesCount += p.pendingPunchesCount;
-          
-          // Merge unique pending collaborators
-          p.pendingCollaborators.forEach(collab => {
-            const exists = item.pendingCollaborators.find(c => c.documentId === collab.documentId);
+          item.programmedCount = Math.min(item.programmedCount, programmedCount);
+          item.pendingProgramCount = Math.max(item.pendingProgramCount, pendingProgramCount);
+          item.punchesCount = Math.min(item.punchesCount, p.punchesCount);
+          item.pendingPunchesCount = Math.max(item.pendingPunchesCount, p.pendingPunchesCount);
+
+          pendingCollabs.forEach(collab => {
+            const exists = item.pendingCollaborators.find(c => c.documentId === collab.documentId && c.week === w);
             if (!exists) {
               item.pendingCollaborators.push({ ...collab, week: w });
             }
@@ -115,8 +143,14 @@ export default function PendingCoverageMonitorView({ currentUser, pdvs, supervis
       // Zone filter
       if (selectedZone) {
         const sup = supervisors?.find(s => s.id === selectedZone);
-        if (sup && p.supervisorName !== sup.name && !p.zone?.toLowerCase().includes(sup.zone?.toLowerCase())) {
-          return false;
+        if (sup) {
+          const matchSupId = p.supervisorId && p.supervisorId === sup.id;
+          const matchSupName = p.supervisorName && p.supervisorName.toLowerCase() === sup.name.toLowerCase();
+          const targetZone = sup.zoneName || sup.zone || '';
+          const matchZone = targetZone && p.zone && p.zone.toLowerCase().includes(targetZone.toLowerCase());
+          if (!matchSupId && !matchSupName && !matchZone) {
+            return false;
+          }
         }
       }
 
@@ -290,7 +324,7 @@ export default function PendingCoverageMonitorView({ currentUser, pdvs, supervis
             >
               <option value="">🌐 Todas las Zonas Nacionales</option>
               {supervisors?.map(s => (
-                <option key={s.id} value={s.id}>{s.name} ({s.zone})</option>
+                <option key={s.id} value={s.id}>{s.name} ({s.zoneName || s.zone || 'Regional'})</option>
               ))}
             </select>
           </div>

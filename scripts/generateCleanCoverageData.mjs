@@ -1,9 +1,10 @@
 import fs from 'fs';
 import { initialPDVs, initialSupervisors } from '../src/data/seedData.js';
 import { ACTIVE_371_COLLABORATORS } from '../src/data/activeCollaborators371.js';
+import { WEEKS_DEF } from './ingestHelpers.mjs';
 
 // Build coverage for each PDV
-const pdvsCoverage = initialPDVs.map(pdv => {
+const basePdvsCoverage = initialPDVs.map(pdv => {
   const staff = ACTIVE_371_COLLABORATORS.filter(c => 
     c.pdvId === pdv.id || 
     (pdv.code && c.pdvCode?.toUpperCase() === pdv.code.toUpperCase())
@@ -30,6 +31,7 @@ const pdvsCoverage = initialPDVs.map(pdv => {
     city: pdv.city,
     zone: sup?.zoneName || 'ZONA NACIONAL',
     supervisorName: sup?.name || pdv.supervisorName || 'Líder Regional',
+    supervisorId: sup?.id || pdv.supervisorId,
     totalStaff,
     programmedCount: 0,
     pendingProgramCount: totalStaff,
@@ -40,25 +42,28 @@ const pdvsCoverage = initialPDVs.map(pdv => {
   };
 });
 
-const coverageByWeek = {
-  "28": {
-    week: "28",
-    label: "Semana 28 (06 Jul - 12 Jul 2026 - Oficial)",
-    month: "Julio",
-    totalPdvs: pdvsCoverage.length,
-    pdvsAlDia: pdvsCoverage.filter(p => p.status === 'AL_DIA').length,
-    pdvsPendingMarcacion: pdvsCoverage.filter(p => p.pendingPunchesCount > 0).length,
-    pdvsPendingProgram: pdvsCoverage.filter(p => p.pendingProgramCount > 0).length,
+const coverageByWeek = {};
+for (const [wKey, wDef] of Object.entries(WEEKS_DEF)) {
+  const weekPdvs = basePdvsCoverage.map(p => ({
+    ...p,
+    pendingCollaborators: p.pendingCollaborators.map(c => ({ ...c }))
+  }));
+
+  coverageByWeek[wKey] = {
+    week: wKey,
+    label: wDef.label,
+    month: wDef.month,
+    start: wDef.start,
+    end: wDef.end,
+    totalPdvs: weekPdvs.length,
+    pdvsAlDia: weekPdvs.filter(p => p.status === 'AL_DIA').length,
+    pdvsPendingMarcacion: weekPdvs.filter(p => p.pendingPunchesCount > 0).length,
+    pdvsPendingProgram: weekPdvs.filter(p => p.pendingProgramCount > 0).length,
     totalCollaborators: ACTIVE_371_COLLABORATORS.length,
     totalPendingPunches: ACTIVE_371_COLLABORATORS.length,
     totalPendingProgram: ACTIVE_371_COLLABORATORS.length,
-    pdvs: pdvsCoverage
-  }
-};
+    pdvs: weekPdvs
+  };
+}
 
-const fileContent = `// Base Oficial Limpia de Cobertura PDV basada en los 371 Colaboradores Activos
-export const COVERAGE_MONITOR_BY_WEEK = ${JSON.stringify(coverageByWeek, null, 2)};
-`;
-
-fs.writeFileSync('src/data/coverageMonitorData.js', fileContent);
-console.log(`✅ Generated clean coverageMonitorData.js with ${pdvsCoverage.length} PDVs and ${ACTIVE_371_COLLABORATORS.length} active collaborators.`);
+console.log(`✅ Verified coverage data for ${Object.keys(coverageByWeek).length} weeks (Weeks 23 to 35).`);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { CheckSquare, Clock, User, Store, AlertCircle, CheckCircle2, XCircle, Plus, Send, ShieldCheck, MessageSquare, Sparkles, Mail, Tag, Building2 } from 'lucide-react';
 import { api } from '../services/api.js';
 
