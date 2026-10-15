@@ -665,26 +665,14 @@ export function parseMallaExcel(data, customWeekStart = '2026-07-06') {
   const targetSheetName = workbook.SheetNames.find(n => 
     n.toLowerCase().includes('cronograma') || 
     n.toLowerCase().includes('malla') || 
-    n.toLowerCase().includes('horario')
+    n.toLowerCase().includes('horario') ||
+    n.toLowerCase().includes('hoja1')
   ) || workbook.SheetNames[0];
 
   const ws = workbook.Sheets[targetSheetName];
   const rawRows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
   if (!rawRows || rawRows.length < 2) {
     throw new Error('La hoja de cronograma está vacía o no tiene encabezados válidos.');
-  }
-
-  const start = new Date(customWeekStart + 'T12:00:00Z');
-  const dayNames = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
-  const weekDates = [];
-  for (let i = 0; i < 7; i++) {
-    const cur = new Date(start.getTime() + i * 86400000);
-    weekDates.push({
-      date: cur.toISOString().split('T')[0],
-      dayName: dayNames[i],
-      inCol: 3 + i * 2,
-      outCol: 4 + i * 2
-    });
   }
 
   function numToTime(val) {
@@ -701,18 +689,89 @@ export function parseMallaExcel(data, customWeekStart = '2026-07-06') {
     return s;
   }
 
-  const schedules = [];
+  function getWeekStartByNumber(weekNum) {
+    const base = new Date(Date.UTC(2025, 11, 29, 12, 0, 0));
+    const weekStart = new Date(base.getTime() + (Number(weekNum) - 1) * 7 * 86400000);
+    return weekStart.toISOString().split('T')[0];
+  }
 
-  for (let r = 1; r < rawRows.length; r++) {
+  const dayNames = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+
+  // Detect file layout:
+  // Layout A (Multi-week): has 'sem' or 'periodo' in headers, or col 0 is numeric week (e.g. 36)
+  const headerStr = (rawRows[0] || []).map(normalizeKey).join(' ');
+  const isMultiWeek = headerStr.includes('sem') || 
+                      headerStr.includes('period') || 
+                      (rawRows[2] && !isNaN(rawRows[2][0]) && Number(rawRows[2][0]) >= 1 && Number(rawRows[2][0]) <= 53);
+
+  const pdvCol = isMultiWeek ? 2 : 0;
+  const docCol = isMultiWeek ? 3 : 1;
+  const nameCol = isMultiWeek ? 4 : 2;
+  const shiftStartCol = isMultiWeek ? 5 : 3;
+
+  // Determine starting row for data (skip header rows)
+  let startRow = 1;
+  for (let r = 0; r < Math.min(rawRows.length, 5); r++) {
+    const firstCell = String(rawRows[r][0] || '').trim();
+    if (!isNaN(firstCell) && Number(firstCell) >= 1 && Number(firstCell) <= 53) {
+      startRow = r;
+      break;
+    }
+    const colPdv = String(rawRows[r][pdvCol] || '').trim().toUpperCase();
+    if (colPdv.startsWith('Q') || colPdv.startsWith('N') || colPdv.includes('-')) {
+      startRow = r;
+      break;
+    }
+  }
+
+  const schedulesMap = new Map();
+  let lastSeenPdv = '';
+
+  for (let r = startRow; r < rawRows.length; r++) {
     const row = rawRows[r];
     if (!row || row.length < 3) continue;
-    const rawPdv = String(row[0] || '').trim();
-    const doc = String(row[1] || '').trim();
-    const fullName = String(row[2] || '').trim();
-    if (!doc || !rawPdv) continue;
+
+    // Resolve week start for this row
+    let activeWeekStart = customWeekStart;
+    if (isMultiWeek) {
+      const semVal = Number(row[0]);
+      if (semVal >= 1 && semVal <= 53) {
+        activeWeekStart = getWeekStartByNumber(semVal);
+      }
+    }
+
+    let rawPdv = String(row[pdvCol] || '').trim();
+    let rawDoc = String(row[docCol] || '').trim();
+    let rawName = String(row[nameCol] || '').trim();
+
+    // Shifted row handler (cédula placed in PDV col)
+    if (!isNaN(rawPdv) && rawPdv.length >= 6 && isNaN(rawDoc)) {
+      rawDoc = rawPdv;
+      rawName = String(row[docCol] || row[nameCol] || '').trim();
+      rawPdv = lastSeenPdv;
+    } else if (rawPdv) {
+      lastSeenPdv = rawPdv;
+    } else {
+      rawPdv = lastSeenPdv;
+    }
+
+    if (!rawDoc || !rawPdv) continue;
 
     const matchCode = rawPdv.match(/^([A-Za-z0-9]+)/);
     const code = matchCode ? matchCode[1] : '';
+
+    // Build 7 calendar dates for this specific week
+    const startObj = new Date(activeWeekStart + 'T12:00:00Z');
+    const weekDates = [];
+    for (let i = 0; i < 7; i++) {
+      const cur = new Date(startObj.getTime() + i * 86400000);
+      weekDates.push({
+        date: cur.toISOString().split('T')[0],
+        dayName: dayNames[i],
+        inCol: shiftStartCol + i * 2,
+        outCol: shiftStartCol + 1 + i * 2
+      });
+    }
 
     const shifts = weekDates.map(wd => {
       const rawIn = row[wd.inCol];
@@ -720,11 +779,12 @@ export function parseMallaExcel(data, customWeekStart = '2026-07-06') {
       const timeIn = numToTime(rawIn);
       const timeOut = numToTime(rawOut);
 
-      const isDescanso = typeof rawIn === 'string' && (rawIn.toLowerCase().includes('descanso') || rawIn.toLowerCase().includes('no labora'));
-      const isIncapacidad = typeof rawIn === 'string' && rawIn.toLowerCase().includes('incapacidad');
-      const isVacaciones = typeof rawIn === 'string' && rawIn.toLowerCase().includes('vacacion');
-      const isLicencia = typeof rawIn === 'string' && rawIn.toLowerCase().includes('licencia');
-      const isNoProg = typeof rawIn === 'string' && (rawIn.toLowerCase().includes('no programado') || rawIn === '');
+      const strIn = String(rawIn || '').trim().toLowerCase();
+      const isDescanso = strIn.includes('descanso') || strIn.includes('no labora');
+      const isIncapacidad = strIn.includes('incapacidad');
+      const isVacaciones = strIn.includes('vacacion');
+      const isLicencia = strIn.includes('licencia');
+      const isNoProg = strIn.includes('no programado') || (!timeIn && !timeOut);
 
       let shiftType = 'ORDINARIO';
       let isDayOff = false;
@@ -741,7 +801,7 @@ export function parseMallaExcel(data, customWeekStart = '2026-07-06') {
       } else if (isLicencia) {
         shiftType = 'LICENCIA';
         isDayOff = true;
-      } else if (isNoProg || (!timeIn && !timeOut)) {
+      } else if (isNoProg) {
         shiftType = 'NO_PROGRAMADO';
         isDayOff = true;
       }
@@ -767,44 +827,62 @@ export function parseMallaExcel(data, customWeekStart = '2026-07-06') {
 
     const totalNetHours = +shifts.reduce((sum, s) => sum + (s.netHours || 0), 0).toFixed(2);
     const totalLunchHours = +shifts.reduce((sum, s) => sum + (s.lunchHours || 0), 0).toFixed(2);
-    const userId = `emp-${doc}`;
+    const userId = `emp-${rawDoc}`;
 
-    const { isActive, displayName } = tagCollaboratorStatus(doc, fullName);
+    const { isActive, displayName } = tagCollaboratorStatus(rawDoc, rawName);
     const isRetired = !isActive;
 
-    schedules.push({
-      id: `sched-${userId}-${customWeekStart}`,
-      userId,
-      user_id: userId,
-      documentId: doc,
-      document_id: doc,
-      fullName: displayName,
-      originalFullName: fullName,
-      isRetired,
-      statusLabel: isActive ? 'Activo' : 'Retirado',
-      pdvCode: code,
-      pdvName: rawPdv,
-      weekStart: customWeekStart,
-      week_start: customWeekStart,
-      weekEnd: weekDates[weekDates.length - 1].date,
-      week_end: weekDates[weekDates.length - 1].date,
-      isSubmitted: true,
-      is_submitted: true,
-      totalNetHours,
-      total_net_hours: totalNetHours,
-      totalLunchHours,
-      total_lunch_hours: totalLunchHours,
-      shifts
-    });
+    const schedKey = `${userId}_${activeWeekStart}`;
+
+    if (schedulesMap.has(schedKey)) {
+      const existing = schedulesMap.get(schedKey);
+      // Merge shifts for employee working across stores in the same week
+      shifts.forEach((s, idx) => {
+        if (s.startTime && !s.isDayOff) {
+          existing.shifts[idx] = s;
+        }
+      });
+      existing.totalNetHours = +existing.shifts.reduce((sum, s) => sum + (s.netHours || 0), 0).toFixed(2);
+      existing.totalLunchHours = +existing.shifts.reduce((sum, s) => sum + (s.lunchHours || 0), 0).toFixed(2);
+    } else {
+      schedulesMap.set(schedKey, {
+        id: `sched-${userId}-${activeWeekStart}`,
+        userId,
+        user_id: userId,
+        documentId: rawDoc,
+        document_id: rawDoc,
+        fullName: displayName,
+        originalFullName: rawName,
+        isRetired,
+        statusLabel: isActive ? 'Activo' : 'Retirado',
+        pdvCode: code,
+        pdvName: rawPdv,
+        weekStart: activeWeekStart,
+        week_start: activeWeekStart,
+        weekEnd: weekDates[weekDates.length - 1].date,
+        week_end: weekDates[weekDates.length - 1].date,
+        isSubmitted: true,
+        is_submitted: true,
+        totalNetHours,
+        total_net_hours: totalNetHours,
+        totalLunchHours,
+        total_lunch_hours: totalLunchHours,
+        shifts
+      });
+    }
   }
 
+  const schedules = Array.from(schedulesMap.values());
   const retiredCount = schedules.filter(s => s.isRetired).length;
   const activeCount = schedules.filter(s => !s.isRetired).length;
+  const distinctWeeks = [...new Set(schedules.map(s => s.weekStart))];
 
   return {
     success: true,
     sheetUsed: targetSheetName,
-    weekStart: customWeekStart,
+    isMultiWeek,
+    distinctWeeks,
+    weekStart: isMultiWeek ? distinctWeeks[0] : customWeekStart,
     recordCount: schedules.length,
     retiredCount,
     activeCount,

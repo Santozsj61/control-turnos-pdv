@@ -289,10 +289,12 @@ export default function PendingCoverageMonitorView({ currentUser, pdvs, supervis
               }}
               className="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2 font-medium text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:bg-white"
             >
-              <option value="ALL">🗓️ Todos los Meses (Jun - Ago)</option>
+              <option value="ALL">🗓️ Todos los Meses (Jun - Oct)</option>
               <option value="Junio">Junio 2026 (Sem 23-26)</option>
               <option value="Julio">Julio 2026 (Sem 27-31)</option>
               <option value="Agosto">Agosto 2026 (Sem 31-35)</option>
+              <option value="Septiembre">Septiembre 2026 (Sem 36-40)</option>
+              <option value="Octubre">Octubre 2026 (Sem 40-43)</option>
             </select>
           </div>
 

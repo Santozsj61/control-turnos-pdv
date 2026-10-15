@@ -79,6 +79,54 @@ export const WEEKS_DEF = {
     end: '2026-08-30',
     label: 'Semana 35 (24 Ago - 30 Ago 2026)',
     month: 'Agosto'
+  },
+  '36': {
+    start: '2026-08-31',
+    end: '2026-09-06',
+    label: 'Semana 36 (31 Ago - 06 Sep 2026)',
+    month: 'Septiembre'
+  },
+  '37': {
+    start: '2026-09-07',
+    end: '2026-09-13',
+    label: 'Semana 37 (07 Sep - 13 Sep 2026)',
+    month: 'Septiembre'
+  },
+  '38': {
+    start: '2026-09-14',
+    end: '2026-09-20',
+    label: 'Semana 38 (14 Sep - 20 Sep 2026)',
+    month: 'Septiembre'
+  },
+  '39': {
+    start: '2026-09-21',
+    end: '2026-09-27',
+    label: 'Semana 39 (21 Sep - 27 Sep 2026)',
+    month: 'Septiembre'
+  },
+  '40': {
+    start: '2026-09-28',
+    end: '2026-10-04',
+    label: 'Semana 40 (28 Sep - 04 Oct 2026)',
+    month: 'Septiembre / Octubre'
+  },
+  '41': {
+    start: '2026-10-05',
+    end: '2026-10-11',
+    label: 'Semana 41 (05 Oct - 11 Oct 2026)',
+    month: 'Octubre'
+  },
+  '42': {
+    start: '2026-10-12',
+    end: '2026-10-18',
+    label: 'Semana 42 (12 Oct - 18 Oct 2026 - Semana Actual ⭐)',
+    month: 'Octubre'
+  },
+  '43': {
+    start: '2026-10-19',
+    end: '2026-10-25',
+    label: 'Semana 43 (19 Oct - 25 Oct 2026)',
+    month: 'Octubre'
   }
 };
 

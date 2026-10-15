@@ -13,7 +13,15 @@ export const LOADED_WEEKS_SET = new Set([
   '2026-08-03', // Sem 32 (03 Ago - 09 Ago 2026)
   '2026-08-10', // Sem 33 (10 Ago - 16 Ago 2026)
   '2026-08-17', // Sem 34 (17 Ago - 23 Ago 2026)
-  '2026-08-24'  // Sem 35 (24 Ago - 30 Ago 2026)
+  '2026-08-24', // Sem 35 (24 Ago - 30 Ago 2026)
+  '2026-08-31', // Sem 36 (31 Ago - 06 Sep 2026)
+  '2026-09-07', // Sem 37 (07 Sep - 13 Sep 2026)
+  '2026-09-14', // Sem 38 (14 Sep - 20 Sep 2026)
+  '2026-09-21', // Sem 39 (21 Sep - 27 Sep 2026)
+  '2026-09-28', // Sem 40 (28 Sep - 04 Oct 2026)
+  '2026-10-05', // Sem 41 (05 Oct - 11 Oct 2026)
+  '2026-10-12', // Sem 42 (12 Oct - 18 Oct 2026)
+  '2026-10-19'  // Sem 43 (19 Oct - 25 Oct 2026)
 ]);
 
 export const KNOWN_WEEKS_WITH_DATA = Array.from(LOADED_WEEKS_SET);
