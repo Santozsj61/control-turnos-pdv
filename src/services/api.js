@@ -1854,6 +1854,13 @@ export const api = {
       }
     }
 
+    const currentPeriodLabel = periodType === 'WEEK' && weekStart
+      ? `Semana ${weekStart}`
+      : `Mes ${month}`;
+    const previousPeriodLabel = periodType === 'WEEK' && prevWeekStart
+      ? `Semana ${prevWeekStart}`
+      : `Mes ${prevMonthStr}`;
+
     const prevPeriodSchedules = schedules.filter(s => {
       const matchPdv = pdvIdSet.size === 0 || pdvIdSet.has(s.pdvId);
       if (periodType === 'WEEK') {

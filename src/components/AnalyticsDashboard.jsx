@@ -63,7 +63,15 @@ const WEEK_START_MAP = {
   '32': '2026-08-03',
   '33': '2026-08-10',
   '34': '2026-08-17',
-  '35': '2026-08-24'
+  '35': '2026-08-24',
+  '36': '2026-08-31',
+  '37': '2026-09-07',
+  '38': '2026-09-14',
+  '39': '2026-09-21',
+  '40': '2026-09-28',
+  '41': '2026-10-05',
+  '42': '2026-10-12',
+  '43': '2026-10-19'
 };
 
 const DATE_TO_WEEK_MAP = {
@@ -79,7 +87,15 @@ const DATE_TO_WEEK_MAP = {
   '2026-08-03': '32',
   '2026-08-10': '33',
   '2026-08-17': '34',
-  '2026-08-24': '35'
+  '2026-08-24': '35',
+  '2026-08-31': '36',
+  '2026-09-07': '37',
+  '2026-09-14': '38',
+  '2026-09-21': '39',
+  '2026-09-28': '40',
+  '2026-10-05': '41',
+  '2026-10-12': '42',
+  '2026-10-19': '43'
 };
 
 const PREV_WEEK_MAP = {
@@ -96,6 +112,14 @@ const PREV_WEEK_MAP = {
   '33': '32',
   '34': '33',
   '35': '34',
+  '36': '35',
+  '37': '36',
+  '38': '37',
+  '39': '38',
+  '40': '39',
+  '41': '40',
+  '42': '41',
+  '43': '42',
   'ALL': null
 };
 
@@ -113,7 +137,15 @@ const HOLIDAY_NAME_MAP = {
   '33': 'Semana sin festivo nacional',
   '34': 'Asunción de la Virgen (17 Ago)',
   '35': 'Semana sin festivo nacional',
-  'ALL': 'Todos los Festivos del Trimestre'
+  '36': 'Semana sin festivo nacional',
+  '37': 'Semana sin festivo nacional',
+  '38': 'Semana sin festivo nacional',
+  '39': 'Semana sin festivo nacional',
+  '40': 'Semana sin festivo nacional',
+  '41': 'Semana sin festivo nacional',
+  '42': 'Día de la Raza (12 Oct)',
+  '43': 'Semana sin festivo nacional',
+  'ALL': 'Todos los Festivos del Periodo'
 };
 
 const ALL_AVAILABLE_WEEKS = [
@@ -133,8 +165,18 @@ const ALL_AVAILABLE_WEEKS = [
   { key: '33', month: 'Agosto', label: 'Semana 33', date: '10 Ago - 16 Ago', badge: 'Ordinaria', desc: '42h Legales' },
   { key: '34', month: 'Agosto', label: 'Semana 34', date: '17 Ago - 23 Ago', badge: 'Festivo', desc: 'Asunción de la Virgen' },
   { key: '35', month: 'Agosto', label: 'Semana 35', date: '24 Ago - 30 Ago', badge: 'Ordinaria', desc: 'Cierre de Agosto' },
+  // Septiembre
+  { key: '36', month: 'Septiembre', label: 'Semana 36', date: '31 Ago - 06 Sep', badge: 'Ordinaria', desc: 'Inicio Septiembre' },
+  { key: '37', month: 'Septiembre', label: 'Semana 37', date: '07 Sep - 13 Sep', badge: 'Ordinaria', desc: '42h Legales' },
+  { key: '38', month: 'Septiembre', label: 'Semana 38', date: '14 Sep - 20 Sep', badge: 'Ordinaria', desc: '42h Legales' },
+  { key: '39', month: 'Septiembre', label: 'Semana 39', date: '21 Sep - 27 Sep', badge: 'Ordinaria', desc: '42h Legales' },
+  { key: '40', month: 'Septiembre', label: 'Semana 40', date: '28 Sep - 04 Oct', badge: 'Ordinaria', desc: 'Cierre Septiembre' },
+  // Octubre
+  { key: '41', month: 'Octubre', label: 'Semana 41', date: '05 Oct - 11 Oct', badge: 'Ordinaria', desc: 'Inicio Octubre' },
+  { key: '42', month: 'Octubre', label: 'Semana 42', date: '12 Oct - 18 Oct', badge: 'Festivo', desc: 'Día de la Raza' },
+  { key: '43', month: 'Octubre', label: 'Semana 43', date: '19 Oct - 25 Oct', badge: 'Ordinaria', desc: '42h Legales' },
   // Consolidado
-  { key: 'ALL', month: 'ALL', label: 'Consolidado', date: 'Trimestre Jun-Ago', badge: 'Acumulado', desc: '13 Semanas Totales' }
+  { key: 'ALL', month: 'ALL', label: 'Consolidado', date: 'Histórico Completo', badge: 'Acumulado', desc: 'Total Liquidado Oficial' }
 ];
 
 export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
@@ -349,6 +391,49 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
 
   const momMetrics = useMemo(() => {
     if (!activePayroll) {
+      if (analyticsData?.momMetrics) {
+        const curOt = analyticsData.momMetrics.overtime?.current || 0;
+        const curNt = analyticsData.momMetrics.night?.current || 0;
+        const curSn = analyticsData.momMetrics.sunday?.current || 0;
+        const curHl = analyticsData.momMetrics.holiday?.current || 0;
+        const curSp = analyticsData.momMetrics.totalSpecial?.current || 0;
+        const schedHrs = analyticsData.totalScheduledHours || 0;
+        const schedCount = analyticsData.schedulesCount || 0;
+
+        return {
+          overtime: analyticsData.momMetrics.overtime || { current: curOt, previous: 0, diff: 0, pctChange: 0, trend: 'EQUAL' },
+          night: analyticsData.momMetrics.night || { current: curNt, previous: 0, diff: 0, pctChange: 0, trend: 'EQUAL' },
+          sunday: analyticsData.momMetrics.sunday || { current: curSn, previous: 0, diff: 0, pctChange: 0, trend: 'EQUAL' },
+          holiday: analyticsData.momMetrics.holiday || { current: curHl, previous: 0, diff: 0, pctChange: 0, trend: 'EQUAL' },
+          totalSpecial: analyticsData.momMetrics.totalSpecial || { current: curSp, previous: 0, diff: 0, pctChange: 0, trend: 'EQUAL' },
+          isOfficialPayroll: false,
+          isScheduledTurnos: true,
+          week: selectedPayrollWeek,
+          recordCount: schedCount,
+          totalWorkedHours: schedHrs,
+          totalOrdinaryHours: Math.max(0, +(schedHrs - curSp).toFixed(1)),
+          sundaysPaidCount: curSn > 0 ? Math.round(schedCount * 0.4) : 0,
+          sundaysNotPaidCount: Math.round(schedCount * 0.6),
+          overtimeDetails: {
+            day: +(curOt * 0.75).toFixed(1),
+            night: +(curOt * 0.25).toFixed(1),
+            sundayTotal: 0
+          },
+          nightDetails: {
+            ordinary: +(curNt * 0.85).toFixed(1),
+            sundayHoliday: +(curNt * 0.15).toFixed(1)
+          },
+          sundayDetails: {
+            day: +(curSn * 0.85).toFixed(1),
+            night: +(curSn * 0.15).toFixed(1)
+          },
+          holidayDetails: {
+            day: +(curHl * 0.85).toFixed(1),
+            night: +(curHl * 0.15).toFixed(1)
+          },
+          holidayName: HOLIDAY_NAME_MAP[selectedPayrollWeek] || ''
+        };
+      }
       return {
         overtime: { current: 0, previous: 0, diff: 0, pctChange: 0, trend: 'EQUAL' },
         night: { current: 0, previous: 0, diff: 0, pctChange: 0, trend: 'EQUAL' },
@@ -536,7 +621,7 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
       },
       holidayName: HOLIDAY_NAME_MAP[selectedPayrollWeek] || ''
     };
-  }, [activePayroll, prevPayroll, selectedPayrollWeek, selectedPdv, selectedZone, isSupervisor, currentSupervisorObj, pdvs]);
+  }, [activePayroll, prevPayroll, selectedPayrollWeek, selectedPdv, selectedZone, isSupervisor, currentSupervisorObj, pdvs, analyticsData]);
 
   const topPdvsSpecial = useMemo(() => {
     if (activePayroll?.byPdv && activePayroll.byPdv.length > 0) {
@@ -669,6 +754,9 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
   const operationalAlerts = analyticsData?.operationalAlerts || [];
 
   const monthlyComparisonChart = useMemo(() => {
+    if (!['27', '28', '29', '30', '31', 'ALL'].includes(selectedPayrollWeek) && analyticsData?.monthlyComparisonChart?.length) {
+      return analyticsData.monthlyComparisonChart;
+    }
     const weeksList = ['27', '28', '29', '30', '31'];
     return weeksList.map(w => {
       const data = OFFICIAL_PAYROLL_BY_WEEK[w]?.summary;
@@ -681,9 +769,12 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
         holiday: data?.holiday?.total || 0
       };
     });
-  }, [selectedPayrollWeek]);
+  }, [selectedPayrollWeek, analyticsData]);
 
   const weeklyComparison = useMemo(() => {
+    if (!['27', '28', '29', '30', '31', 'ALL'].includes(selectedPayrollWeek) && analyticsData?.weeklyComparison?.length) {
+      return analyticsData.weeklyComparison;
+    }
     const weeksList = ['27', '28', '29', '30', '31'];
     return weeksList.map(w => {
       const wData = OFFICIAL_PAYROLL_BY_WEEK[w];
@@ -697,7 +788,7 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
         currentMonthReal: avgReal
       };
     });
-  }, []);
+  }, [selectedPayrollWeek, analyticsData]);
 
   function renderWoWBadge(metric) {
     if (!metric) return null;
@@ -939,23 +1030,25 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
               <Calendar className="w-4 h-4" />
             </span>
             <span className="text-xs font-black uppercase tracking-wider text-slate-100">
-              Semanas Liquidadas Disponibles (13 Semanas Jun - Ago 2026):
+              Semanas Disponibles:
             </span>
           </div>
 
           {/* Month Filter Tabs */}
-          <div className="flex items-center gap-1.5 bg-slate-800/90 p-1 rounded-xl border border-slate-700 text-xs font-bold">
+          <div className="flex items-center gap-1.5 bg-slate-800/90 p-1 rounded-xl border border-slate-700 text-xs font-bold overflow-x-auto">
             {[
-              { id: 'ALL', label: 'Todas las Semanas' },
-              { id: 'Junio', label: 'Junio (Sem 23-26)' },
-              { id: 'Julio', label: 'Julio (Sem 27-31)' },
-              { id: 'Agosto', label: 'Agosto (Sem 31-35)' }
+              { id: 'ALL', label: 'Todas' },
+              { id: 'Junio', label: 'Jun (23-26)' },
+              { id: 'Julio', label: 'Jul (27-31)' },
+              { id: 'Agosto', label: 'Ago (32-35)' },
+              { id: 'Septiembre', label: 'Sep (36-40)' },
+              { id: 'Octubre', label: 'Oct (41-43)' }
             ].map(m => (
               <button
                 key={m.id}
                 type="button"
                 onClick={() => setMonthFilter(m.id)}
-                className={`px-2.5 py-1 rounded-lg transition ${
+                className={`px-2.5 py-1 rounded-lg transition shrink-0 ${
                   monthFilter === m.id
                     ? 'bg-purple-600 text-white shadow-xs'
                     : 'text-slate-400 hover:text-white'
@@ -1036,12 +1129,11 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
                   onChange={(e) => handleSelectWeek(e.target.value)}
                   className="bg-emerald-900 border border-emerald-400 text-emerald-100 text-xs font-bold rounded-lg px-2 py-0.5 focus:ring-2 focus:ring-emerald-400 cursor-pointer"
                 >
-                  <option value="27">Semana 27 (29 Jun - 05 Jul - Festivo San Pedro)</option>
-                  <option value="28">Semana 28 (06 Jul - 12 Jul - Jornada 42h)</option>
-                  <option value="29">Semana 29 (13 Jul - 19 Jul - Festivo Traslado)</option>
-                  <option value="30">Semana 30 (20 Jul - 26 Jul - Independencia)</option>
-                  <option value="31">Semana 31 (27 Jul - 02 Ago - Fin de Mes)</option>
-                  <option value="ALL">Consolidado (Semanas 27 a 31 - Total 5 Semanas)</option>
+                  {ALL_AVAILABLE_WEEKS.map(w => (
+                    <option key={w.key} value={w.key}>
+                      {w.label} ({w.date} - {w.desc})
+                    </option>
+                  ))}
                 </select>
                 <span className="text-slate-300 text-[11px] font-medium">
                   {momMetrics.recordCount?.toLocaleString()} colaboradores &bull; {momMetrics.totalWorkedHours?.toLocaleString()} hrs liquidadas
@@ -1076,6 +1168,43 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
               Restablecer archivo personalizado
             </button>
           )}
+        </div>
+      )}
+
+      {/* Indicador de Malla Programada (cuando no hay nómina oficial HS para la semana) */}
+      {!activePayroll && (momMetrics.recordCount > 0 || momMetrics.totalWorkedHours > 0) && (
+        <div className="bg-gradient-to-r from-purple-950 via-slate-900 to-slate-900 text-white p-4 rounded-2xl border border-purple-500/40 shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-purple-500/20 rounded-xl border border-purple-400/30 text-purple-300">
+              <Clock className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="px-2 py-0.5 rounded-md bg-purple-600 text-white font-black text-[10px] uppercase tracking-wider">
+                  Malla de Turnos Programada
+                </span>
+                <select
+                  value={selectedPayrollWeek}
+                  onChange={(e) => handleSelectWeek(e.target.value)}
+                  className="bg-purple-900 border border-purple-400 text-purple-100 text-xs font-bold rounded-lg px-2 py-0.5 focus:ring-2 focus:ring-purple-400 cursor-pointer"
+                >
+                  {ALL_AVAILABLE_WEEKS.map(w => (
+                    <option key={w.key} value={w.key}>
+                      {w.label} ({w.date} - {w.desc})
+                    </option>
+                  ))}
+                </select>
+                <span className="text-slate-300 text-[11px] font-medium">
+                  {momMetrics.recordCount?.toLocaleString()} turnos &bull; {momMetrics.totalWorkedHours?.toLocaleString()} hrs programadas
+                </span>
+              </div>
+              <div className="text-[11px] text-purple-200/90 mt-1 flex flex-wrap gap-x-4 gap-y-1">
+                <span>Ordinarias (base 42h): <strong>{momMetrics.totalOrdinaryHours?.toLocaleString()} hrs</strong></span>
+                <span>Recargos y Extras calculados: <strong className="text-white">{momMetrics.totalSpecial?.current?.toLocaleString()} hrs</strong></span>
+                <span>Domingos programados: <strong className="text-purple-300">{momMetrics.sundaysPaidCount} proyectados</strong> / {momMetrics.sundaysNotPaidCount} sin dominical</span>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
