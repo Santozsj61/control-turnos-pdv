@@ -1070,6 +1070,73 @@ export const api = {
   },
 
   // ----------------------------------------------------
+  // Edición maestra (exclusiva perfil AUDITOR_VRX): marcaciones y programación sin restricción de fecha
+  // ----------------------------------------------------
+  vrxEditPunch: async ({ role, punchId, documentId, fullName, position, pdvName, supervisorName, date, entryTime, exitTime }) => {
+    if (role !== 'AUDITOR_VRX') throw new Error('Solo el perfil maestro VRX puede modificar marcaciones.');
+    if (!isSupabaseConfigured) throw new Error('La edición maestra requiere conexión a la base de datos.');
+    const norm = (t) => {
+      const m = String(t || '').trim().match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+      return m ? `${m[1].padStart(2, '0')}:${m[2]}:${m[3] || '00'}` : '';
+    };
+    const entry = norm(entryTime);
+    const exit = norm(exitTime);
+    if (!entry) throw new Error('Hora de entrada inválida (use HH:MM).');
+    let exitDate = date;
+    if (exit && exit.substring(0, 5) < entry.substring(0, 5)) {
+      const d = new Date(date + 'T12:00:00Z');
+      exitDate = new Date(d.getTime() + 86400000).toISOString().split('T')[0];
+    }
+    const calcs = exit ? calculateShiftHours(entry.substring(0, 5), exit.substring(0, 5), date) : {};
+    const payload = {
+      entry_date: date,
+      entry_time: entry,
+      exit_date: exit ? exitDate : date,
+      exit_time: exit || '-',
+      real_calculations: calcs
+    };
+    memoryCache.clearReconciliation();
+    if (punchId) {
+      const { error } = await supabase.from('punch_records').update(payload).eq('id', punchId);
+      if (error) throw new Error(error.message);
+      return { success: true, id: punchId };
+    }
+    const id = `punch-vrx-${documentId}-${date}-${Date.now()}`;
+    const { error } = await supabase.from('punch_records').insert({
+      id,
+      batch_id: null,
+      document_id: documentId,
+      code: `COD-${String(documentId).slice(-4)}`,
+      full_name: fullName,
+      position,
+      pdv_name: pdvName || '',
+      supervisor_name: supervisorName || 'Líder Regional',
+      ...payload
+    });
+    if (error) throw new Error(error.message);
+    return { success: true, id };
+  },
+
+  vrxEditScheduleShift: async ({ role, schedule, date, startTime, endTime, isDayOff }) => {
+    if (role !== 'AUDITOR_VRX') throw new Error('Solo el perfil maestro VRX puede modificar la programación.');
+    if (!schedule?.userId) throw new Error('Programación no encontrada.');
+    const shifts = (schedule.shifts || []).map(s => ({ ...s }));
+    const idx = shifts.findIndex(s => s.date === date);
+    const base = idx >= 0 ? shifts[idx] : { date };
+    const updated = isDayOff
+      ? { ...base, date, shiftType: 'DESCANSO', isDayOff: true, startTime: '', endTime: '' }
+      : { ...base, date, shiftType: 'ORDINARIO', isDayOff: false, startTime, endTime };
+    if (idx >= 0) shifts[idx] = updated; else shifts.push(updated);
+    shifts.sort((a, b) => String(a.date).localeCompare(String(b.date)));
+    return api.saveBatchPdvSchedules({
+      pdvId: schedule.pdvId,
+      weekStart: schedule.weekStart,
+      weekEnd: schedule.weekEnd,
+      schedules: [{ userId: schedule.userId, pdvId: schedule.pdvId, shifts, notes: schedule.notes }]
+    });
+  },
+
+  // ----------------------------------------------------
   // 8. Reconciliation & Auditor VRX Engine
   // ----------------------------------------------------
   getNovelties: async () => {

@@ -7,6 +7,7 @@ import { api } from '../services/api.js';
 import { isCollaboratorActive } from '../data/activeCollaborators371.js';
 import { getHabitualScheduleForPdv, getHabitualDaySchedule, checkOutsideHabitualHours } from '../data/habitualSchedules.js';
 import HabitualSchedulesDirectoryModal from './HabitualSchedulesDirectoryModal.jsx';
+import VrxPunchEditor from './VrxPunchEditor.jsx';
 
 export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
   const isAdmin = currentUser?.role === 'ADMIN';
@@ -3223,6 +3224,15 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                 <p className="text-emerald-700 font-semibold">✓ Marcación conforme al horario programado.</p>
               )}
             </div>
+
+            {isAuditorVrx && (
+              <VrxPunchEditor
+                key={selectedRowDetail.id}
+                row={selectedRowDetail}
+                currentUser={currentUser}
+                onSaved={() => { setSelectedRowDetail(null); fetchReconciliation(); }}
+              />
+            )}
 
             <div className="text-right pt-2">
               <button

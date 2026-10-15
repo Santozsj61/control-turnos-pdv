@@ -36,6 +36,32 @@ export default function HistoryView({ currentUser, pdvs, supervisors }) {
   const [filterType, setFilterType] = useState('ALL'); // 'ALL', 'FIJO', 'TEMPORAL'
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedEmpId, setExpandedEmpId] = useState(null);
+  const [reloadKey, setReloadKey] = useState(0);
+  const [editCell, setEditCell] = useState(null); // { emp, schedule, date, label, start, end, dayOff }
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [editError, setEditError] = useState('');
+
+  async function saveVrxEdit() {
+    if (!editCell) return;
+    setSavingEdit(true);
+    setEditError('');
+    try {
+      await api.vrxEditScheduleShift({
+        role: currentUser?.role,
+        schedule: editCell.schedule,
+        date: editCell.date,
+        startTime: editCell.start,
+        endTime: editCell.end,
+        isDayOff: editCell.dayOff
+      });
+      setEditCell(null);
+      setReloadKey(k => k + 1);
+    } catch (err) {
+      setEditError(err.message || 'No se pudo guardar el horario.');
+    } finally {
+      setSavingEdit(false);
+    }
+  }
 
   const activePdv = allowedPdvs.find(p => p.id === selectedPdvId || p.code === selectedPdvId) || allowedPdvs[0] || pdvs[0];
   const activeSupervisor = supervisors.find(s => s.id === activePdv?.supervisorId);
@@ -109,7 +135,7 @@ export default function HistoryView({ currentUser, pdvs, supervisors }) {
       }
     }
     loadData();
-  }, [activePdv?.id]);
+  }, [activePdv?.id, reloadKey]);
 
   // Extract all distinct weekStart dates
   const availableWeeks = Array.from(new Set([
@@ -372,10 +398,37 @@ export default function HistoryView({ currentUser, pdvs, supervisors }) {
                       {weekDays.map(day => {
                         const shift = shiftsByDate[day.date];
 
+                        const vrxEditButton = (shiftObj) => isAuditorVrx ? (
+                          <button
+                            type="button"
+                            title="Editar horario (VRX)"
+                            onClick={() => setEditCell({
+                              emp,
+                              schedule: empSched || {
+                                userId: emp.id,
+                                pdvId: activePdv?.id,
+                                weekStart: selectedWeek,
+                                weekEnd: weekDays[6]?.date,
+                                shifts: [],
+                                notes: ''
+                              },
+                              date: day.date,
+                              label: `${day.dayOfWeek} ${day.formattedDate}`,
+                              start: shiftObj?.startTime || '',
+                              end: shiftObj?.endTime || '',
+                              dayOff: !!(shiftObj && (shiftObj.isDayOff || shiftObj.shiftType === 'DESCANSO'))
+                            })}
+                            className="mt-1 text-[10px] font-bold text-purple-700 hover:text-purple-900 underline cursor-pointer"
+                          >
+                            ✏️ Editar
+                          </button>
+                        ) : null;
+
                         if (!shift) {
                           return (
                             <td key={day.date} className="py-3 px-2 text-center border-r border-slate-100 text-slate-400 italic">
                               <span className="text-[10px] text-slate-400 bg-slate-50 px-2 py-1 rounded">Sin asignar</span>
+                              {vrxEditButton(null)}
                             </td>
                           );
                         }
@@ -405,10 +458,12 @@ export default function HistoryView({ currentUser, pdvs, supervisors }) {
                                 <div className="text-[11px] font-black text-slate-900">
                                   {shift.startTime} - {shift.endTime}
                                 </div>
-                                <div className="flex items-center justify-center gap-1 text-[10px] font-extrabold text-blue-700">
-                                  <span>{shift.netHours || 0}h netas</span>
-                                </div>
-                                {shift.lunchApplied && (
+                                {!isPdv && (
+                                  <div className="flex items-center justify-center gap-1 text-[10px] font-extrabold text-blue-700">
+                                    <span>{shift.netHours || 0}h netas</span>
+                                  </div>
+                                )}
+                                {!isPdv && shift.lunchApplied && (
                                   <div className="text-[9px] font-semibold text-amber-700 flex items-center justify-center gap-0.5">
                                     <Coffee className="w-2.5 h-2.5" /> 1:30h
                                   </div>
@@ -425,6 +480,7 @@ export default function HistoryView({ currentUser, pdvs, supervisors }) {
                                 )}
                               </div>
                             )}
+                            {vrxEditButton(shift)}
                           </td>
                         );
                       })}
@@ -464,6 +520,51 @@ export default function HistoryView({ currentUser, pdvs, supervisors }) {
         </div>
         <span className="font-bold text-slate-700">Total semanas disponibles: {availableWeeks.length}</span>
       </div>
+
+      {isAuditorVrx && editCell && (
+        <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-3">
+            <div className="flex items-center justify-between border-b pb-2">
+              <div>
+                <h3 className="text-sm font-black text-slate-900">✏️ Editar horario (VRX)</h3>
+                <p className="text-[11px] text-slate-500">{editCell.emp?.fullName} • {editCell.label}</p>
+              </div>
+              <button onClick={() => setEditCell(null)} className="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+            </div>
+            <label className="flex items-center gap-2 text-xs font-bold text-slate-700">
+              <input
+                type="checkbox"
+                checked={editCell.dayOff}
+                onChange={(e) => setEditCell(c => ({ ...c, dayOff: e.target.checked }))}
+              />
+              Día de descanso
+            </label>
+            {!editCell.dayOff && (
+              <div className="flex items-center gap-2 text-xs">
+                <label className="font-bold text-slate-700">Entrada</label>
+                <input type="time" value={editCell.start}
+                  onChange={(e) => setEditCell(c => ({ ...c, start: e.target.value }))}
+                  className="border border-slate-300 rounded-lg px-2 py-1" />
+                <label className="font-bold text-slate-700">Salida</label>
+                <input type="time" value={editCell.end}
+                  onChange={(e) => setEditCell(c => ({ ...c, end: e.target.value }))}
+                  className="border border-slate-300 rounded-lg px-2 py-1" />
+              </div>
+            )}
+            {editError && <div className="text-xs font-bold text-rose-700">{editError}</div>}
+            <div className="flex justify-end gap-2 pt-1">
+              <button onClick={() => setEditCell(null)} className="px-3 py-1.5 text-xs font-bold text-slate-600">Cancelar</button>
+              <button
+                onClick={saveVrxEdit}
+                disabled={savingEdit || (!editCell.dayOff && (!editCell.start || !editCell.end))}
+                className="px-4 py-1.5 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white rounded-lg text-xs font-bold"
+              >
+                {savingEdit ? 'Guardando...' : 'Guardar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

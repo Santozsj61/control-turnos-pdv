@@ -492,6 +492,7 @@ export function runReconciliation({
         hasPunch: hasAnyPunch,
         rawPunchEntry: hasRawEntry ? rawPunchEntry : null,
         rawPunchExit: hasRawExit ? rawPunchExit : null,
+        punchId: primaryPunch?.id || null,
         realStart,
         realEnd,
         realNetHours,
