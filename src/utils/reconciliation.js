@@ -149,15 +149,29 @@ export function runReconciliation({
     };
   });
 
-  // 4. Combine all candidate employees
-  let baseEmployees = users.filter(u => u.role === 'EMPLOYEE');
-  // Add any employee who has a schedule but was not in users (safety fallback)
+  // 4. Combine all candidate employees strictly without duplicate IDs or document IDs
+  const seenEmpIds = new Set();
+  const seenEmpDocs = new Set();
+  const baseEmployees = [];
+
+  users.filter(u => u.role === 'EMPLOYEE').forEach(u => {
+    const doc = String(u.documentId || u.document_id || '').trim();
+    seenEmpIds.add(u.id);
+    if (doc) seenEmpDocs.add(doc);
+    baseEmployees.push(u);
+  });
+
+  // Add any employee who has a schedule but was not in users (safety fallback, avoid pushing multiple times per week)
   schedulesThisWeek.forEach(s => {
-    if (!userById.has(s.userId || s.user_id)) {
+    const uid = s.userId || s.user_id;
+    const uDoc = String(s.user?.documentId || s.user?.document_id || '').trim();
+    if (uid && !seenEmpIds.has(uid) && (!uDoc || !seenEmpDocs.has(uDoc))) {
+      seenEmpIds.add(uid);
+      if (uDoc) seenEmpDocs.add(uDoc);
       baseEmployees.push({
-        id: s.userId || s.user_id,
+        id: uid,
         fullName: s.user?.fullName || s.user?.full_name || 'Colaborador Programado',
-        documentId: s.user?.documentId || s.user?.document_id || '',
+        documentId: uDoc,
         position: s.user?.position || 'Colaborador',
         pdvId: s.pdvId || s.pdv_id,
         supervisorId: s.supervisorId || s.supervisor_id,
@@ -166,36 +180,46 @@ export function runReconciliation({
     }
   });
 
-  // Add employees from novelties if not already registered
-  const existingDocs = new Set(baseEmployees.map(u => String(u.documentId || u.document_id || '').trim()));
-  unscheduledEmployees.forEach(u => existingDocs.add(String(u.documentId).trim()));
+  // Add unscheduled employees only if not already in baseEmployees
+  const finalUnscheduled = unscheduledEmployees.filter(u => {
+    const doc = String(u.documentId || u.document_id || '').trim();
+    if (seenEmpIds.has(u.id)) return false;
+    if (doc && seenEmpDocs.has(doc)) return false;
+    seenEmpIds.add(u.id);
+    if (doc) seenEmpDocs.add(doc);
+    return true;
+  });
 
   const noveltyEmployees = [];
   effectiveNovelties.forEach(nov => {
     const nDoc = String(nov.documentId || '').trim();
-    if (nDoc && !existingDocs.has(nDoc)) {
-      existingDocs.add(nDoc);
+    if (nDoc && !seenEmpDocs.has(nDoc)) {
+      seenEmpDocs.add(nDoc);
       const masterU = userByDoc.get(nDoc);
-      noveltyEmployees.push({
-        id: masterU ? masterU.id : `nov-emp-${nDoc}`,
-        documentId: nDoc,
-        document_id: nDoc,
-        code: masterU?.code || `NOV-${nDoc.slice(-4)}`,
-        fullName: masterU?.fullName || nov.fullName || `Colaborador ${nDoc}`,
-        full_name: masterU?.fullName || nov.fullName || `Colaborador ${nDoc}`,
-        position: masterU?.position || 'COLABORADOR',
-        pdvId: masterU?.pdvId || masterU?.pdv_id || 'pdv-unassigned',
-        pdv_id: masterU?.pdvId || masterU?.pdv_id || 'pdv-unassigned',
-        pdvName: masterU ? (pdvs.find(p => p.id === (masterU.pdvId || masterU.pdv_id))?.name || 'PDV') : 'Novedad Registrada',
-        supervisorName: masterU?.supervisorName || 'Gestión Humana',
-        supervisorId: masterU?.supervisorId || masterU?.supervisor_id || '',
-        role: 'EMPLOYEE',
-        hasCorporateNovelty: true
-      });
+      const nId = masterU ? masterU.id : `nov-emp-${nDoc}`;
+      if (!seenEmpIds.has(nId)) {
+        seenEmpIds.add(nId);
+        noveltyEmployees.push({
+          id: nId,
+          documentId: nDoc,
+          document_id: nDoc,
+          code: masterU?.code || `NOV-${nDoc.slice(-4)}`,
+          fullName: masterU?.fullName || nov.fullName || `Colaborador ${nDoc}`,
+          full_name: masterU?.fullName || nov.fullName || `Colaborador ${nDoc}`,
+          position: masterU?.position || 'COLABORADOR',
+          pdvId: masterU?.pdvId || masterU?.pdv_id || 'pdv-unassigned',
+          pdv_id: masterU?.pdvId || masterU?.pdv_id || 'pdv-unassigned',
+          pdvName: masterU ? (pdvs.find(p => p.id === (masterU.pdvId || masterU.pdv_id))?.name || 'PDV') : 'Novedad Registrada',
+          supervisorName: masterU?.supervisorName || 'Gestión Humana',
+          supervisorId: masterU?.supervisorId || masterU?.supervisor_id || '',
+          role: 'EMPLOYEE',
+          hasCorporateNovelty: true
+        });
+      }
     }
   });
 
-  let allTargetEmployees = [...baseEmployees, ...unscheduledEmployees, ...noveltyEmployees];
+  let allTargetEmployees = [...baseEmployees, ...finalUnscheduled, ...noveltyEmployees];
 
   // Apply Filters
   if (pdvId) {
@@ -255,7 +279,7 @@ export function runReconciliation({
       const pDoc = String(p.documentId || p.document_id || '').trim();
       const pCode = String(p.code || '').trim();
       if (empDoc && pDoc === empDoc) return true;
-      if (emp.code && pCode === String(emp.code).trim()) return true;
+      if (emp.code && pCode === String(emp.code).trim() && !pCode.startsWith('COD-') && !pCode.startsWith('NOV-') && !String(emp.code).startsWith('COD-')) return true;
       const punchMapping = punchDocMap.get(pDoc);
       if (punchMapping && punchMapping.user.id === emp.id) return true;
       return false;
@@ -304,7 +328,8 @@ export function runReconciliation({
       const isLicencia = shiftTypeUpper.includes('LICENCIA') || shiftTypeUpper.includes('PERMISO') || shiftTypeUpper.includes('FAMILIA');
       const isNoProgramado = !activeNov && (shiftTypeUpper.includes('NO_PROGRAMADO') || (!shift && !primaryPunch));
 
-      const isNovelty7h = !!activeNov || isDescanso || isIncapacidad || isVacaciones || isLicencia;
+      const isPaidNovelty = !!activeNov || isIncapacidad || isVacaciones || isLicencia;
+      const isNovelty7h = isPaidNovelty;
 
       let isScheduled = false;
       let scheduledStart = '';
@@ -321,13 +346,18 @@ export function runReconciliation({
         scheduledEnd = '';
         scheduleTypeLabel = activeNov.label || activeNov.concept || (isVacaciones ? 'Vacaciones' : isIncapacidad ? 'Incapacidad' : 'Licencia');
       } else if (shift) {
-        if (isNovelty7h) {
+        if (isPaidNovelty) {
           isScheduled = true;
           scheduledNetHours = 7;
           scheduledLunchHours = 0;
           scheduledStart = '';
           scheduledEnd = '';
-          scheduleTypeLabel = isDescanso ? 'Descanso' : isIncapacidad ? 'Incapacidad' : isVacaciones ? 'Vacaciones' : 'Licencia';
+          scheduleTypeLabel = isIncapacidad ? 'Incapacidad' : isVacaciones ? 'Vacaciones' : 'Licencia';
+        } else if (isDescanso) {
+          isScheduled = false;
+          scheduledNetHours = 0;
+          scheduledLunchHours = 0;
+          scheduleTypeLabel = 'Descanso';
         } else if (isNoProgramado) {
           isScheduled = false;
           scheduledNetHours = 0;
@@ -389,8 +419,8 @@ export function runReconciliation({
         realLunchReason = fallbackCalcs.lunchReason || '';
       }
 
-      // If on novelty 7h (descanso, incapacidad, vacaciones, licencia) and has no punches: recognized as 7 hours!
-      if (!hasAnyPunch && isNovelty7h) {
+      // If on paid corporate novelty (incapacidad, vacaciones, licencia) and has no punches: recognized as 7 hours!
+      if (!hasAnyPunch && isPaidNovelty) {
         realNetHours = 7;
       }
 
@@ -411,12 +441,22 @@ export function runReconciliation({
         issues.push(`Entrada biométrica no registrada: autocompletada con horario programado (${scheduledStart}).`);
       }
 
-      if (isNovelty7h && !hasAnyPunch) {
-        status = activeNov ? (activeNov.shiftType || 'NOVELTY') : (isDescanso ? 'DAY_OFF' : isIncapacidad ? 'INCAPACITY' : isVacaciones ? 'VACATION' : 'LEAVE');
-        statusLabel = activeNov ? `${activeNov.label || 'Novedad'} (7h)` : (isDescanso ? 'Descanso (7h)' : isIncapacidad ? 'Incapacidad (7h)' : isVacaciones ? 'Vacaciones (7h)' : 'Licencia (7h)');
-        statusColor = isDescanso ? 'slate' : isIncapacidad ? 'amber' : isVacaciones ? 'emerald' : 'blue';
+      if (isPaidNovelty && !hasAnyPunch) {
+        status = activeNov ? (activeNov.shiftType || 'NOVELTY') : (isIncapacidad ? 'INCAPACITY' : isVacaciones ? 'VACATION' : 'LEAVE');
+        statusLabel = activeNov ? `${activeNov.label || 'Novedad'} (7h)` : (isIncapacidad ? 'Incapacidad (7h)' : isVacaciones ? 'Vacaciones (7h)' : 'Licencia (7h)');
+        statusColor = isIncapacidad ? 'amber' : isVacaciones ? 'emerald' : 'blue';
         hoursDiff = 0;
-      } else if (isNovelty7h && hasAnyPunch) {
+      } else if (isDescanso && !hasAnyPunch) {
+        status = 'DAY_OFF';
+        statusLabel = 'Descanso';
+        statusColor = 'slate';
+        hoursDiff = 0;
+      } else if (isDescanso && hasAnyPunch) {
+        status = 'UNSCHEDULED_WORK';
+        statusLabel = 'Descanso Laborado';
+        statusColor = 'purple';
+        issues.push('El colaborador laboró en su día de descanso programado.');
+      } else if (isPaidNovelty && hasAnyPunch) {
         status = 'UNSCHEDULED_WORK';
         statusLabel = `${scheduleTypeLabel} Laborado`;
         statusColor = 'purple';
