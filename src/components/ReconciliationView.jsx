@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Upload, FileSpreadsheet, BarChart3, Filter, CheckCircle2, AlertTriangle, AlertCircle, Clock, Download, RefreshCw, Eye, Sparkles, UserCheck, ShieldAlert, ArrowUpDown, ChevronRight, ChevronDown, Store, Building2, Edit3, CheckSquare, Square, X, Send, Lock, HelpCircle, Activity, TrendingUp, Calendar, Zap, Users } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid, Cell } from 'recharts';
 import * as XLSX from 'xlsx';
-import { ALL_WEEKS_2026, CURRENT_WEEK_START } from '../utils/weeks.js';
+import { ALL_WEEKS_2026, CURRENT_WEEK_START, isWeekInMonth } from '../utils/weeks.js';
 import { api } from '../services/api.js';
 import { isCollaboratorActive } from '../data/activeCollaborators371.js';
 import { getHabitualScheduleForPdv, getHabitualDaySchedule, checkOutsideHabitualHours } from '../data/habitualSchedules.js';
@@ -105,8 +105,11 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
     }
 
     // ⚡ Stale-While-Revalidate: Si ya existe en memoria caché, pintar de inmediato (0ms) sin spinner
+    const isMonthly = dashboardPeriodType === 'MONTH';
     const cached = api.getCachedReconciliation({
-      weekStart,
+      weekStart: isMonthly ? null : weekStart,
+      month: isMonthly ? selectedMonth : null,
+      periodType: dashboardPeriodType,
       pdvId: targetPdvId,
       supervisorId: targetSupId
     });
@@ -119,7 +122,9 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
 
     try {
       const data = await api.getReconciliation({
-        weekStart,
+        weekStart: isMonthly ? null : weekStart,
+        month: isMonthly ? selectedMonth : null,
+        periodType: dashboardPeriodType,
         pdvId: targetPdvId,
         supervisorId: targetSupId
       });
@@ -240,7 +245,7 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
   useEffect(() => {
     fetchReconciliation();
     fetchJustifications();
-  }, [weekStart, selectedPdv, selectedSupervisor, currentUser?.id]);
+  }, [weekStart, selectedMonth, dashboardPeriodType, selectedPdv, selectedSupervisor, currentUser?.id]);
 
   useEffect(() => {
     fetchMonthlyDashboard();
@@ -1118,18 +1123,19 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                 onChange={(e) => {
                   const newM = e.target.value;
                   setSelectedMonth(newM);
-                  const matchingWeek = ALL_WEEKS_2026.find(w => w.weekStart.startsWith(newM));
+                  const matchingWeek = ALL_WEEKS_2026.find(w => isWeekInMonth(w.weekStart, newM));
                   if (matchingWeek) {
                     setWeekStart(matchingWeek.weekStart);
                   }
                 }}
                 className="w-full bg-purple-50 hover:bg-purple-100/60 border border-purple-300 text-purple-900 text-xs font-bold rounded-xl px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:outline-hidden transition cursor-pointer"
               >
+                <option value="2026-09">Septiembre 2026 📊 (Semanas 36 a 40 cargadas ⭐)</option>
+                <option value="2026-10">Octubre 2026 📊 (Semana 41 cargada)</option>
+                <option value="2026-08">Agosto 2026 📊 (Semanas 32 a 35 cargadas)</option>
                 <option value="2026-07">Julio 2026 📊 (Semanas 28 a 31 cargadas)</option>
                 <option value="2026-06">Junio 2026 📊 (Semana 27 cargada)</option>
-                <option value="2026-08">Agosto 2026 📊 (Semanas 32 a 35 cargadas)</option>
-                <option value="2026-09">Septiembre 2026 (Semana Actual ⭐)</option>
-                <option value="2026-10">Octubre 2026</option>
+                <option value="2026-05">Mayo 2026</option>
               </select>
             )}
           </div>

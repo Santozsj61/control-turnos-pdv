@@ -364,18 +364,22 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
 
   // Selected Official Payroll for the active week (or uploaded data)
   const activePayroll = useMemo(() => {
+    if (periodType === 'MONTH') {
+      return null;
+    }
     if (payrollData && String(payrollData.week) === String(selectedPayrollWeek)) {
       return payrollData;
     }
     return OFFICIAL_PAYROLL_BY_WEEK[selectedPayrollWeek] || null;
-  }, [payrollData, selectedPayrollWeek]);
+  }, [payrollData, selectedPayrollWeek, periodType]);
 
   // Previous week's official payroll for real WoW comparison
   const prevPayroll = useMemo(() => {
+    if (periodType === 'MONTH') return null;
     const prevKey = PREV_WEEK_MAP[selectedPayrollWeek];
     if (!prevKey) return null;
     return OFFICIAL_PAYROLL_BY_WEEK[prevKey] || null;
-  }, [selectedPayrollWeek]);
+  }, [selectedPayrollWeek, periodType]);
 
   const handleSelectWeek = (wKey) => {
     setSelectedPayrollWeek(wKey);
@@ -390,7 +394,7 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
   };
 
   const momMetrics = useMemo(() => {
-    if (!activePayroll) {
+    if (periodType === 'MONTH' || !activePayroll) {
       if (analyticsData?.momMetrics) {
         const curOt = analyticsData.momMetrics.overtime?.current || 0;
         const curNt = analyticsData.momMetrics.night?.current || 0;
@@ -408,7 +412,9 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
           totalSpecial: analyticsData.momMetrics.totalSpecial || { current: curSp, previous: 0, diff: 0, pctChange: 0, trend: 'EQUAL' },
           isOfficialPayroll: false,
           isScheduledTurnos: true,
+          isMonthlyConsolidated: periodType === 'MONTH',
           week: selectedPayrollWeek,
+          month: selectedMonth,
           recordCount: schedCount,
           totalWorkedHours: schedHrs,
           totalOrdinaryHours: Math.max(0, +(schedHrs - curSp).toFixed(1)),
@@ -431,7 +437,7 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
             day: +(curHl * 0.85).toFixed(1),
             night: +(curHl * 0.15).toFixed(1)
           },
-          holidayName: HOLIDAY_NAME_MAP[selectedPayrollWeek] || ''
+          holidayName: periodType === 'MONTH' ? '' : (HOLIDAY_NAME_MAP[selectedPayrollWeek] || '')
         };
       }
       return {
@@ -1022,80 +1028,107 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
         </div>
       </div>
 
-      {/* 1.1 Barra Principal de Selección Semanal Separada */}
-      <div className="bg-slate-900 rounded-2xl p-4 border border-slate-800 shadow-md space-y-3">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className="p-1.5 bg-purple-500/20 text-purple-400 rounded-lg">
-              <Calendar className="w-4 h-4" />
-            </span>
-            <span className="text-xs font-black uppercase tracking-wider text-slate-100">
-              Semanas Disponibles:
-            </span>
+      {/* 1.1 Barra Principal de Selección Semanal Separada (solo en modo Por Semana) */}
+      {periodType === 'WEEK' ? (
+        <div className="bg-slate-900 rounded-2xl p-4 border border-slate-800 shadow-md space-y-3">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <span className="p-1.5 bg-purple-500/20 text-purple-400 rounded-lg">
+                <Calendar className="w-4 h-4" />
+              </span>
+              <span className="text-xs font-black uppercase tracking-wider text-slate-100">
+                Semanas Disponibles:
+              </span>
+            </div>
+
+            {/* Month Filter Tabs */}
+            <div className="flex items-center gap-1.5 bg-slate-800/90 p-1 rounded-xl border border-slate-700 text-xs font-bold overflow-x-auto">
+              {[
+                { id: 'ALL', label: 'Todas' },
+                { id: 'Junio', label: 'Jun (23-26)' },
+                { id: 'Julio', label: 'Jul (27-31)' },
+                { id: 'Agosto', label: 'Ago (32-35)' },
+                { id: 'Septiembre', label: 'Sep (36-40)' },
+                { id: 'Octubre', label: 'Oct (41-43)' }
+              ].map(m => (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => setMonthFilter(m.id)}
+                  className={`px-2.5 py-1 rounded-lg transition shrink-0 ${
+                    monthFilter === m.id
+                      ? 'bg-purple-600 text-white shadow-xs'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  {m.label}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* Month Filter Tabs */}
-          <div className="flex items-center gap-1.5 bg-slate-800/90 p-1 rounded-xl border border-slate-700 text-xs font-bold overflow-x-auto">
-            {[
-              { id: 'ALL', label: 'Todas' },
-              { id: 'Junio', label: 'Jun (23-26)' },
-              { id: 'Julio', label: 'Jul (27-31)' },
-              { id: 'Agosto', label: 'Ago (32-35)' },
-              { id: 'Septiembre', label: 'Sep (36-40)' },
-              { id: 'Octubre', label: 'Oct (41-43)' }
-            ].map(m => (
-              <button
-                key={m.id}
-                type="button"
-                onClick={() => setMonthFilter(m.id)}
-                className={`px-2.5 py-1 rounded-lg transition shrink-0 ${
-                  monthFilter === m.id
-                    ? 'bg-purple-600 text-white shadow-xs'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                {m.label}
-              </button>
-            ))}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2">
+            {visibleWeekPills.map(item => {
+              const isSelected = selectedPayrollWeek === item.key;
+              return (
+                <button
+                  key={item.key}
+                  type="button"
+                  onClick={() => handleSelectWeek(item.key)}
+                  className={`p-2.5 rounded-xl text-left transition-all border flex flex-col justify-between cursor-pointer ${
+                    isSelected
+                      ? 'bg-purple-600 border-purple-400 text-white shadow-lg shadow-purple-600/40 ring-2 ring-purple-300 scale-[1.02]'
+                      : 'bg-slate-800/80 border-slate-700/80 text-slate-300 hover:bg-slate-700 hover:text-white'
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-1">
+                    <span className="text-xs font-black">{item.label}</span>
+                    <span className={`text-[8px] font-black px-1.5 py-0.2 rounded uppercase ${
+                      isSelected ? 'bg-purple-900 text-white' :
+                      item.badge === 'Festivo' ? 'bg-emerald-500/20 text-emerald-300' :
+                      item.badge === 'Acumulado' ? 'bg-amber-500/20 text-amber-300' :
+                      'bg-slate-700 text-slate-300'
+                    }`}>
+                      {item.badge}
+                    </span>
+                  </div>
+                  <div className={`text-[9px] mt-1 ${isSelected ? 'text-purple-100 font-semibold' : 'text-slate-400'}`}>
+                    {item.date}
+                  </div>
+                  <div className={`text-[8.5px] mt-0.5 truncate ${isSelected ? 'text-purple-200' : 'text-slate-500'}`}>
+                    {item.desc}
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2">
-          {visibleWeekPills.map(item => {
-            const isSelected = selectedPayrollWeek === item.key;
-            return (
-              <button
-                key={item.key}
-                type="button"
-                onClick={() => handleSelectWeek(item.key)}
-                className={`p-2.5 rounded-xl text-left transition-all border flex flex-col justify-between cursor-pointer ${
-                  isSelected
-                    ? 'bg-purple-600 border-purple-400 text-white shadow-lg shadow-purple-600/40 ring-2 ring-purple-300 scale-[1.02]'
-                    : 'bg-slate-800/80 border-slate-700/80 text-slate-300 hover:bg-slate-700 hover:text-white'
-                }`}
-              >
-                <div className="flex items-center justify-between gap-1">
-                  <span className="text-xs font-black">{item.label}</span>
-                  <span className={`text-[8px] font-black px-1.5 py-0.2 rounded uppercase ${
-                    isSelected ? 'bg-purple-900 text-white' :
-                    item.badge === 'Festivo' ? 'bg-emerald-500/20 text-emerald-300' :
-                    item.badge === 'Acumulado' ? 'bg-amber-500/20 text-amber-300' :
-                    'bg-slate-700 text-slate-300'
-                  }`}>
-                    {item.badge}
-                  </span>
-                </div>
-                <div className={`text-[9px] mt-1 ${isSelected ? 'text-purple-100 font-semibold' : 'text-slate-400'}`}>
-                  {item.date}
-                </div>
-                <div className={`text-[8.5px] mt-0.5 truncate ${isSelected ? 'text-purple-200' : 'text-slate-500'}`}>
-                  {item.desc}
-                </div>
-              </button>
-            );
-          })}
+      ) : (
+        <div className="bg-gradient-to-r from-purple-950 via-slate-900 to-slate-900 rounded-2xl p-4 border border-purple-500/40 shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-purple-600/20 text-purple-300 rounded-xl border border-purple-500/30">
+              <Calendar className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-0.5 rounded-md bg-purple-600 text-white font-black text-[10px] uppercase tracking-wider">
+                  Consolidado Mensual Oficial
+                </span>
+                <span className="text-sm font-black text-white">
+                  Período: Mes {selectedMonth}
+                </span>
+              </div>
+              <p className="text-xs text-purple-200/80 mt-0.5">
+                Totalizando todas las semanas del mes ({momMetrics.totalWorkedHours?.toLocaleString() || 0} hrs trabajadas &bull; {momMetrics.recordCount?.toLocaleString() || 0} registros analizados)
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 text-xs text-purple-200 font-bold bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-700">
+            <span>Ordinarias: <strong className="text-white">{momMetrics.totalOrdinaryHours?.toLocaleString() || 0}h</strong></span>
+            <span>Recargos y Extras: <strong className="text-amber-300">{momMetrics.totalSpecial?.current?.toLocaleString() || 0}h</strong></span>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Banner de Feedback de Liquidación */}
       {payrollFeedback && (
@@ -1171,8 +1204,8 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
         </div>
       )}
 
-      {/* Indicador de Malla Programada (cuando no hay nómina oficial HS para la semana) */}
-      {!activePayroll && (momMetrics.recordCount > 0 || momMetrics.totalWorkedHours > 0) && (
+      {/* Indicador de Malla Programada (cuando no hay nómina oficial HS para la semana en modo Por Semana) */}
+      {periodType === 'WEEK' && !activePayroll && (momMetrics.recordCount > 0 || momMetrics.totalWorkedHours > 0) && (
         <div className="bg-gradient-to-r from-purple-950 via-slate-900 to-slate-900 text-white p-4 rounded-2xl border border-purple-500/40 shadow-md flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-purple-500/20 rounded-xl border border-purple-400/30 text-purple-300">

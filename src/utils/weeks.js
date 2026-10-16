@@ -341,3 +341,26 @@ export function findPdvByCodeOrName(rawPdv, pdvsList) {
 
   return null;
 }
+
+/**
+ * Retorna las semanas del calendario 2026 que intersectan total o parcialmente con un mes YYYY-MM.
+ * Ejemplo para '2026-09': semanas 36 (31 Ago - 06 Sep), 37, 38, 39 y 40 (28 Sep - 04 Oct).
+ */
+export function getWeeksOverlappingMonth(monthStr) {
+  if (!monthStr || !monthStr.includes('-')) return [];
+  const [y, m] = monthStr.split('-').map(Number);
+  const lastDay = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  const mStart = `${monthStr}-01`;
+  const mEnd = `${monthStr}-${String(lastDay).padStart(2, '0')}`;
+  return ALL_WEEKS_2026.filter(w => w.weekStart <= mEnd && w.weekEnd >= mStart);
+}
+
+export function getWeekStartsForMonth(monthStr) {
+  return getWeeksOverlappingMonth(monthStr).map(w => w.weekStart);
+}
+
+export function isWeekInMonth(weekStart, monthStr) {
+  if (!weekStart || !monthStr) return false;
+  const starts = getWeekStartsForMonth(monthStr);
+  return starts.includes(weekStart);
+}

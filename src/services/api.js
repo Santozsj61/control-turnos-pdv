@@ -5,7 +5,7 @@ import { parsePunchExcel, parseNoveltiesReport, parsePayrollLiquidation } from '
 import { initialSupervisors, initialPDVs, initialUsers } from '../data/seedData.js';
 import { initialNovelties } from '../data/initialNovelties.js';
 import { OFFICIAL_PAYROLL_BY_WEEK } from '../data/officialPayrollData.js';
-import { registerLoadedWeek, registerLoadedWeeks, ALL_WEEKS_2026, KNOWN_WEEKS_WITH_DATA } from '../utils/weeks.js';
+import { registerLoadedWeek, registerLoadedWeeks, ALL_WEEKS_2026, KNOWN_WEEKS_WITH_DATA, getWeeksOverlappingMonth, getWeekStartsForMonth, isWeekInMonth } from '../utils/weeks.js';
 
 import { buildAuditDataLocally } from '../utils/auditCalculator.js';
 import { getPdvPassword, validatePdvPassword, AUTH_CREDENTIALS } from '../utils/authRules.js';
@@ -663,13 +663,13 @@ export const api = {
       user: s.users || null
     });
 
-    const isCacheableSched = filters.weekStart && !filters.userId;
-    const schedCacheKey = isCacheableSched ? `sched_${filters.weekStart}_${filters.pdvId || 'ALL'}` : null;
+    const isCacheableSched = (filters.weekStart || filters.month) && !filters.userId;
+    const schedCacheKey = isCacheableSched ? `sched_${filters.weekStart || filters.month}_${filters.pdvId || 'ALL'}` : null;
     if (schedCacheKey && memoryCache.schedulesByWeekAndPdv.has(schedCacheKey)) {
       return memoryCache.schedulesByWeekAndPdv.get(schedCacheKey);
     }
 
-    if (!filters.userId && !filters.weekStart && (!filters.pdvId || filters.pdvId === 'ALL')) {
+    if (!filters.userId && !filters.weekStart && !filters.month && (!filters.pdvId || filters.pdvId === 'ALL')) {
       let allData = [];
       let from = 0;
       const step = 1000;
@@ -685,7 +685,14 @@ export const api = {
 
     let query = supabase.from('schedules').select('*, users(*)');
     if (filters.userId) query = query.eq('user_id', filters.userId);
-    if (filters.weekStart) query = query.eq('week_start', filters.weekStart);
+    if (filters.weekStart) {
+      query = query.eq('week_start', filters.weekStart);
+    } else if (filters.month) {
+      const monthWeeks = getWeekStartsForMonth(filters.month);
+      if (monthWeeks.length > 0) {
+        query = query.in('week_start', monthWeeks);
+      }
+    }
     if (filters.pdvId && filters.pdvId !== 'ALL') query = query.eq('pdv_id', filters.pdvId);
     const { data, error } = await query.limit(filters.limit || 5000);
     if (error) throw new Error(error.message);
@@ -940,15 +947,16 @@ export const api = {
 
   getPunchRecords: async (filters = {}) => {
     const isWeekOnly = filters.weekStart && !filters.batchId && !filters.documentId && !filters.date;
-    const weekCacheKey = isWeekOnly ? `punch_week_${filters.weekStart}` : null;
-    if (weekCacheKey && memoryCache.punchesByWeek.has(weekCacheKey)) {
-      return memoryCache.punchesByWeek.get(weekCacheKey);
+    const isMonthOnly = filters.month && !filters.weekStart && !filters.batchId && !filters.documentId && !filters.date;
+    const cacheKey = isWeekOnly ? `punch_week_${filters.weekStart}` : (isMonthOnly ? `punch_month_${filters.month}` : null);
+    if (cacheKey && memoryCache.punchesByWeek.has(cacheKey)) {
+      return memoryCache.punchesByWeek.get(cacheKey);
     }
 
     if (!isSupabaseConfigured) {
       const q = new URLSearchParams(filters).toString();
       const res = await fetchLocal(`/api/punches${q ? '?' + q : ''}`);
-      if (weekCacheKey && Array.isArray(res)) memoryCache.punchesByWeek.set(weekCacheKey, res);
+      if (cacheKey && Array.isArray(res)) memoryCache.punchesByWeek.set(cacheKey, res);
       return res;
     }
     let allData = [];
@@ -965,6 +973,12 @@ export const api = {
         const dStart = new Date(d.getTime() - 1 * 86400000);
         const dEnd = new Date(d.getTime() + 7 * 86400000);
         query = query.gte('entry_date', dStart.toISOString().split('T')[0]).lte('entry_date', dEnd.toISOString().split('T')[0]);
+      } else if (filters.month) {
+        const [y, m] = filters.month.split('-').map(Number);
+        const lastDay = new Date(Date.UTC(y, m, 0)).getUTCDate();
+        const mStart = `${filters.month}-01`;
+        const mEnd = `${filters.month}-${String(lastDay).padStart(2, '0')}`;
+        query = query.gte('entry_date', mStart).lte('entry_date', mEnd);
       }
       const { data, error } = await query;
       if (error) throw new Error(error.message);
@@ -973,24 +987,33 @@ export const api = {
       if (data.length < pageSize) break;
       page++;
     }
-    const mapped = allData.map(r => ({
-      id: r.id,
-      batchId: r.batch_id,
-      documentId: r.document_id,
-      code: r.code,
-      fullName: r.full_name,
-      position: r.position,
-      pdvName: r.pdv_name,
-      supervisorName: r.supervisor_name,
-      entryDate: r.entry_date,
-      entryTime: r.entry_time,
-      exitDate: r.exit_date,
-      exitTime: r.exit_time,
-      realCalculations: r.real_calculations
-    }));
+    const mapped = allData.map(r => {
+      let calcs = r.real_calculations || {};
+      if (r.entry_time && r.exit_time && r.exit_time !== '-' && (!calcs.nightHours || calcs.nightHours < 1.0)) {
+        const reCalc = calculateShiftHours(r.entry_time.slice(0, 5), r.exit_time.slice(0, 5), r.entry_date, { nightStartTime: '19:00' });
+        if (reCalc.nightHours > 0) {
+          calcs = { ...calcs, nightHours: reCalc.nightHours, nightDayHours: reCalc.dayHours };
+        }
+      }
+      return {
+        id: r.id,
+        batchId: r.batch_id,
+        documentId: r.document_id,
+        code: r.code,
+        fullName: r.full_name,
+        position: r.position,
+        pdvName: r.pdv_name,
+        supervisorName: r.supervisor_name,
+        entryDate: r.entry_date,
+        entryTime: r.entry_time,
+        exitDate: r.exit_date,
+        exitTime: r.exit_time,
+        realCalculations: calcs
+      };
+    });
 
-    if (weekCacheKey) {
-      memoryCache.punchesByWeek.set(weekCacheKey, mapped);
+    if (cacheKey) {
+      memoryCache.punchesByWeek.set(cacheKey, mapped);
     }
     return mapped;
   },
@@ -1256,15 +1279,19 @@ export const api = {
     return null;
   },
 
-  getReconciliation: async ({ weekStart, pdvId, supervisorId, documentId }) => {
-    const cacheKey = `${weekStart || ''}_${pdvId || ''}_${supervisorId || ''}_${documentId || ''}`;
+  getReconciliation: async ({ weekStart, month, periodType = 'WEEK', pdvId, supervisorId, documentId }) => {
+    const isMonthly = periodType === 'MONTH' || (!weekStart && !!month);
+    const effPeriodType = isMonthly ? 'MONTH' : 'WEEK';
+    const effMonth = month || (weekStart ? weekStart.slice(0, 7) : '2026-09');
+    const cacheKey = `${effPeriodType}_${isMonthly ? effMonth : (weekStart || '')}_${pdvId || ''}_${supervisorId || ''}_${documentId || ''}`;
     if (memoryCache.reconciliationByParams.has(cacheKey)) {
       return memoryCache.reconciliationByParams.get(cacheKey);
     }
 
     if (!isSupabaseConfigured) {
       const q = new URLSearchParams({
-        ...(weekStart ? { weekStart } : {}),
+        periodType: effPeriodType,
+        ...(isMonthly ? { month: effMonth } : (weekStart ? { weekStart } : {})),
         ...(pdvId ? { pdvId } : {}),
         ...(supervisorId ? { supervisorId } : {}),
         ...(documentId ? { documentId } : {})
@@ -1274,12 +1301,15 @@ export const api = {
       return res;
     }
 
+    const schedFilters = isMonthly ? { month: effMonth, pdvId, supervisorId } : { weekStart, pdvId, supervisorId };
+    const punchFilters = isMonthly ? { month: effMonth } : { weekStart };
+
     const [users, pdvs, supervisors, schedules, punches, config, novelties] = await Promise.all([
       api.getUsers(),
       api.getPDVs(),
       api.getSupervisors(),
-      api.getSchedules({ weekStart, pdvId, supervisorId }),
-      api.getPunchRecords({ weekStart }),
+      api.getSchedules(schedFilters),
+      api.getPunchRecords(punchFilters),
       api.getConfig(),
       api.getNovelties()
     ]);
@@ -1292,7 +1322,9 @@ export const api = {
       allPunches: punches,
       novelties,
       config,
-      weekStart,
+      weekStart: isMonthly ? null : weekStart,
+      month: isMonthly ? effMonth : null,
+      periodType: effPeriodType,
       pdvId,
       supervisorId,
       documentId
@@ -1517,8 +1549,8 @@ export const api = {
       return memoryCache.reconciliationByParams.get(cacheKey);
     }
 
-    const schedFilters = periodType === 'WEEK' ? { weekStart, pdvId } : { pdvId };
-    const punchFilters = periodType === 'WEEK' ? { weekStart } : {};
+    const schedFilters = periodType === 'WEEK' ? { weekStart, pdvId } : { month, pdvId };
+    const punchFilters = periodType === 'WEEK' ? { weekStart } : { month };
 
     const [pdvs, schedules, punches, users] = await Promise.all([
       api.getPDVs().catch(() => []),
@@ -1544,7 +1576,8 @@ export const api = {
       if (periodType === 'WEEK') {
         return s.weekStart === weekStart;
       }
-      return s.weekStart && s.weekStart.startsWith(month);
+      return (s.weekStart && isWeekInMonth(s.weekStart, month)) ||
+             (s.shifts && s.shifts.some(sh => sh.date && sh.date.startsWith(month)));
     });
 
     // Also merge localStorage schedules for this week/month if any
@@ -1880,11 +1913,34 @@ export const api = {
   // 10. Dashboard Analytics (Cálculo Nacional & Zonal en Vivo)
   // ----------------------------------------------------
   getDashboardAnalytics: async ({ month = '2026-09', weekStart, periodType = 'MONTH', supervisorId, pdvId } = {}) => {
-    const [pdvs, supervisors, users, schedules] = await Promise.all([
+    const isMonthly = periodType === 'MONTH' || (!weekStart && !!month);
+    const effPeriodType = isMonthly ? 'MONTH' : 'WEEK';
+    const effMonth = month || (weekStart ? weekStart.slice(0, 7) : '2026-09');
+
+    let prevMonthStr = '2026-08';
+    if (effMonth && effMonth.includes('-')) {
+      const [y, m] = effMonth.split('-').map(Number);
+      const prevD = new Date(Date.UTC(y, m - 2, 1));
+      prevMonthStr = prevD.toISOString().slice(0, 7);
+    }
+
+    let prevWeekStart = '';
+    if (effPeriodType === 'WEEK' && weekStart && /^\d{4}-\d{2}-\d{2}$/.test(weekStart)) {
+      const d = new Date(weekStart + 'T12:00:00Z');
+      if (!isNaN(d.getTime())) {
+        const prevD = new Date(d.getTime() - 7 * 86400000);
+        prevWeekStart = prevD.toISOString().split('T')[0];
+      }
+    }
+
+    const [pdvs, supervisors, users, schedules, prevSchedules, punches, prevPunches] = await Promise.all([
       api.getPDVs().catch(() => []),
       api.getSupervisors().catch(() => []),
       api.getUsers().catch(() => []),
-      api.getSchedules().catch(() => [])
+      api.getSchedules(isMonthly ? { month: effMonth } : { weekStart }).catch(() => []),
+      api.getSchedules(isMonthly ? { month: prevMonthStr } : { weekStart: prevWeekStart }).catch(() => []),
+      api.getPunchRecords(isMonthly ? { month: effMonth } : { weekStart }).catch(() => []),
+      api.getPunchRecords(isMonthly ? { month: prevMonthStr } : { weekStart: prevWeekStart }).catch(() => [])
     ]);
 
     let filteredPdvs = pdvs;
@@ -1893,67 +1949,83 @@ export const api = {
     } else if (supervisorId) {
       filteredPdvs = pdvs.filter(p => p.supervisorId === supervisorId);
     }
-    const pdvIdSet = new Set(filteredPdvs.flatMap(p => [p.id, p.code]));
+    const pdvIdSet = new Set(filteredPdvs.flatMap(p => [p.id, p.code, cleanNormalizeStr(p.name)]));
 
-    const currentMonthSchedules = schedules.filter(s => {
-      const matchPdv = pdvIdSet.size === 0 || pdvIdSet.has(s.pdvId);
-      if (periodType === 'WEEK' && weekStart) {
-        return matchPdv && s.weekStart === weekStart;
-      }
-      const matchMonth = (s.weekStart && s.weekStart.startsWith(month)) ||
-                         (s.shifts && s.shifts.some(sh => sh.date && sh.date.startsWith(month)));
-      return matchPdv && matchMonth;
-    });
+    const filterSchedules = (schedList, targetPeriod, isMonthMode) => {
+      return (schedList || []).filter(s => {
+        const matchPdv = pdvIdSet.size === 0 || pdvIdSet.has(s.pdvId) || (s.pdvName && pdvIdSet.has(cleanNormalizeStr(s.pdvName)));
+        if (!matchPdv) return false;
+        if (!isMonthMode) return s.weekStart === targetPeriod;
+        return (s.weekStart && isWeekInMonth(s.weekStart, targetPeriod)) ||
+               (s.shifts && s.shifts.some(sh => sh.date && sh.date.startsWith(targetPeriod)));
+      });
+    };
 
-    let prevMonthStr = '2026-08';
-    if (month && month.includes('-')) {
-      const [y, m] = month.split('-').map(Number);
-      const prevD = new Date(Date.UTC(y, m - 2, 1));
-      prevMonthStr = prevD.toISOString().slice(0, 7);
-    }
+    const filterPunches = (punchList, targetPeriod, isMonthMode) => {
+      return (punchList || []).filter(pu => {
+        const matchPdv = pdvIdSet.size === 0 || 
+                         pdvIdSet.has(pu.pdvId) || 
+                         (pu.pdvName && pdvIdSet.has(cleanNormalizeStr(pu.pdvName))) ||
+                         (pu.pdvCode && pdvIdSet.has(pu.pdvCode));
+        if (!matchPdv) return false;
+        if (!isMonthMode) {
+          const d = new Date(targetPeriod + 'T12:00:00Z');
+          const dEnd = new Date(d.getTime() + 6 * 86400000).toISOString().split('T')[0];
+          return pu.entryDate >= targetPeriod && pu.entryDate <= dEnd;
+        }
+        return pu.entryDate && pu.entryDate.startsWith(targetPeriod);
+      });
+    };
 
-    let prevWeekStart = '';
-    if (periodType === 'WEEK' && weekStart && /^\d{4}-\d{2}-\d{2}$/.test(weekStart)) {
-      const d = new Date(weekStart + 'T12:00:00Z');
-      if (!isNaN(d.getTime())) {
-        const prevD = new Date(d.getTime() - 7 * 86400000);
-        prevWeekStart = prevD.toISOString().split('T')[0];
-      }
-    }
+    const curScheds = filterSchedules(schedules, isMonthly ? effMonth : weekStart, isMonthly);
+    const prevScheds = filterSchedules(prevSchedules, isMonthly ? prevMonthStr : prevWeekStart, isMonthly);
 
-    const currentPeriodLabel = periodType === 'WEEK' && weekStart
-      ? `Semana ${weekStart}`
-      : `Mes ${month}`;
-    const previousPeriodLabel = periodType === 'WEEK' && prevWeekStart
-      ? `Semana ${prevWeekStart}`
-      : `Mes ${prevMonthStr}`;
+    const curPunches = filterPunches(punches, isMonthly ? effMonth : weekStart, isMonthly);
+    const prevPunchesFiltered = filterPunches(prevPunches, isMonthly ? prevMonthStr : prevWeekStart, isMonthly);
 
-    const prevPeriodSchedules = schedules.filter(s => {
-      const matchPdv = pdvIdSet.size === 0 || pdvIdSet.has(s.pdvId);
-      if (periodType === 'WEEK') {
-        return matchPdv && prevWeekStart && s.weekStart === prevWeekStart;
-      }
-      const matchMonth = (s.weekStart && s.weekStart.startsWith(prevMonthStr)) ||
-                         (s.shifts && s.shifts.some(sh => sh.date && sh.date.startsWith(prevMonthStr)));
-      return matchPdv && matchMonth;
-    });
-
-    function computeHours(schedList) {
+    function computePeriodHours(schedList, punchList) {
       let overtime = 0;
       let night = 0;
       let sunday = 0;
       let holiday = 0;
-      let scheduled = 0;
+      let totalWorked = 0;
+      let recordCount = 0;
 
-      schedList.forEach(s => {
-        scheduled += Number(s.totalNetHours || 0);
-        if (s.totalNetHours > 42) overtime += (s.totalNetHours - 42);
-        (s.shifts || []).forEach(sh => {
-          night += Number(sh.nightHours || 0);
-          if (sh.isSunday) sunday += Number(sh.netHours || 0);
-          if (sh.isHoliday) holiday += Number(sh.netHours || 0);
+      if (schedList && schedList.length > 0) {
+        recordCount = schedList.length;
+        schedList.forEach(s => {
+          totalWorked += Number(s.totalNetHours || 0);
+          if (s.totalNetHours > 42) overtime += (s.totalNetHours - 42);
+          (s.shifts || []).forEach(sh => {
+            night += Number(sh.nightHours || 0);
+            if (sh.isSunday) sunday += Number(sh.netHours || 0);
+            if (sh.isHoliday) holiday += Number(sh.netHours || 0);
+          });
         });
-      });
+      } else if (punchList && punchList.length > 0) {
+        recordCount = punchList.length;
+        const weeklyHoursByDoc = {};
+        punchList.forEach(pu => {
+          const c = pu.realCalculations || {};
+          const net = Number(c.netHours || 0);
+          totalWorked += net;
+          night += Number(c.nightHours || 0);
+          if (c.isSunday) sunday += net;
+          if (c.isHoliday) holiday += net;
+
+          const doc = pu.documentId || pu.code;
+          if (doc && pu.entryDate) {
+            const wObj = ALL_WEEKS_2026.find(w => pu.entryDate >= w.weekStart && pu.entryDate <= w.weekEnd);
+            const wKey = wObj ? wObj.weekStart : pu.entryDate.slice(0, 7);
+            const key = `${doc}_${wKey}`;
+            weeklyHoursByDoc[key] = (weeklyHoursByDoc[key] || 0) + net;
+          }
+        });
+
+        Object.values(weeklyHoursByDoc).forEach(hrs => {
+          if (hrs > 42) overtime += (hrs - 42);
+        });
+      }
 
       const totalSpecial = overtime + night + sunday + holiday;
       return {
@@ -1962,12 +2034,13 @@ export const api = {
         sunday: +sunday.toFixed(1),
         holiday: +holiday.toFixed(1),
         totalSpecial: +totalSpecial.toFixed(1),
-        scheduled: +scheduled.toFixed(1)
+        totalWorked: +totalWorked.toFixed(1),
+        recordCount
       };
     }
 
-    const curH = computeHours(currentMonthSchedules);
-    const prevH = computeHours(prevPeriodSchedules);
+    const curH = computePeriodHours(curScheds, curPunches);
+    const prevH = computePeriodHours(prevScheds, prevPunchesFiltered);
 
     function buildMom(cur, prev) {
       const diff = +(cur - prev).toFixed(1);
@@ -2002,26 +2075,50 @@ export const api = {
         momChangePct: 0
       };
       pdvMap[p.id] = pdvRecord;
-      if (p.code) {
-        pdvMap[p.code] = pdvRecord;
-      }
+      if (p.code) pdvMap[p.code] = pdvRecord;
+      const cleanN = cleanNormalizeStr(p.name);
+      if (cleanN) pdvMap[cleanN] = pdvRecord;
     });
 
-    currentMonthSchedules.forEach(s => {
-      const p = pdvMap[s.pdvId] || (s.pdvId ? pdvMap[s.pdvId.toUpperCase()] : null);
-      if (p) {
-        p.scheduledHours += Number(s.totalNetHours || 0);
-        if (s.totalNetHours > 42) p.overtimeHours += (s.totalNetHours - 42);
-        (s.shifts || []).forEach(sh => {
-          p.nightHours += Number(sh.nightHours || 0);
-          if (sh.isSunday) p.sundayHours += Number(sh.netHours || 0);
-          if (sh.isHoliday) p.holidayHours += Number(sh.netHours || 0);
-        });
-        p.totalSpecialHours = +(p.overtimeHours + p.nightHours + p.sundayHours + p.holidayHours).toFixed(1);
-      }
-    });
+    if (curScheds.length > 0) {
+      curScheds.forEach(s => {
+        const p = pdvMap[s.pdvId] || (s.pdvName ? pdvMap[cleanNormalizeStr(s.pdvName)] : null);
+        if (p) {
+          p.scheduledHours += Number(s.totalNetHours || 0);
+          if (s.totalNetHours > 42) p.overtimeHours += (s.totalNetHours - 42);
+          (s.shifts || []).forEach(sh => {
+            p.nightHours += Number(sh.nightHours || 0);
+            if (sh.isSunday) p.sundayHours += Number(sh.netHours || 0);
+            if (sh.isHoliday) p.holidayHours += Number(sh.netHours || 0);
+          });
+          p.totalSpecialHours = +(p.overtimeHours + p.nightHours + p.sundayHours + p.holidayHours).toFixed(1);
+        }
+      });
+    } else if (curPunches.length > 0) {
+      curPunches.forEach(pu => {
+        const p = pdvMap[pu.pdvId] || (pu.pdvName ? pdvMap[cleanNormalizeStr(pu.pdvName)] : null);
+        if (p) {
+          const c = pu.realCalculations || {};
+          const net = Number(c.netHours || 0);
+          p.scheduledHours += net;
+          p.nightHours += Number(c.nightHours || 0);
+          if (c.isSunday) p.sundayHours += net;
+          if (c.isHoliday) p.holidayHours += net;
+          p.totalSpecialHours = +(p.overtimeHours + p.nightHours + p.sundayHours + p.holidayHours).toFixed(1);
+        }
+      });
+    }
 
-    const uniquePdvRecords = Array.from(new Set(Object.values(pdvMap)));
+    const uniquePdvRecords = Array.from(new Set(Object.values(pdvMap))).map(p => ({
+      ...p,
+      scheduledHours: +p.scheduledHours.toFixed(1),
+      nightHours: +p.nightHours.toFixed(1),
+      sundayHours: +p.sundayHours.toFixed(1),
+      holidayHours: +p.holidayHours.toFixed(1),
+      overtimeHours: +p.overtimeHours.toFixed(1),
+      totalSpecialHours: +p.totalSpecialHours.toFixed(1)
+    }));
+
     const topPdvsSpecial = uniquePdvRecords
       .sort((a, b) => b.totalSpecialHours - a.totalSpecialHours)
       .slice(0, 15);
@@ -2040,18 +2137,13 @@ export const api = {
       };
     });
 
-    currentMonthSchedules.forEach(s => {
-      const pdvObj = pdvs.find(p => p.id === s.pdvId || p.code === s.pdvId);
+    uniquePdvRecords.forEach(p => {
+      const pdvObj = filteredPdvs.find(fp => fp.id === p.pdvId || fp.code === p.pdvCode);
       const z = pdvObj?.supervisorId ? zoneMap[pdvObj.supervisorId] : null;
       if (z) {
-        z.scheduledHours += Number(s.totalNetHours || 0);
-        z.realHours += Number(s.totalNetHours || 0);
-        if (s.totalNetHours > 42) z.specialHours += (s.totalNetHours - 42);
-        (s.shifts || []).forEach(sh => {
-          if (sh.nightHours) z.specialHours += Number(sh.nightHours || 0);
-          if (sh.isSunday) z.specialHours += Number(sh.netHours || 0);
-          if (sh.isHoliday) z.specialHours += Number(sh.netHours || 0);
-        });
+        z.scheduledHours += p.scheduledHours;
+        z.realHours += p.scheduledHours;
+        z.specialHours += p.totalSpecialHours;
         z.scheduledHours = +z.scheduledHours.toFixed(1);
         z.realHours = +z.realHours.toFixed(1);
         z.specialHours = +z.specialHours.toFixed(1);
@@ -2063,19 +2155,21 @@ export const api = {
       .sort((a, b) => b.scheduledHours - a.scheduledHours);
 
     const operationalAlerts = [];
-    currentMonthSchedules.forEach(s => {
-      if (s.totalNetHours > 42) {
-        const pdvObj = pdvs.find(p => p.id === s.pdvId || p.code === s.pdvId);
-        operationalAlerts.push({
-          type: 'OVERTIME_EXCEEDED',
-          severity: 'HIGH',
-          title: `Límite 42h Excedido (${s.totalNetHours}h)`,
-          employeeName: s.user?.fullName || s.user?.full_name || s.userId || 'Colaborador',
-          pdvName: pdvObj ? `${pdvObj.code} - ${pdvObj.name}` : (s.pdvId || 'PDV'),
-          description: `Colaborador supera la jornada semanal ordinaria de 42 horas (${s.totalNetHours} hrs programadas).`
-        });
-      }
-    });
+    if (curScheds.length > 0) {
+      curScheds.forEach(s => {
+        if (s.totalNetHours > 42) {
+          const pdvObj = pdvs.find(p => p.id === s.pdvId || p.code === s.pdvId);
+          operationalAlerts.push({
+            type: 'OVERTIME_EXCEEDED',
+            severity: 'HIGH',
+            title: `Límite 42h Excedido (${s.totalNetHours}h)`,
+            employeeName: s.user?.fullName || s.user?.full_name || s.userId || 'Colaborador',
+            pdvName: pdvObj ? `${pdvObj.code} - ${pdvObj.name}` : (s.pdvId || 'PDV'),
+            description: `Colaborador supera la jornada semanal ordinaria de 42 horas (${s.totalNetHours} hrs programadas).`
+          });
+        }
+      });
+    }
 
     const monthLabels = {
       '2026-01': 'Enero',
@@ -2091,20 +2185,20 @@ export const api = {
       '2026-11': 'Noviembre',
       '2026-12': 'Diciembre'
     };
-    const curLabel = monthLabels[month] || month;
+    const curLabel = monthLabels[effMonth] || effMonth;
     const prevLabel = monthLabels[prevMonthStr] || prevMonthStr;
 
-    const prevPeriodLabel = periodType === 'WEEK'
+    const prevPeriodLabel = effPeriodType === 'WEEK'
       ? (prevWeekStart ? `Semana Anterior (${prevWeekStart})` : 'Semana Anterior')
       : `${prevLabel} (Mes Anterior)`;
-    const curPeriodLabel = periodType === 'WEEK'
+    const curPeriodLabel = effPeriodType === 'WEEK'
       ? `Semana (${weekStart})`
       : `${curLabel} (Mes Actual)`;
 
     const monthlyComparisonChart = [
       {
         monthName: prevPeriodLabel,
-        period: periodType === 'WEEK' ? prevWeekStart : prevMonthStr,
+        period: effPeriodType === 'WEEK' ? prevWeekStart : prevMonthStr,
         overtime: prevH.overtime || 0,
         night: prevH.night || 0,
         sunday: prevH.sunday || 0,
@@ -2113,7 +2207,7 @@ export const api = {
       },
       {
         monthName: curPeriodLabel,
-        period: periodType === 'WEEK' ? weekStart : month,
+        period: effPeriodType === 'WEEK' ? weekStart : effMonth,
         overtime: curH.overtime || 0,
         night: curH.night || 0,
         sunday: curH.sunday || 0,
@@ -2122,12 +2216,8 @@ export const api = {
       }
     ];
 
-    const avgCurrentHours = currentMonthSchedules.length > 0 
-      ? +(curH.scheduled / currentMonthSchedules.length).toFixed(1)
-      : 42.0;
-
     let weeklyComparison = [];
-    if (periodType === 'WEEK' && currentMonthSchedules.length > 0) {
+    if (effPeriodType === 'WEEK' && curScheds.length > 0) {
       const dayTotals = {
         'Lunes': { scheduled: 0, special: 0 },
         'Martes': { scheduled: 0, special: 0 },
@@ -2139,7 +2229,7 @@ export const api = {
       };
       const dayKeys = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
-      currentMonthSchedules.forEach(s => {
+      curScheds.forEach(s => {
         (s.shifts || []).forEach(sh => {
           let dayKey = sh.dayOfWeek;
           if (!dayKey && sh.date) {
@@ -2163,13 +2253,47 @@ export const api = {
         real: +(dayTotals[dName].scheduled).toFixed(1),
         special: +(dayTotals[dName].special).toFixed(1)
       }));
-    } else {
-      weeklyComparison = [
-        { week: 'Semana 36', currentMonthProg: 42.0, currentMonthReal: 41.8, scheduled: 42.0, real: 41.8, overtime: 0, night: 1.5 },
-        { week: 'Semana 37', currentMonthProg: 42.0, currentMonthReal: 42.5, scheduled: 42.0, real: 42.5, overtime: 0.5, night: 2.0 },
-        { week: 'Semana 38', currentMonthProg: 42.0, currentMonthReal: 42.0, scheduled: 42.0, real: 42.0, overtime: 0, night: 1.8 },
-        { week: 'Semana 39', currentMonthProg: 42.0, currentMonthReal: avgCurrentHours, scheduled: 42.0, real: avgCurrentHours, overtime: curH.overtime, night: curH.night }
-      ];
+    } else if (isMonthly) {
+      const monthWeeks = getWeeksOverlappingMonth(effMonth);
+      weeklyComparison = monthWeeks.map(w => {
+        const wPunches = curPunches.filter(pu => pu.entryDate >= w.weekStart && pu.entryDate <= w.weekEnd);
+        const wScheds = curScheds.filter(s => s.weekStart === w.weekStart);
+        let wHrs = 0;
+        let wSpec = 0;
+        let wNight = 0;
+        let wOt = 0;
+
+        if (wScheds.length > 0) {
+          wScheds.forEach(s => {
+            wHrs += Number(s.totalNetHours || 0);
+            if (s.totalNetHours > 42) wOt += (s.totalNetHours - 42);
+            (s.shifts || []).forEach(sh => {
+              wNight += Number(sh.nightHours || 0);
+              if (sh.isSunday || sh.isHoliday) wSpec += Number(sh.netHours || 0);
+            });
+          });
+          wSpec += (wNight + wOt);
+        } else if (wPunches.length > 0) {
+          wPunches.forEach(pu => {
+            const c = pu.realCalculations || {};
+            const net = Number(c.netHours || 0);
+            wHrs += net;
+            wNight += Number(c.nightHours || 0);
+            if (c.isSunday || c.isHoliday) wSpec += net;
+          });
+          wSpec += wNight;
+        }
+
+        return {
+          week: `Sem ${w.weekNumber}`,
+          label: w.label,
+          scheduled: +wHrs.toFixed(1),
+          real: +wHrs.toFixed(1),
+          special: +wSpec.toFixed(1),
+          night: +wNight.toFixed(1),
+          overtime: +wOt.toFixed(1)
+        };
+      });
     }
 
     return {
@@ -2182,8 +2306,8 @@ export const api = {
       weeklyComparison,
       previousPeriodLabel,
       currentPeriodLabel,
-      totalScheduledHours: curH.scheduled,
-      schedulesCount: currentMonthSchedules.length
+      totalScheduledHours: curH.totalWorked,
+      schedulesCount: curH.recordCount
     };
   },
 

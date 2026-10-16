@@ -4,7 +4,7 @@ import {
   AlertCircle, Filter, Calendar, Search, RefreshCw, MessageSquare, 
   FileText, ShieldCheck, ChevronDown, Check, X, Sparkles, User
 } from 'lucide-react';
-import { ALL_WEEKS_2026, CURRENT_WEEK_START } from '../utils/weeks.js';
+import { ALL_WEEKS_2026, CURRENT_WEEK_START, isWeekInMonth } from '../utils/weeks.js';
 import { api } from '../services/api.js';
 
 const REASON_CATEGORIES = [
@@ -141,7 +141,7 @@ export default function WeeklyJustificationView({ currentUser, pdvs, supervisors
     // Week filter
     if (filterPeriodType === 'WEEK' && itemWeek !== selectedWeek) return false;
     // Month filter
-    if (filterPeriodType === 'MONTH' && itemMonth !== selectedMonth) return false;
+    if (filterPeriodType === 'MONTH' && itemMonth !== selectedMonth && (!itemWeek || !isWeekInMonth(itemWeek, selectedMonth))) return false;
     // PDV filter
     if (selectedPdvId && selectedPdvId !== 'ALL' && itemPdvId !== selectedPdvId) return false;
     // Zone filter

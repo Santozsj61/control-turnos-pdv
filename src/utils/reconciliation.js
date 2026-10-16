@@ -19,11 +19,14 @@ export function runReconciliation({
   config = {},
   weekStart,
   weekEnd,
+  month,
+  periodType = 'WEEK',
   pdvId,
   supervisorId,
   documentId,
   novelties = []
 }) {
+  const isMonthly = periodType === 'MONTH' || (!weekStart && !!month);
   const lateTolerance = config.lateToleranceMinutes || config.late_tolerance_minutes || 10;
   const earlyTolerance = config.earlyExitToleranceMinutes || config.early_exit_tolerance_minutes || 10;
 
@@ -47,9 +50,22 @@ export function runReconciliation({
   const userByDoc = new Map(users.map(u => [String(u.documentId || u.document_id).trim(), u]));
   const userByName = new Map(users.map(u => [cleanName(u.fullName || u.full_name), u]));
 
-  // Schedules for this week
-  const schedulesThisWeek = allSchedules.filter(s => !weekStart || s.weekStart === weekStart || s.week_start === weekStart);
-  const schedByUserId = new Map(schedulesThisWeek.map(s => [s.userId || s.user_id, s]));
+  // Schedules for this period (week or month)
+  const schedulesThisPeriod = allSchedules.filter(s => {
+    if (isMonthly && month) {
+      return (s.weekStart && s.weekStart.startsWith(month)) ||
+             (s.shifts && s.shifts.some(sh => sh.date && sh.date.startsWith(month)));
+    }
+    return !weekStart || s.weekStart === weekStart || s.week_start === weekStart;
+  });
+
+  // Group schedules by userId to accumulate all weeks in monthly mode
+  const schedsByUserId = new Map();
+  schedulesThisPeriod.forEach(s => {
+    const uId = s.userId || s.user_id;
+    if (!schedsByUserId.has(uId)) schedsByUserId.set(uId, []);
+    schedsByUserId.get(uId).push(s);
+  });
 
   // Supervisor by name lookup
   const supByName = new Map(supervisors.map(s => [cleanName(s.name), s]));
@@ -197,9 +213,16 @@ export function runReconciliation({
     );
   }
 
-  // 5. Generate date list for the week (7 days)
+  // 5. Generate date list for the period (7 days for week, or all month days)
   const dates = [];
-  if (weekStart) {
+  if (isMonthly && month) {
+    const [y, m] = month.split('-').map(Number);
+    const daysInMonth = new Date(Date.UTC(y, m, 0)).getUTCDate();
+    for (let d = 1; d <= daysInMonth; d++) {
+      const cur = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+      dates.push(cur.toISOString().split('T')[0]);
+    }
+  } else if (weekStart) {
     const start = new Date(weekStart + 'T12:00:00Z');
     for (let i = 0; i < 7; i++) {
       const cur = new Date(start.getTime() + i * 86400000);
@@ -217,14 +240,14 @@ export function runReconciliation({
     const empPdv = pdvs.find(p => p.id === empPdvId);
     const empSup = supervisors.find(s => s.id === (empSupId || empPdv?.supervisorId || empPdv?.supervisor_id));
 
-    // Schedule for this employee
-    const empSchedule = schedByUserId.get(emp.id);
+    // Schedules for this employee across the period
+    const empSchedules = schedsByUserId.get(emp.id) || [];
     const shiftsByDate = {};
-    if (empSchedule && empSchedule.shifts) {
-      empSchedule.shifts.forEach(sh => {
-        shiftsByDate[sh.date] = sh;
+    empSchedules.forEach(s => {
+      (s.shifts || []).forEach(sh => {
+        if (sh.date) shiftsByDate[sh.date] = sh;
       });
-    }
+    });
 
     // Punches for this employee (including typo matched punches)
     const empPunches = allPunches.filter(p => {
@@ -251,7 +274,7 @@ export function runReconciliation({
 
     // Skip if employee has no schedule, no punches and no novelties in this week (unless specifically filtered by PDV)
     const isFilteredPdv = !!pdvId;
-    if (!empSchedule && empPunches.length === 0 && empNovs.length === 0 && !isFilteredPdv) continue;
+    if (empSchedules.length === 0 && empPunches.length === 0 && empNovs.length === 0 && !isFilteredPdv) continue;
 
     const targetDates = dates.length > 0 ? dates : Array.from(new Set([...Object.keys(shiftsByDate), ...Object.keys(punchesByDate)])).sort();
 
