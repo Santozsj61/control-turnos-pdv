@@ -58,6 +58,7 @@ export function runReconciliation({
     }
     return !weekStart || s.weekStart === weekStart || s.week_start === weekStart;
   });
+  const schedulesThisWeek = schedulesThisPeriod;
 
   // Group schedules by userId to accumulate all weeks in monthly mode
   const schedsByUserId = new Map();

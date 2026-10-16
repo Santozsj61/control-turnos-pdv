@@ -5,7 +5,7 @@ import { parsePunchExcel, parseNoveltiesReport, parsePayrollLiquidation } from '
 import { initialSupervisors, initialPDVs, initialUsers } from '../data/seedData.js';
 import { initialNovelties } from '../data/initialNovelties.js';
 import { OFFICIAL_PAYROLL_BY_WEEK } from '../data/officialPayrollData.js';
-import { registerLoadedWeek, registerLoadedWeeks, ALL_WEEKS_2026, KNOWN_WEEKS_WITH_DATA, getWeeksOverlappingMonth, getWeekStartsForMonth, isWeekInMonth } from '../utils/weeks.js';
+import { registerLoadedWeek, registerLoadedWeeks, ALL_WEEKS_2026, KNOWN_WEEKS_WITH_DATA, getWeeksOverlappingMonth, getWeekStartsForMonth, isWeekInMonth, cleanNormalizeStr } from '../utils/weeks.js';
 
 import { buildAuditDataLocally } from '../utils/auditCalculator.js';
 import { getPdvPassword, validatePdvPassword, AUTH_CREDENTIALS } from '../utils/authRules.js';
@@ -58,8 +58,11 @@ const memoryCache = {
 export const api = {
   isConfigured: isSupabaseConfigured,
 
-  getCachedReconciliation: ({ weekStart, pdvId, supervisorId, documentId }) => {
-    const cacheKey = `${weekStart || ''}_${pdvId || ''}_${supervisorId || ''}_${documentId || ''}`;
+  getCachedReconciliation: ({ weekStart, month, periodType = 'WEEK', pdvId, supervisorId, documentId }) => {
+    const isMonthly = periodType === 'MONTH' || (!weekStart && !!month);
+    const effPeriodType = isMonthly ? 'MONTH' : 'WEEK';
+    const effMonth = month || (weekStart ? weekStart.slice(0, 7) : '2026-09');
+    const cacheKey = `${effPeriodType}_${isMonthly ? effMonth : (weekStart || '')}_${pdvId || ''}_${supervisorId || ''}_${documentId || ''}`;
     return memoryCache.reconciliationByParams.get(cacheKey) || null;
   },
 
@@ -2304,8 +2307,8 @@ export const api = {
       operationalAlerts: operationalAlerts.slice(0, 20),
       monthlyComparisonChart,
       weeklyComparison,
-      previousPeriodLabel,
-      currentPeriodLabel,
+      previousPeriodLabel: prevPeriodLabel,
+      currentPeriodLabel: curPeriodLabel,
       totalScheduledHours: curH.totalWorked,
       schedulesCount: curH.recordCount
     };
