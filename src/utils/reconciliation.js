@@ -488,6 +488,17 @@ export function runReconciliation({
         }
       }
 
+      // Conciliación Cruzada de Horas (Regla: si no hay marcación toma programación y viceversa, sin duplicar)
+      let reconciledNetHours = 0;
+      let reconciledSource = 'NONE';
+      if (realNetHours > 0) {
+        reconciledNetHours = realNetHours;
+        reconciledSource = scheduledNetHours > 0 ? 'MATCH_PUNCH' : 'UNSCHEDULED_PUNCH';
+      } else if (scheduledNetHours > 0) {
+        reconciledNetHours = scheduledNetHours;
+        reconciledSource = 'SCHEDULE_FALLBACK';
+      }
+
       comparisonRows.push({
         id: `${emp.id}-${date}`,
         userId: emp.id,
@@ -520,6 +531,8 @@ export function runReconciliation({
         realStart,
         realEnd,
         realNetHours,
+        reconciledNetHours: +(reconciledNetHours.toFixed(2)),
+        reconciledSource,
         realLunchHours,
         realLunchReason,
         autoFilledEntry,
@@ -604,9 +617,11 @@ export function runReconciliation({
     if (!row.isSunday) {
       group.scheduledHours += row.scheduledNetHours;
       group.realHours += row.realNetHours;
+      group.reconciledHours = (group.reconciledHours || 0) + (row.reconciledNetHours || 0);
     } else {
       group.sundayScheduledHours = (group.sundayScheduledHours || 0) + row.scheduledNetHours;
       group.sundayRealHours = (group.sundayRealHours || 0) + row.realNetHours;
+      group.sundayReconciledHours = (group.sundayReconciledHours || 0) + (row.reconciledNetHours || 0);
     }
     if (row.status === 'OK_MATCH') group.exactCount++;
     if (row.status === 'LATE_ARRIVAL') group.lateCount++;
@@ -625,12 +640,17 @@ export function runReconciliation({
     })
     .map(g => {
       const distinctUsers = new Set(g.rows.map(r => r.userId));
+      const rMonSat = +(g.reconciledHours || 0).toFixed(2);
+      const rSun = +(g.sundayReconciledHours || 0).toFixed(2);
       return {
         ...g,
         employeeCount: distinctUsers.size,
         scheduledHours: +g.scheduledHours.toFixed(2),
         realHours: +g.realHours.toFixed(2),
         hoursDiff: +(g.realHours - g.scheduledHours).toFixed(2),
+        reconciledMonSatHours: rMonSat,
+        reconciledSundayHours: rSun,
+        totalReconciledHours: +(rMonSat + rSun).toFixed(2),
         sundayScheduledHours: +(g.sundayScheduledHours || 0).toFixed(2),
         sundayRealHours: +(g.sundayRealHours || 0).toFixed(2),
         complianceRate: g.rows.length > 0 ? Math.round((g.exactCount / g.rows.length) * 100) : 100
@@ -648,6 +668,10 @@ export function runReconciliation({
   const sundayScheduledHours = +sundayRows.reduce((sum, r) => sum + r.scheduledNetHours, 0).toFixed(2);
   const sundayRealHours = +sundayRows.reduce((sum, r) => sum + r.realNetHours, 0).toFixed(2);
 
+  const reconciledMonSatHours = +nonSundayRows.reduce((sum, r) => sum + (r.reconciledNetHours || 0), 0).toFixed(2);
+  const reconciledSundayHours = +sundayRows.reduce((sum, r) => sum + (r.reconciledNetHours || 0), 0).toFixed(2);
+  const totalReconciledHours = +(reconciledMonSatHours + reconciledSundayHours).toFixed(2);
+
   const stats = {
     totalRows: comparisonRows.length,
     pdvCount: pdvSummaries.length,
@@ -663,7 +687,10 @@ export function runReconciliation({
     totalRealHours,
     totalHoursDifference,
     sundayScheduledHours,
-    sundayRealHours
+    sundayRealHours,
+    reconciledMonSatHours,
+    reconciledSundayHours,
+    totalReconciledHours
   };
 
   // 8. Compute Resumen Comparativo de Programación vs Marcaciones

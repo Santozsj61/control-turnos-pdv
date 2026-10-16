@@ -443,18 +443,15 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
     : rawPdvSummaries;
 
   const stats = useMemo(() => {
-    if (!isEmployee && !isSupervisor) {
-      return reconciliationData?.stats || {
-        totalRows: 0,
-        exactMatches: 0,
-        lateArrivals: 0,
-        earlyDepartures: 0,
-        absences: 0,
-        unscheduledPunches: 0,
-        permissionsApproved: 0,
-        totalScheduledHours: 0,
-        totalRealHours: 0,
-        totalHoursDifference: 0
+    if (!isEmployee && !isSupervisor && reconciliationData?.stats) {
+      const s = reconciliationData.stats;
+      const recMS = s.reconciledMonSatHours !== undefined ? s.reconciledMonSatHours : s.totalRealHours;
+      const recSun = s.reconciledSundayHours !== undefined ? s.reconciledSundayHours : (s.sundayRealHours || 0);
+      return {
+        ...s,
+        reconciledMonSatHours: recMS,
+        reconciledSundayHours: recSun,
+        totalReconciledHours: s.totalReconciledHours !== undefined ? s.totalReconciledHours : Math.round((recMS + recSun) * 10) / 10
       };
     }
     let exactMatches = 0;
@@ -465,6 +462,10 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
     let permissionsApproved = 0;
     let totalScheduledHours = 0;
     let totalRealHours = 0;
+    let sundayScheduledHours = 0;
+    let sundayRealHours = 0;
+    let reconciledMonSatHours = 0;
+    let reconciledSundayHours = 0;
 
     for (const r of rows) {
       if (r.status === 'OK_MATCH') exactMatches++;
@@ -475,13 +476,26 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
       if (r.hasPermission) permissionsApproved++;
 
       const isSunday = r.isSunday ?? (r.dayName === 'Domingo' || (r.date && new Date(r.date + 'T12:00:00Z').getUTCDay() === 0));
+      const rowRec = (r.reconciledNetHours !== undefined && !isNaN(Number(r.reconciledNetHours)))
+        ? Number(r.reconciledNetHours)
+        : (Number(r.realNetHours) > 0 ? Number(r.realNetHours) : (Number(r.scheduledNetHours) || 0));
+
       if (!isSunday) {
         totalScheduledHours += (Number(r.scheduledNetHours) || 0);
         totalRealHours += (Number(r.realNetHours) || 0);
+        reconciledMonSatHours += rowRec;
+      } else {
+        sundayScheduledHours += (Number(r.scheduledNetHours) || 0);
+        sundayRealHours += (Number(r.realNetHours) || 0);
+        reconciledSundayHours += rowRec;
       }
     }
 
     const totalHoursDifference = Math.round((totalRealHours - totalScheduledHours) * 10) / 10;
+    reconciledMonSatHours = Math.round(reconciledMonSatHours * 10) / 10;
+    reconciledSundayHours = Math.round(reconciledSundayHours * 10) / 10;
+    const totalReconciledHours = Math.round((reconciledMonSatHours + reconciledSundayHours) * 10) / 10;
+
     return {
       totalRows: rows.length,
       exactMatches,
@@ -492,7 +506,12 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
       permissionsApproved,
       totalScheduledHours: Math.round(totalScheduledHours * 10) / 10,
       totalRealHours: Math.round(totalRealHours * 10) / 10,
-      totalHoursDifference
+      totalHoursDifference,
+      sundayScheduledHours: Math.round(sundayScheduledHours * 10) / 10,
+      sundayRealHours: Math.round(sundayRealHours * 10) / 10,
+      reconciledMonSatHours,
+      reconciledSundayHours,
+      totalReconciledHours
     };
   }, [reconciliationData?.stats, rows, isEmployee, isSupervisor]);
 
@@ -559,6 +578,9 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
           diffHours: 0,
           sundayScheduledHours: 0,
           sundayRealHours: 0,
+          reconciledMonSatHours: 0,
+          reconciledSundayHours: 0,
+          totalReconciledHours: 0,
           lateCount: 0,
           earlyCount: 0,
           absenceCount: 0,
@@ -572,13 +594,19 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
       if (r.dayName) item.daysMap[r.dayName.toLowerCase()] = r;
 
       const isSunday = r.isSunday ?? (r.dayName === 'Domingo' || (r.date && new Date(r.date + 'T12:00:00Z').getUTCDay() === 0));
+      const rowRec = (r.reconciledNetHours !== undefined && !isNaN(Number(r.reconciledNetHours)))
+        ? Number(r.reconciledNetHours)
+        : (Number(r.realNetHours) > 0 ? Number(r.realNetHours) : (Number(r.scheduledNetHours) || 0));
+
       // Exclude Sundays from Monday-to-Saturday total weekly hours
       if (!isSunday) {
         item.totalScheduledHours += (Number(r.scheduledNetHours) || 0);
         item.totalRealHours += (Number(r.realNetHours) || 0);
+        item.reconciledMonSatHours += rowRec;
       } else {
         item.sundayScheduledHours += (Number(r.scheduledNetHours) || 0);
         item.sundayRealHours += (Number(r.realNetHours) || 0);
+        item.reconciledSundayHours += rowRec;
       }
 
       if (r.status === 'LATE_ARRIVAL') item.lateCount++;
@@ -596,6 +624,9 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
       item.diffHours = Math.round((item.totalRealHours - item.totalScheduledHours) * 10) / 10;
       item.sundayScheduledHours = Math.round(item.sundayScheduledHours * 10) / 10;
       item.sundayRealHours = Math.round(item.sundayRealHours * 10) / 10;
+      item.reconciledMonSatHours = Math.round(item.reconciledMonSatHours * 10) / 10;
+      item.reconciledSundayHours = Math.round(item.reconciledSundayHours * 10) / 10;
+      item.totalReconciledHours = Math.round((item.reconciledMonSatHours + item.reconciledSundayHours) * 10) / 10;
     });
     list.sort((a, b) => a.fullName.localeCompare(b.fullName));
     return list;
@@ -1974,19 +2005,28 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
-          <div className="text-[11px] font-bold text-blue-700 uppercase tracking-wider">Balance Horas (Lun-Sáb)</div>
-          <div className="text-xl font-black text-blue-700 mt-1">
-            {stats.totalRealHours}h <span className="text-xs text-slate-400 font-normal">/ {stats.totalScheduledHours}h</span>
+        <div className="bg-white p-4 rounded-2xl border border-blue-200/80 shadow-xs ring-1 ring-blue-500/10">
+          <div className="text-[11px] font-bold text-blue-700 uppercase tracking-wider flex items-center justify-between">
+            <span>Horas Conciliadas</span>
+            <span className="text-[9px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded-full font-bold">Cruce</span>
           </div>
-          <div className="text-[10px] text-blue-600 font-bold mt-0.5">
-            Dif: {stats.totalHoursDifference > 0 ? `+${stats.totalHoursDifference}h` : `${stats.totalHoursDifference}h`}
+          <div className="text-xl font-black text-blue-900 mt-1">
+            {stats.totalReconciledHours !== undefined ? `${stats.totalReconciledHours}h` : `${stats.totalRealHours}h`}
+            <span className="text-xs text-slate-400 font-normal ml-1">Total</span>
           </div>
-          {stats.sundayRealHours > 0 && (
-            <div className="text-[9px] text-amber-600 font-semibold mt-0.5">
-              Dominical: {stats.sundayRealHours}h (separadas)
-            </div>
-          )}
+          <div className="text-[10px] text-slate-600 font-medium mt-0.5 flex items-center gap-1.5">
+            <span>L-S: <strong>{stats.reconciledMonSatHours !== undefined ? stats.reconciledMonSatHours : stats.totalRealHours}h</strong></span>
+            {(stats.reconciledSundayHours > 0 || stats.sundayRealHours > 0) && (
+              <span className="text-amber-700 font-bold">• Dom: {stats.reconciledSundayHours || stats.sundayRealHours}h</span>
+            )}
+          </div>
+          <div className="text-[9px] text-slate-400 mt-1.5 border-t border-slate-100 pt-1 flex items-center justify-between">
+            <span>Marcadas: {stats.totalRealHours}h</span>
+            <span>Prog: {stats.totalScheduledHours}h</span>
+            <span className={stats.totalHoursDifference > 0 ? 'text-blue-600 font-bold' : 'text-slate-500'}>
+              Dif: {stats.totalHoursDifference > 0 ? `+${stats.totalHoursDifference}h` : `${stats.totalHoursDifference}h`}
+            </span>
+          </div>
         </div>
       </div>
 

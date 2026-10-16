@@ -686,20 +686,29 @@ export const api = {
       return allData.map(mapSchedule);
     }
 
-    let query = supabase.from('schedules').select('*, users(*)');
-    if (filters.userId) query = query.eq('user_id', filters.userId);
-    if (filters.weekStart) {
-      query = query.eq('week_start', filters.weekStart);
-    } else if (filters.month) {
-      const monthWeeks = getWeekStartsForMonth(filters.month);
-      if (monthWeeks.length > 0) {
-        query = query.in('week_start', monthWeeks);
+    let allData = [];
+    let from = 0;
+    const step = 1000;
+    while (true) {
+      let query = supabase.from('schedules').select('*, users(*)').range(from, from + step - 1);
+      if (filters.userId) query = query.eq('user_id', filters.userId);
+      if (filters.weekStart) {
+        query = query.eq('week_start', filters.weekStart);
+      } else if (filters.month) {
+        const monthWeeks = getWeekStartsForMonth(filters.month);
+        if (monthWeeks.length > 0) {
+          query = query.in('week_start', monthWeeks);
+        }
       }
+      if (filters.pdvId && filters.pdvId !== 'ALL') query = query.eq('pdv_id', filters.pdvId);
+      const { data, error } = await query;
+      if (error) throw new Error(error.message);
+      if (!data || data.length === 0) break;
+      allData.push(...data);
+      if (data.length < step) break;
+      from += step;
     }
-    if (filters.pdvId && filters.pdvId !== 'ALL') query = query.eq('pdv_id', filters.pdvId);
-    const { data, error } = await query.limit(filters.limit || 5000);
-    if (error) throw new Error(error.message);
-    const mapped = (data || []).map(mapSchedule);
+    const mapped = allData.map(mapSchedule);
     if (schedCacheKey) {
       memoryCache.schedulesByWeekAndPdv.set(schedCacheKey, mapped);
     }
