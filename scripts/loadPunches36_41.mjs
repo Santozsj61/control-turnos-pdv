@@ -1,13 +1,15 @@
 import fs from 'fs';
 import { parsePunchExcel } from '../src/utils/excelParser.js';
 
+import path from 'path';
+
 const SB_URL = 'https://aqgfocnbsjyhcpqfxrsa.supabase.co';
 const SB_KEY = 'sb_publishable_jkaQRTZe82IDDPiXTb0jMg_bj19rK0U';
 const headers = { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' };
 
-const FILE = 'C:/Users/analista.retail/.gemini/antigravity/brain/ee9a10d7-aa9a-4918-8b9f-cc85f73616cc/.user_uploaded/media_1792101708961_b14a73bd.xlsx';
+const FILE = path.resolve('MArcacion_36_al_41_clean.xlsx');
 const recs = parsePunchExcel(fs.readFileSync(FILE));
-console.log('Registros parseados:', recs.length);
+console.log('Registros parseados (limpios):', recs.length);
 
 async function getAll(table, select) {
   let all = []; let from = 0;
