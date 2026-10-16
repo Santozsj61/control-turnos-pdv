@@ -559,6 +559,8 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
 
   const horizontalPersonList = useMemo(() => {
     const map = new Map();
+    const visibleDates = new Set(weekDays.map(w => w.date));
+
     for (const r of filteredRows) {
       const key = r.documentId || r.userId || r.fullName;
       if (!map.has(key)) {
@@ -573,6 +575,16 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
           supervisorName: r.supervisorName,
           isUnscheduledWorker: r.isUnscheduledWorker,
           daysMap: {},
+          // Weekly totals (strictly matching the 7 visible days of the evaluated week)
+          weekScheduledHours: 0,
+          weekRealHours: 0,
+          weekDiffHours: 0,
+          weekSundayScheduledHours: 0,
+          weekSundayRealHours: 0,
+          weekReconciledMonSatHours: 0,
+          weekReconciledSundayHours: 0,
+          weekTotalReconciledHours: 0,
+          // Full period totals (month or overall)
           totalScheduledHours: 0,
           totalRealHours: 0,
           diffHours: 0,
@@ -598,7 +610,27 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
         ? Number(r.reconciledNetHours)
         : (Number(r.realNetHours) > 0 ? Number(r.realNetHours) : (Number(r.scheduledNetHours) || 0));
 
-      // Exclude Sundays from Monday-to-Saturday total weekly hours
+      const isDateVisible = r.date && visibleDates.has(r.date);
+      if (isDateVisible) {
+        if (!isSunday) {
+          item.weekScheduledHours += (Number(r.scheduledNetHours) || 0);
+          item.weekRealHours += (Number(r.realNetHours) || 0);
+          item.weekReconciledMonSatHours += rowRec;
+        } else {
+          item.weekSundayScheduledHours += (Number(r.scheduledNetHours) || 0);
+          item.weekSundayRealHours += (Number(r.realNetHours) || 0);
+          item.weekReconciledSundayHours += rowRec;
+        }
+
+        if (r.status === 'LATE_ARRIVAL') item.lateCount++;
+        else if (r.status === 'EARLY_DEPARTURE') item.earlyCount++;
+        else if (r.status === 'ABSENT') item.absenceCount++;
+        else if (r.status === 'NO_SHOW') item.noShowCount++;
+        else if (r.status === 'UNSCHEDULED_WORK') item.unscheduledCount++;
+        else if (r.status === 'OK_MATCH') item.okCount++;
+      }
+
+      // Period totals (month or overall)
       if (!isSunday) {
         item.totalScheduledHours += (Number(r.scheduledNetHours) || 0);
         item.totalRealHours += (Number(r.realNetHours) || 0);
@@ -608,17 +640,19 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
         item.sundayRealHours += (Number(r.realNetHours) || 0);
         item.reconciledSundayHours += rowRec;
       }
-
-      if (r.status === 'LATE_ARRIVAL') item.lateCount++;
-      else if (r.status === 'EARLY_DEPARTURE') item.earlyCount++;
-      else if (r.status === 'ABSENT') item.absenceCount++;
-      else if (r.status === 'NO_SHOW') item.noShowCount++;
-      else if (r.status === 'UNSCHEDULED_WORK') item.unscheduledCount++;
-      else if (r.status === 'OK_MATCH') item.okCount++;
     }
 
     const list = Array.from(map.values());
     list.forEach(item => {
+      item.weekScheduledHours = Math.round(item.weekScheduledHours * 10) / 10;
+      item.weekRealHours = Math.round(item.weekRealHours * 10) / 10;
+      item.weekDiffHours = Math.round((item.weekRealHours - item.weekScheduledHours) * 10) / 10;
+      item.weekSundayScheduledHours = Math.round(item.weekSundayScheduledHours * 10) / 10;
+      item.weekSundayRealHours = Math.round(item.weekSundayRealHours * 10) / 10;
+      item.weekReconciledMonSatHours = Math.round(item.weekReconciledMonSatHours * 10) / 10;
+      item.weekReconciledSundayHours = Math.round(item.weekReconciledSundayHours * 10) / 10;
+      item.weekTotalReconciledHours = Math.round((item.weekReconciledMonSatHours + item.weekReconciledSundayHours) * 10) / 10;
+
       item.totalScheduledHours = Math.round(item.totalScheduledHours * 10) / 10;
       item.totalRealHours = Math.round(item.totalRealHours * 10) / 10;
       item.diffHours = Math.round((item.totalRealHours - item.totalScheduledHours) * 10) / 10;
@@ -630,7 +664,7 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
     });
     list.sort((a, b) => a.fullName.localeCompare(b.fullName));
     return list;
-  }, [filteredRows]);
+  }, [filteredRows, weekDays]);
 
   // ⚡ Renderizado progresivo ultrarrápido: renderiza los primeros 50 colaboradores al instante en vez de congelar con 792 a la vez
   const [displayLimit, setDisplayLimit] = useState(50);
@@ -960,20 +994,30 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                           <div className="p-1.5 bg-slate-900 text-white rounded-xl space-y-0.5">
                             <div className="text-[8px] text-amber-300 font-bold uppercase leading-tight">Lun - Sáb</div>
                             <div className="text-[10.5px] font-black leading-tight">
-                              {collab.totalRealHours}h <span className="text-slate-400 text-[8.5px] font-normal">/ {collab.totalScheduledHours}h</span>
+                              {collab.weekRealHours}h <span className="text-slate-400 text-[8.5px] font-normal">/ {collab.weekScheduledHours}h</span>
                             </div>
                             {!isPdv && (
                               <div className={`text-[8.5px] font-extrabold px-1 py-0.2 rounded inline-block ${
-                                collab.diffHours > 0 ? 'bg-blue-600 text-white' :
-                                collab.diffHours < 0 ? 'bg-rose-600 text-white' :
+                                collab.weekDiffHours > 0 ? 'bg-blue-600 text-white' :
+                                collab.weekDiffHours < 0 ? 'bg-rose-600 text-white' :
                                 'bg-emerald-600 text-white'
                               }`}>
-                                {collab.diffHours > 0 ? `+${collab.diffHours}h` : collab.diffHours < 0 ? `${collab.diffHours}h` : '0h'}
+                                {collab.weekDiffHours > 0 ? `+${collab.weekDiffHours}h` : collab.weekDiffHours < 0 ? `${collab.weekDiffHours}h` : '0h'}
                               </div>
                             )}
-                            {(collab.sundayRealHours > 0 || collab.sundayScheduledHours > 0) && (
+                            {(collab.weekSundayRealHours > 0 || collab.weekSundayScheduledHours > 0) && (
                               <div className="text-[7.5px] text-amber-300 font-bold leading-tight pt-0.5 border-t border-slate-700/60" title="Horas dominicales (liquidación separada de Lun a Sáb)">
-                                Dom: {collab.sundayRealHours}h{collab.sundayScheduledHours > 0 ? ` / ${collab.sundayScheduledHours}h` : ''}
+                                Dom: {collab.weekSundayRealHours}h{collab.weekSundayScheduledHours > 0 ? ` / ${collab.weekSundayScheduledHours}h` : ''}
+                              </div>
+                            )}
+                            {dashboardPeriodType === 'MONTH' && (
+                              <div className="pt-1 mt-1 border-t border-slate-700/80 text-[7px] text-slate-300 leading-tight">
+                                <span className="text-purple-300 font-bold uppercase block">Acum. Mes:</span>
+                                <span className="font-bold text-white">{collab.totalRealHours}h</span>
+                                <span className="text-slate-400"> / {collab.totalScheduledHours}h</span>
+                                {collab.sundayRealHours > 0 && (
+                                  <span className="text-amber-300 block">Dom: {collab.sundayRealHours}h</span>
+                                )}
                               </div>
                             )}
                             {!isPdv && (collab.lateCount > 0 || collab.earlyCount > 0 || collab.absenceCount > 0 || collab.unscheduledCount > 0) && (
@@ -2213,6 +2257,47 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
             </div>
           </div>
 
+          {/* Sub-barra de navegación semanal cuando se filtra por Mes completo */}
+          {dashboardPeriodType === 'MONTH' && (
+            <div className="bg-purple-50/80 border border-purple-200 rounded-2xl p-3 sm:p-3.5 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 shadow-2xs">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-purple-600 text-white rounded-lg">
+                  <Calendar className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-xs font-black text-purple-950">
+                    Semanas del Mes {selectedMonth}
+                  </div>
+                  <div className="text-[10px] text-purple-700">
+                    Selecciona qué semana de 7 días deseas visualizar en la cuadrícula horizontal:
+                  </div>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-1.5">
+                {ALL_WEEKS_2026.filter(w => isWeekInMonth(w.weekStart, selectedMonth)).map(w => {
+                  const isActive = w.weekStart === weekStart;
+                  return (
+                    <button
+                      key={w.weekStart}
+                      type="button"
+                      onClick={() => setWeekStart(w.weekStart)}
+                      className={`text-xs font-extrabold px-3 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-1.5 ${
+                        isActive
+                          ? 'bg-purple-700 text-white shadow-xs ring-2 ring-purple-400'
+                          : 'bg-white text-purple-900 hover:bg-purple-100/80 border border-purple-200 shadow-2xs'
+                      }`}
+                    >
+                      <span>{w.label.split('(')[0].trim()}</span>
+                      <span className={`text-[9.5px] font-normal ${isActive ? 'text-purple-200' : 'text-slate-500'}`}>
+                        ({w.shortLabel})
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {loading ? (
             <div className="bg-white rounded-2xl p-12 text-center text-slate-400">
               Cargando comparativo horizontal por colaborador...
@@ -2241,7 +2326,9 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                       })}
                       <th className="py-2 px-1.5 text-center w-[10.5%] min-w-[85px] max-w-[110px] bg-slate-800">
                         <div className="font-extrabold text-[11px] leading-tight text-white">Balance</div>
-                        <div className="text-[8.5px] text-amber-300 font-bold leading-tight">Lun - Sáb</div>
+                        <div className="text-[8.5px] text-amber-300 font-bold leading-tight">
+                          {dashboardPeriodType === 'MONTH' ? 'Semana Visible' : 'Lun - Sáb'}
+                        </div>
                       </th>
                     </tr>
                   </thead>
@@ -2505,20 +2592,30 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                           <div className="p-1.5 bg-slate-900 text-white rounded-xl space-y-0.5">
                             <div className="text-[8px] text-amber-300 font-bold uppercase leading-tight">Lun - Sáb</div>
                             <div className="text-[10.5px] font-black leading-tight">
-                              {collab.totalRealHours}h <span className="text-slate-400 text-[8.5px] font-normal">/ {collab.totalScheduledHours}h</span>
+                              {collab.weekRealHours}h <span className="text-slate-400 text-[8.5px] font-normal">/ {collab.weekScheduledHours}h</span>
                             </div>
                             {!isPdv && (
                               <div className={`text-[8.5px] font-extrabold px-1 py-0.2 rounded inline-block ${
-                                collab.diffHours > 0 ? 'bg-blue-600 text-white' :
-                                collab.diffHours < 0 ? 'bg-rose-600 text-white' :
+                                collab.weekDiffHours > 0 ? 'bg-blue-600 text-white' :
+                                collab.weekDiffHours < 0 ? 'bg-rose-600 text-white' :
                                 'bg-emerald-600 text-white'
                               }`}>
-                                {collab.diffHours > 0 ? `+${collab.diffHours}h` : collab.diffHours < 0 ? `${collab.diffHours}h` : '0h'}
+                                {collab.weekDiffHours > 0 ? `+${collab.weekDiffHours}h` : collab.weekDiffHours < 0 ? `${collab.weekDiffHours}h` : '0h'}
                               </div>
                             )}
-                            {(collab.sundayRealHours > 0 || collab.sundayScheduledHours > 0) && (
+                            {(collab.weekSundayRealHours > 0 || collab.weekSundayScheduledHours > 0) && (
                               <div className="text-[7.5px] text-amber-300 font-bold leading-tight pt-0.5 border-t border-slate-700/60" title="Horas dominicales (liquidación separada de Lun a Sáb)">
-                                Dom: {collab.sundayRealHours}h{collab.sundayScheduledHours > 0 ? ` / ${collab.sundayScheduledHours}h` : ''}
+                                Dom: {collab.weekSundayRealHours}h{collab.weekSundayScheduledHours > 0 ? ` / ${collab.weekSundayScheduledHours}h` : ''}
+                              </div>
+                            )}
+                            {dashboardPeriodType === 'MONTH' && (
+                              <div className="pt-1 mt-1 border-t border-slate-700/80 text-[7px] text-slate-300 leading-tight">
+                                <span className="text-purple-300 font-bold uppercase block">Acum. Mes:</span>
+                                <span className="font-bold text-white">{collab.totalRealHours}h</span>
+                                <span className="text-slate-400"> / {collab.totalScheduledHours}h</span>
+                                {collab.sundayRealHours > 0 && (
+                                  <span className="text-amber-300 block">Dom: {collab.sundayRealHours}h</span>
+                                )}
                               </div>
                             )}
                             {!isPdv && (collab.lateCount > 0 || collab.earlyCount > 0 || collab.absenceCount > 0 || collab.unscheduledCount > 0) && (
