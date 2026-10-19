@@ -899,9 +899,9 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                                   </div>
                                 )}
                                 <div className="flex items-center justify-between gap-0.5 text-[9px] leading-tight">
-                                  <span className="font-semibold text-slate-600 truncate flex items-center gap-0.5" title={dayRow.isNovelty7h ? `${dayRow.scheduleTypeLabel} (7h Ley)` : (dayRow.isScheduled ? `${dayRow.scheduledStart}-${dayRow.scheduledEnd}` : (isNoShow ? 'Sin Programar' : 'Sin Turno'))}>
+                                  <span className="font-semibold text-slate-600 truncate flex items-center gap-0.5" title={dayRow.isNovelty7h ? `${dayRow.scheduleTypeLabel} (7h Ley)` : (dayRow.isScheduled ? `${dayRow.scheduledStart}-${dayRow.scheduledEnd}` : (dayRow.isDescanso || dayRow.status === 'DAY_OFF' || dayRow.scheduleTypeLabel === 'Descanso') ? 'Descanso Programado' : (isNoShow ? 'Sin Programar' : 'Sin Turno'))}>
                                     <Calendar className="w-2.5 h-2.5 text-blue-500 shrink-0" />
-                                    {dayRow.isNovelty7h ? dayRow.scheduleTypeLabel : (dayRow.isScheduled ? `${dayRow.scheduledStart}-${dayRow.scheduledEnd}` : (isNoShow ? 'Sin Programar' : 'Sin Turno'))}
+                                    {dayRow.isNovelty7h ? dayRow.scheduleTypeLabel : (dayRow.isScheduled ? `${dayRow.scheduledStart}-${dayRow.scheduledEnd}` : (dayRow.isDescanso || dayRow.status === 'DAY_OFF' || dayRow.scheduleTypeLabel === 'Descanso') ? 'Descanso' : (isNoShow ? 'Sin Programar' : 'Sin Turno'))}
                                   </span>
                                   <span className="font-bold text-slate-500 shrink-0">{dayRow.scheduledNetHours || 0}h</span>
                                 </div>
@@ -941,6 +941,8 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                                       <span className="truncate text-rose-700 font-black">No se presentó</span>
                                     ) : dayRow.isNovelty7h ? (
                                       <span className="truncate">{dayRow.scheduleTypeLabel}</span>
+                                    ) : (dayRow.isDescanso || dayRow.status === 'DAY_OFF' || dayRow.scheduleTypeLabel === 'Descanso') ? (
+                                      <span className="text-slate-500 font-semibold">Descanso</span>
                                     ) : isDayOff ? (
                                       'Sin Turno'
                                     ) : (
@@ -2455,9 +2457,9 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                               >
                                 {/* Cronograma Programado */}
                                 <div className="flex items-center justify-between gap-0.5 text-[9px] leading-tight">
-                                  <span className="font-semibold text-slate-600 truncate flex items-center gap-0.5" title={dayRow.isNovelty7h ? `${dayRow.scheduleTypeLabel} (7h Ley)` : (dayRow.isScheduled ? `${dayRow.scheduledStart}-${dayRow.scheduledEnd}` : (isNoShow ? 'Sin Programar' : 'Sin Turno'))}>
+                                  <span className="font-semibold text-slate-600 truncate flex items-center gap-0.5" title={dayRow.isNovelty7h ? `${dayRow.scheduleTypeLabel} (7h Ley)` : (dayRow.isScheduled ? `${dayRow.scheduledStart}-${dayRow.scheduledEnd}` : (dayRow.isDescanso || dayRow.status === 'DAY_OFF' || dayRow.scheduleTypeLabel === 'Descanso') ? 'Descanso Programado' : (isNoShow ? 'Sin Programar' : 'Sin Turno'))}>
                                     <Calendar className="w-2.5 h-2.5 text-blue-500 shrink-0" />
-                                    {dayRow.isNovelty7h ? dayRow.scheduleTypeLabel : (dayRow.isScheduled ? `${dayRow.scheduledStart}-${dayRow.scheduledEnd}` : (isNoShow ? 'Sin Programar' : 'Sin Turno'))}
+                                    {dayRow.isNovelty7h ? dayRow.scheduleTypeLabel : (dayRow.isScheduled ? `${dayRow.scheduledStart}-${dayRow.scheduledEnd}` : (dayRow.isDescanso || dayRow.status === 'DAY_OFF' || dayRow.scheduleTypeLabel === 'Descanso') ? 'Descanso' : (isNoShow ? 'Sin Programar' : 'Sin Turno'))}
                                   </span>
                                   <span className="font-bold text-slate-500 shrink-0">{dayRow.scheduledNetHours || 0}h</span>
                                 </div>
@@ -2492,6 +2494,8 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                                       <span className="truncate text-rose-700 font-black">No se presentó</span>
                                     ) : dayRow.isNovelty7h ? (
                                       <span className="truncate">{dayRow.scheduleTypeLabel}</span>
+                                    ) : (dayRow.isDescanso || dayRow.status === 'DAY_OFF' || dayRow.scheduleTypeLabel === 'Descanso') ? (
+                                      <span className="text-slate-500 font-semibold">Descanso</span>
                                     ) : isDayOff ? (
                                       'Sin Turno'
                                     ) : (
@@ -3204,6 +3208,8 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                     ? `${selectedRowDetail.scheduleTypeLabel} (7.0h de Ley)` 
                     : selectedRowDetail.isScheduled 
                     ? `${selectedRowDetail.scheduledStart} - ${selectedRowDetail.scheduledEnd}` 
+                    : (selectedRowDetail.isDescanso || selectedRowDetail.status === 'DAY_OFF' || selectedRowDetail.scheduleTypeLabel === 'Descanso')
+                    ? 'Día de Descanso (Programado)'
                     : 'Sin Turno Programado'}
                 </div>
                 <div><strong>Horas Netas:</strong> {selectedRowDetail.scheduledNetHours} hrs</div>

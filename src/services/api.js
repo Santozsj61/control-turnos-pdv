@@ -1156,6 +1156,7 @@ export const api = {
     if (role !== 'AUDITOR_VRX') throw new Error('Solo el perfil maestro VRX puede modificar la programación.');
 
     const targetUserId = schedule?.userId || row?.userId || row?.user_id;
+    const targetDocId = row?.documentId || schedule?.user?.documentId || (String(targetUserId || '').startsWith('emp-') ? String(targetUserId).replace('emp-', '') : '');
     const targetPdvId = schedule?.pdvId || row?.pdvId || row?.pdv_id || 'pdv-1';
     const targetDate = date || row?.date;
 
@@ -1177,12 +1178,25 @@ export const api = {
     const weekEnd = sunDt.toISOString().slice(0, 10);
 
     let targetSchedule = schedule;
-    if (!targetSchedule || !targetSchedule.shifts) {
-      const allSchedules = await api.getSchedules({ weekStart, pdvId: targetPdvId });
-      targetSchedule = allSchedules.find(s => s.userId === targetUserId && s.weekStart === weekStart);
+    if (!targetSchedule || !targetSchedule.shifts || targetSchedule.shifts.length === 0) {
+      let allSchedules = await api.getSchedules({ weekStart, pdvId: targetPdvId });
+      targetSchedule = allSchedules.find(s => 
+        (s.userId === targetUserId || (targetDocId && (s.userId === `emp-${targetDocId}` || s.user?.documentId === targetDocId))) && 
+        s.weekStart === weekStart
+      );
+      if (!targetSchedule) {
+        const globalSchedules = await api.getSchedules({ weekStart });
+        targetSchedule = globalSchedules.find(s => 
+          (s.userId === targetUserId || (targetDocId && (s.userId === `emp-${targetDocId}` || s.user?.documentId === targetDocId))) && 
+          s.weekStart === weekStart
+        );
+      }
       if (!targetSchedule) {
         targetSchedule = {
           userId: targetUserId,
+          documentId: targetDocId,
+          fullName: row?.fullName,
+          position: row?.position,
           pdvId: targetPdvId,
           weekStart,
           weekEnd,
@@ -1192,14 +1206,36 @@ export const api = {
       }
     }
 
-    const shifts = (targetSchedule.shifts || []).map(s => ({ ...s }));
-    const idx = shifts.findIndex(s => s.date === targetDate);
-    const base = idx >= 0 ? shifts[idx] : { date: targetDate };
+    // Ensure all 7 days of the week exist in shifts array
+    const shiftsMap = new Map();
+    (targetSchedule.shifts || []).forEach(s => {
+      if (s.date) shiftsMap.set(s.date, { ...s });
+    });
+
+    for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
+      const dayDate = new Date(Date.UTC(wy, wm - 1, wd + dayOffset));
+      const dateStr = dayDate.toISOString().slice(0, 10);
+      if (!shiftsMap.has(dateStr)) {
+        shiftsMap.set(dateStr, {
+          date: dateStr,
+          shiftType: 'DESCANSO',
+          isDayOff: true,
+          startTime: '',
+          endTime: '',
+          netHours: 0,
+          grossHours: 0,
+          lunchHours: 0
+        });
+      }
+    }
+
+    const base = shiftsMap.get(targetDate) || { date: targetDate };
     const updated = isDayOff
-      ? { ...base, date: targetDate, shiftType: 'DESCANSO', isDayOff: true, startTime: '', endTime: '' }
+      ? { ...base, date: targetDate, shiftType: 'DESCANSO', isDayOff: true, startTime: '', endTime: '', netHours: 0, grossHours: 0, lunchHours: 0 }
       : { ...base, date: targetDate, shiftType: 'ORDINARIO', isDayOff: false, startTime, endTime };
-    if (idx >= 0) shifts[idx] = updated; else shifts.push(updated);
-    shifts.sort((a, b) => String(a.date).localeCompare(String(b.date)));
+    shiftsMap.set(targetDate, updated);
+
+    const shifts = Array.from(shiftsMap.values()).sort((a, b) => String(a.date).localeCompare(String(b.date)));
 
     const result = await api.saveBatchPdvSchedules({
       pdvId: targetSchedule.pdvId || targetPdvId,
@@ -1207,12 +1243,16 @@ export const api = {
       weekEnd,
       schedules: [{
         userId: targetUserId,
+        documentId: targetDocId,
+        fullName: row?.fullName,
+        position: row?.position,
         pdvId: targetSchedule.pdvId || targetPdvId,
         shifts,
         notes: isDayOff ? 'Día de descanso asignado por Auditoría VRX' : 'Horario ajustado por Auditoría Maestra VRX'
       }]
     });
 
+    memoryCache.clearSchedules();
     memoryCache.clearReconciliation();
     return result;
   },

@@ -556,6 +556,7 @@ export function runReconciliation({
         dayName,
         isSunday,
         isScheduled,
+        isDescanso: !!isDescanso,
         isNovelty7h,
         scheduleTypeLabel,
         scheduledStart,
