@@ -402,7 +402,17 @@ export function runReconciliation({
         autoFilledEntry = true;
         const autoCalcs = calculateShiftHours(realStart, realEnd, date);
         punchCalcs = autoCalcs;
+      } else if (!hasRawEntry && !hasRawExit && !isPaidNovelty && !isDescanso && isScheduled && scheduledStart && scheduledEnd) {
+        // Regla: si tiene programación pero no tiene marcación, asumir la programación completa
+        realStart = scheduledStart;
+        realEnd = scheduledEnd;
+        autoFilledEntry = true;
+        autoFilledExit = true;
+        const autoCalcs = calculateShiftHours(realStart, realEnd, date);
+        punchCalcs = autoCalcs;
       }
+
+      const hasAnyPunch = hasRawEntry || hasRawExit || (autoFilledEntry && autoFilledExit);
 
       let realNetHours = 0;
       let realLunchHours = 0;
@@ -434,11 +444,15 @@ export function runReconciliation({
       let exitDiffMinutes = 0;
       let hoursDiff = +(realNetHours - scheduledNetHours).toFixed(2);
 
-      if (autoFilledExit) {
-        issues.push(`Salida biométrica no registrada: autocompletada con horario programado (${scheduledEnd}).`);
-      }
-      if (autoFilledEntry) {
-        issues.push(`Entrada biométrica no registrada: autocompletada con horario programado (${scheduledStart}).`);
+      if (autoFilledExit && autoFilledEntry) {
+        issues.push(`Sin marcación biométrica: se asumió turno completo según programación (${scheduledStart} - ${scheduledEnd}).`);
+      } else {
+        if (autoFilledExit) {
+          issues.push(`Salida biométrica no registrada: autocompletada con horario programado (${scheduledEnd}).`);
+        }
+        if (autoFilledEntry) {
+          issues.push(`Entrada biométrica no registrada: autocompletada con horario programado (${scheduledStart}).`);
+        }
       }
 
       if (isPaidNovelty && !hasAnyPunch) {
@@ -503,7 +517,7 @@ export function runReconciliation({
 
         if (autoFilledExit || autoFilledEntry) {
           status = 'AUTO_FILLED';
-          statusLabel = autoFilledExit ? 'Salida Autocompletada' : 'Entrada Autocompletada';
+          statusLabel = (autoFilledExit && autoFilledEntry) ? 'Programación Asumida' : autoFilledExit ? 'Salida Autocompletada' : 'Entrada Autocompletada';
           statusColor = 'indigo';
         } else if (issues.length === 0) {
           status = 'OK_MATCH';

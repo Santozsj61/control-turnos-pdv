@@ -846,7 +846,7 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                             : '0h';
 
                           const statusBadgeLabel = 
-                            isAutoFilled ? (dayRow.autoFilledExit ? 'Sal. Prog*' : 'Ent. Prog*') :
+                            isAutoFilled ? ((dayRow.autoFilledExit && dayRow.autoFilledEntry) ? 'Prog. Auto*' : dayRow.autoFilledExit ? 'Sal. Prog*' : 'Ent. Prog*') :
                             dayRow.isNovelty7h && !dayRow.hasPunch ? (
                               dayRow.status === 'DAY_OFF' ? 'Desc (7h)' :
                               dayRow.status === 'INCAPACITY' ? 'Incap (7h)' :
@@ -2409,7 +2409,7 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                             : '0h';
 
                           const statusBadgeLabel = 
-                            isAutoFilled ? (dayRow.autoFilledExit ? 'Sal. Prog*' : 'Ent. Prog*') :
+                            isAutoFilled ? ((dayRow.autoFilledExit && dayRow.autoFilledEntry) ? 'Prog. Auto*' : dayRow.autoFilledExit ? 'Sal. Prog*' : 'Ent. Prog*') :
                             dayRow.isNovelty7h && !dayRow.hasPunch ? (
                               dayRow.status === 'DAY_OFF' ? 'Desc (7h)' :
                               dayRow.status === 'INCAPACITY' ? 'Incap (7h)' :
