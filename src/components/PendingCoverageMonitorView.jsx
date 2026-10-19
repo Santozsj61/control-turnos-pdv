@@ -261,17 +261,6 @@ export default function PendingCoverageMonitorView({ currentUser, pdvs, supervis
             <span className="font-bold text-blue-300"> pendiente por programación de turno</span>.
           </p>
         </div>
-
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleExportExcel}
-            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2.5 rounded-xl text-xs sm:text-sm transition shadow-lg shadow-emerald-900/30 border border-emerald-500/40"
-            title="Exportar reporte nominativo en Excel"
-          >
-            <Download className="w-4 h-4" />
-            <span>Descargar Reporte Excel</span>
-          </button>
-        </div>
       </div>
 
       {/* Filter Toolbar */}

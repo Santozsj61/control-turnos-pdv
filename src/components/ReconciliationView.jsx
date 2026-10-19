@@ -2076,54 +2076,7 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
 
 
 
-      {/* Admin Shift Correction Enablement Toolbar */}
-      {isAdminOrSup && (
-        <div className="bg-gradient-to-r from-amber-50 via-orange-50 to-blue-50 border border-amber-300 rounded-2xl p-4 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-amber-500 text-white rounded-xl shadow-xs">
-              <Edit3 className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="text-xs font-black uppercase tracking-wider text-amber-950 flex items-center gap-2">
-                <span>Auditoría: Habilitar Corrección de Marcaciones / Turnos al PDV</span>
-                {Object.keys(selectedCorrectionRows).length > 0 && (
-                  <span className="bg-amber-600 text-white text-[10px] px-2 py-0.5 rounded-full font-extrabold">
-                    {Object.keys(selectedCorrectionRows).length} seleccionados
-                  </span>
-                )}
-              </h4>
-              <p className="text-xs text-slate-600 mt-0.5">
-                Selecciona las marcaciones o turnos que presenten novedades para habilitar que el PDV edite <strong>únicamente</strong> esos días específicos.
-              </p>
-            </div>
-          </div>
 
-          <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
-            <button
-              onClick={selectAllDiscrepancies}
-              className="text-xs font-bold text-slate-700 hover:text-slate-900 bg-white border border-slate-300 hover:bg-slate-50 px-3 py-2 rounded-xl transition shadow-xs"
-            >
-              Seleccionar Todas las Novedades
-            </button>
-            {Object.keys(selectedCorrectionRows).length > 0 && (
-              <button
-                onClick={clearRowSelection}
-                className="text-xs font-bold text-slate-500 hover:text-slate-700 px-2 py-2"
-              >
-                Limpiar
-              </button>
-            )}
-            <button
-              disabled={Object.keys(selectedCorrectionRows).length === 0}
-              onClick={() => setShowCorrectionModal(true)}
-              className="flex items-center gap-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white text-xs font-black px-4 py-2.5 rounded-xl transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <Send className="w-4 h-4" />
-              <span>Habilitar Edición al PDV ({Object.keys(selectedCorrectionRows).length})</span>
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* View Mode Switcher */}
       <div className="flex flex-wrap items-center justify-between border-b border-slate-200 pb-2 gap-2">
@@ -3228,56 +3181,7 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
       </div>
       )}
 
-      {/* Admin Correction Modal */}
-      {showCorrectionModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b pb-3">
-              <div className="flex items-center gap-2 text-amber-700 font-bold">
-                <Edit3 className="w-5 h-5 text-amber-600" />
-                <h3 className="text-base text-slate-900">Habilitar Edición de Horario al PDV</h3>
-              </div>
-              <button onClick={() => setShowCorrectionModal(false)} className="text-slate-400 hover:text-slate-600 font-bold">✕</button>
-            </div>
 
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Vas a habilitar la edición de <strong>{Object.keys(selectedCorrectionRows).length} marcación(es)/turno(s)</strong> seleccionados. Los colaboradores y encargados del PDV podrán modificar <strong>únicamente estos días específicos</strong> para ajustar su horario o justificar la discrepancia.
-            </p>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">
-                Instrucción / Motivo de la Solicitud para el PDV:
-              </label>
-              <textarea
-                rows={3}
-                value={adminCorrectionReason}
-                onChange={(e) => setAdminCorrectionReason(e.target.value)}
-                placeholder="Ej: Favor revisar marcación de salida que no coincide con el turno..."
-                className="w-full text-xs bg-slate-50 border border-slate-300 rounded-xl p-3 focus:ring-2 focus:ring-amber-500 font-medium text-slate-800"
-              />
-            </div>
-
-            <div className="flex items-center justify-end gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => setShowCorrectionModal(false)}
-                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl"
-              >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                disabled={submittingCorrection}
-                onClick={handleSendCorrectionRequests}
-                className="px-5 py-2.5 text-xs font-bold bg-amber-600 hover:bg-amber-500 text-white rounded-xl shadow-md transition flex items-center gap-2"
-              >
-                <Send className="w-4 h-4" />
-                <span>{submittingCorrection ? 'Enviando...' : 'Confirmar y Habilitar a PDV'}</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Row Details Modal */}
       {selectedRowDetail && (
