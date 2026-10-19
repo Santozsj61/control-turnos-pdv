@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, Users, Calendar, CheckSquare, BarChart3, Store, Settings, UserCheck, ShieldAlert, ArrowRightLeft, TrendingUp, FileText, Wrench, Home, LogOut, Activity } from 'lucide-react';
+import { Clock, Users, Calendar, CheckSquare, BarChart3, Store, Settings, UserCheck, ShieldAlert, ShieldCheck, ArrowRightLeft, TrendingUp, FileText, Wrench, Home, LogOut, Activity } from 'lucide-react';
 import ConnectionStatusBadge from './ConnectionStatusBadge.jsx';
 
 export default function Header({ activeTab, setActiveTab, currentUser, onOpenUserSwitcher, onGoToHome, onLogout, pendingPermissionsCount }) {
@@ -32,6 +32,7 @@ export default function Header({ activeTab, setActiveTab, currentUser, onOpenUse
     { id: 'habitual_schedules', label: isEmployee ? 'Horario Habitual PDV' : 'Horarios Habituales (101 PDVs)', icon: Clock, show: !isMaintenanceApprover && !isSupervisor },
     { id: 'tracking', label: isEmployee ? 'Mi Expediente & Historial' : 'Seguimiento & Hoja de Vida', icon: FileText, show: !isPdv && !isSupervisor && !isHrAdmin && !isEmployee && (isAdmin || isAuditorVrx) },
     { id: 'pdvs', label: isEmployee ? 'Mi Punto de Venta' : 'Directorio PDVs & Zonas', icon: Store, show: !isPdv && !isSupervisor && !isEmployee && (isAdmin || isHrAdmin || isAuditorVrx) },
+    { id: 'audit_logs', label: '🕵️ Bitácora de Auditoría', icon: ShieldCheck, show: isAuditorVrx },
     { id: 'network_monitor', label: '📡 Monitor de Red & Nube', icon: Activity, show: canAccessNetwork },
     { id: 'config', label: 'Reglas y Parámetros', icon: Settings, show: isAdmin || isHrAdmin || isAuditorVrx }
   ];

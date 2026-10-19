@@ -23,6 +23,7 @@ import { supabase } from '../services/supabaseClient.js';
 import { isCollaboratorActive, tagCollaboratorStatus, ACTIVE_371_DOCUMENTS } from '../data/activeCollaborators371.js';
 import { getHabitualScheduleForPdv, getHabitualDaySchedule, checkOutsideHabitualHours } from '../data/habitualSchedules.js';
 import HabitualSchedulesDirectoryModal from './HabitualSchedulesDirectoryModal.jsx';
+import { recordAuditEvent } from '../services/auditService.js';
 
 const DAYS_NAME = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
@@ -1353,6 +1354,16 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
       setMessage({
         type: 'success',
         text: `✓ ¡Programación semanal GUARDADA y BLOQUEADA exitosamente para ${Object.keys(updatedMatrix).length} colaborador(es)! ${cloudSynced ? '☁️ Sincronizado en tiempo real en la Nube.' : ''}`
+      });
+
+      // Record audit event for VRX tracking
+      recordAuditEvent({
+        userName: currentUser?.fullName || 'Usuario PDV',
+        userRole: currentUser?.role || 'PDV',
+        action: 'SCHEDULE_SUBMIT',
+        actionLabel: 'Guardado / Envío de Turnos',
+        pdvName: selectedPdv?.name || 'Tienda',
+        detail: `Guardó y bloqueó programación de la semana ${selectedWeekStart} para ${Object.keys(updatedMatrix).length} colaborador(es)`
       });
     } catch (err) {
       console.error('Error saving batch schedule:', err);

@@ -14,6 +14,8 @@ import HabitualSchedulesAuditView from './components/HabitualSchedulesAuditView.
 import NetworkMonitorView from './components/NetworkMonitorView.jsx';
 import WeeklyJustificationView from './components/WeeklyJustificationView.jsx';
 import PendingCoverageMonitorView from './components/PendingCoverageMonitorView.jsx';
+import VrxAuditLogView from './components/VrxAuditLogView.jsx';
+import { recordAuditEvent } from './services/auditService.js';
 
 import { api } from './services/api.js';
 import { initialSupervisors, initialPDVs, initialUsers } from './data/seedData.js';
@@ -130,9 +132,21 @@ export default function App() {
       localStorage.setItem('control_turnos_user', JSON.stringify(newUser));
     } catch (e) {}
 
+    // Record login audit event
+    recordAuditEvent({
+      userName: newUser.fullName || newUser.username,
+      userRole: newUser.role,
+      action: 'LOGIN',
+      actionLabel: 'Inicio de Sesión',
+      pdvName: newUser.pdvId || (newUser.role === 'SUPERVISOR' ? newUser.fullName : 'Sede Principal'),
+      detail: `Acceso autenticado con perfil ${newUser.position || newUser.role}`
+    });
+
     // Switch to appropriate tab based on role
     if (newUser.role === 'MAINTENANCE_APPROVER') {
       setActiveTab('permissions');
+    } else if (newUser.role === 'AUDITOR_VRX') {
+      setActiveTab('audit_logs');
     } else {
       setActiveTab('schedule');
     }
@@ -192,6 +206,16 @@ export default function App() {
         onOpenUserSwitcher={() => setIsSwitcherOpen(true)}
         onGoToHome={() => setShowHomeScreen(true)}
         onLogout={() => {
+          if (currentUser) {
+            recordAuditEvent({
+              userName: currentUser.fullName || currentUser.username,
+              userRole: currentUser.role,
+              action: 'LOGOUT',
+              actionLabel: 'Cierre de Sesión',
+              pdvName: currentUser.pdvId || (currentUser.role === 'SUPERVISOR' ? currentUser.fullName : 'Sede Principal'),
+              detail: 'Cierre de sesión voluntario en el portal'
+            });
+          }
           try {
             localStorage.removeItem('control_turnos_user');
           } catch (e) {}
@@ -294,6 +318,14 @@ export default function App() {
 
         {activeTab === 'network_monitor' && (
           <NetworkMonitorView
+            currentUser={currentUser}
+            pdvs={pdvs}
+            supervisors={supervisors}
+          />
+        )}
+
+        {activeTab === 'audit_logs' && currentUser?.role === 'AUDITOR_VRX' && (
+          <VrxAuditLogView
             currentUser={currentUser}
             pdvs={pdvs}
             supervisors={supervisors}

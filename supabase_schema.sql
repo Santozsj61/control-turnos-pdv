@@ -2047,3 +2047,23 @@ ON CONFLICT (id) DO UPDATE SET full_name = EXCLUDED.full_name, role = EXCLUDED.r
 INSERT INTO users (id, username, password, document_id, code, full_name, role, position, area, contract_type, pdv_id, supervisor_id, weekly_max_hours, is_active)
 VALUES ('emp-1070780309', 'emp_1070780309', NULL, '1070780309', 'COD-0309', 'ANDRES FELIPE ARIAS', 'EMPLOYEE', 'ASESOR(A) DE IMAGEN', 'RETAIL', 'FIJO', 'pdv-91', 'sup-antioquia-1', 42, true)
 ON CONFLICT (id) DO UPDATE SET full_name = EXCLUDED.full_name, role = EXCLUDED.role, pdv_id = EXCLUDED.pdv_id, supervisor_id = EXCLUDED.supervisor_id, password = EXCLUDED.password;
+
+-- ====================================================================
+-- 5. TABLA DE AUDITORÍA Y TRAZABILIDAD (Módulo Exclusivo Maestro VRX)
+-- ====================================================================
+CREATE TABLE IF NOT EXISTS audit_logs (
+    id TEXT PRIMARY KEY,
+    user_name TEXT NOT NULL,
+    user_role TEXT NOT NULL,
+    action TEXT NOT NULL,
+    action_label TEXT NOT NULL,
+    pdv_name TEXT,
+    detail TEXT,
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Lectura y escritura publica de audit_logs" ON audit_logs FOR ALL USING (true) WITH CHECK (true);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON audit_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_user_name ON audit_logs(user_name);

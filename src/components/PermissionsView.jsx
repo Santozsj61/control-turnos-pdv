@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { CheckSquare, Clock, User, Store, AlertCircle, CheckCircle2, XCircle, Plus, Send, ShieldCheck, MessageSquare, Sparkles, Mail, Tag, Building2 } from 'lucide-react';
 import { api } from '../services/api.js';
+import { recordAuditEvent } from '../services/auditService.js';
 
 const ASSIGNED_AREAS = [
   'Mantenimiento y Obras',
@@ -221,6 +222,16 @@ export default function PermissionsView({ currentUser, pdvs, supervisors, onRefr
         supervisorNotes || (status === 'APPROVED' ? 'Aprobado según solicitud.' : 'Rechazado por necesidades de cobertura.'),
         currentUser.id
       );
+
+      const targetPerm = permissions.find(p => p.id === permId) || reviewModalPerm;
+      recordAuditEvent({
+        userName: currentUser.fullName,
+        userRole: currentUser.role,
+        action: status === 'APPROVED' ? 'PERMISSION_APPROVE' : 'PERMISSION_REJECT',
+        actionLabel: status === 'APPROVED' ? 'Aprobación de Permiso' : 'Rechazo de Permiso',
+        pdvName: targetPerm?.pdvName || targetPerm?.pdv_id || 'PDV',
+        detail: `${status === 'APPROVED' ? 'Aprobó' : 'Rechazó'} solicitud de ${targetPerm?.employee_name || 'colaborador'} (${targetPerm?.shift_type || 'Novedad'}) para el día ${targetPerm?.date || ''}`
+      });
 
       setReviewModalPerm(null);
       setSupervisorNotes('');
