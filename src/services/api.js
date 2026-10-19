@@ -1152,23 +1152,69 @@ export const api = {
     return { success: true, id };
   },
 
-  vrxEditScheduleShift: async ({ role, schedule, date, startTime, endTime, isDayOff }) => {
+  vrxEditScheduleShift: async ({ role, schedule, row, date, startTime, endTime, isDayOff }) => {
     if (role !== 'AUDITOR_VRX') throw new Error('Solo el perfil maestro VRX puede modificar la programación.');
-    if (!schedule?.userId) throw new Error('Programación no encontrada.');
-    const shifts = (schedule.shifts || []).map(s => ({ ...s }));
-    const idx = shifts.findIndex(s => s.date === date);
-    const base = idx >= 0 ? shifts[idx] : { date };
+
+    const targetUserId = schedule?.userId || row?.userId || row?.user_id;
+    const targetPdvId = schedule?.pdvId || row?.pdvId || row?.pdv_id || 'pdv-1';
+    const targetDate = date || row?.date;
+
+    if (!targetUserId) throw new Error('Usuario / Colaborador no encontrado para la programación.');
+    if (!targetDate) throw new Error('Fecha no especificada para la programación.');
+
+    // Calculate Monday weekStart from date
+    let weekStart = schedule?.weekStart || row?.weekStart;
+    if (!weekStart && targetDate) {
+      const [y, m, d] = targetDate.split('-').map(Number);
+      const dt = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+      const day = dt.getUTCDay();
+      const diff = dt.getUTCDate() - day + (day === 0 ? -6 : 1);
+      const mon = new Date(Date.UTC(y, m - 1, diff));
+      weekStart = mon.toISOString().slice(0, 10);
+    }
+    const [wy, wm, wd] = weekStart.split('-').map(Number);
+    const sunDt = new Date(Date.UTC(wy, wm - 1, wd + 6));
+    const weekEnd = sunDt.toISOString().slice(0, 10);
+
+    let targetSchedule = schedule;
+    if (!targetSchedule || !targetSchedule.shifts) {
+      const allSchedules = await api.getSchedules({ weekStart, pdvId: targetPdvId });
+      targetSchedule = allSchedules.find(s => s.userId === targetUserId && s.weekStart === weekStart);
+      if (!targetSchedule) {
+        targetSchedule = {
+          userId: targetUserId,
+          pdvId: targetPdvId,
+          weekStart,
+          weekEnd,
+          shifts: [],
+          notes: 'Creado por Auditoría Maestra VRX'
+        };
+      }
+    }
+
+    const shifts = (targetSchedule.shifts || []).map(s => ({ ...s }));
+    const idx = shifts.findIndex(s => s.date === targetDate);
+    const base = idx >= 0 ? shifts[idx] : { date: targetDate };
     const updated = isDayOff
-      ? { ...base, date, shiftType: 'DESCANSO', isDayOff: true, startTime: '', endTime: '' }
-      : { ...base, date, shiftType: 'ORDINARIO', isDayOff: false, startTime, endTime };
+      ? { ...base, date: targetDate, shiftType: 'DESCANSO', isDayOff: true, startTime: '', endTime: '' }
+      : { ...base, date: targetDate, shiftType: 'ORDINARIO', isDayOff: false, startTime, endTime };
     if (idx >= 0) shifts[idx] = updated; else shifts.push(updated);
     shifts.sort((a, b) => String(a.date).localeCompare(String(b.date)));
-    return api.saveBatchPdvSchedules({
-      pdvId: schedule.pdvId,
-      weekStart: schedule.weekStart,
-      weekEnd: schedule.weekEnd,
-      schedules: [{ userId: schedule.userId, pdvId: schedule.pdvId, shifts, notes: schedule.notes }]
+
+    const result = await api.saveBatchPdvSchedules({
+      pdvId: targetSchedule.pdvId || targetPdvId,
+      weekStart,
+      weekEnd,
+      schedules: [{
+        userId: targetUserId,
+        pdvId: targetSchedule.pdvId || targetPdvId,
+        shifts,
+        notes: isDayOff ? 'Día de descanso asignado por Auditoría VRX' : 'Horario ajustado por Auditoría Maestra VRX'
+      }]
     });
+
+    memoryCache.clearReconciliation();
+    return result;
   },
 
   // ----------------------------------------------------
