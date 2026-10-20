@@ -52,6 +52,7 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
   const isHrAdmin = currentUser?.role === 'HR_ADMIN';
   const isAuditorVrx = currentUser?.role === 'AUDITOR_VRX';
   const isEmployee = currentUser?.role === 'EMPLOYEE' || currentUser?.role === 'PDV' || (!isAdmin && !isHrAdmin && !isAuditorVrx && !isSupervisor);
+  const isPdv = currentUser?.role === 'PDV' || isEmployee;
 
   const currentSupervisorObj = supervisors.find(s => 
     s.name === currentUser?.fullName || 
@@ -2458,8 +2459,8 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
                 </span>
               </div>
             )}
-            {/* BOTÓN SINCRONIZAR NUBE (Exclusivo Perfil Maestro Auditor VRX & Admin) */}
-            {(isAuditorVrx || isAdmin) && (
+            {/* BOTÓN SINCRONIZAR NUBE (Exclusivo Perfil Maestro Auditor VRX & Admin en vista global) */}
+            {(isAuditorVrx || isAdmin) && !isPdv && selectedPdvId === 'ALL' && (
               <button
                 type="button"
                 onClick={() => {
@@ -2474,8 +2475,8 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
               </button>
             )}
 
-            {/* BOTÓN CARGAR PROGRAMACIÓN EXCEL (Exclusivo Auditor VRX & Administrador) */}
-            {(isAuditorVrx || isAdmin) && (
+            {/* BOTÓN CARGAR PROGRAMACIÓN EXCEL (Exclusivo Auditor VRX & Administrador en vista global) */}
+            {(isAuditorVrx || isAdmin) && !isPdv && selectedPdvId === 'ALL' && (
               <label className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-4 py-2 rounded-xl transition cursor-pointer shadow-md shadow-indigo-600/20" title="Cargar archivo Excel con la programación semanal de horarios">
                 <FileSpreadsheet className="w-4 h-4 text-white" />
                 <span>{uploadingSchedule ? 'Importando Programación...' : 'Cargar Programación Excel'}</span>
@@ -2489,8 +2490,8 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
               </label>
             )}
 
-            {/* BOTÓN CARGAR MARCACIONES EXCEL (Talento Humano, Administrador & Auditor VRX) */}
-            {(isHrAdmin || isAdmin || isAuditorVrx) && (
+            {/* BOTÓN CARGAR MARCACIONES EXCEL (Talento Humano, Administrador & Auditor VRX en vista global) */}
+            {(isHrAdmin || isAdmin || isAuditorVrx) && !isPdv && selectedPdvId === 'ALL' && (
               <label className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-4 py-2 rounded-xl transition cursor-pointer shadow-md shadow-slate-900/20" title="Cargar archivo Excel con las marcaciones semanales (reloj biométrico)">
                 <Upload className="w-4 h-4 text-amber-400" />
                 <span>{uploadingPunches ? 'Cargando Marcaciones...' : 'Cargar Excel Marcaciones'}</span>
@@ -2504,8 +2505,8 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
               </label>
             )}
 
-            {/* BOTÓN DESCARGAR EXCEL (Exclusivo Talento Humano, Administrador & Auditor VRX) */}
-            {(isHrAdmin || isAdmin || isAuditorVrx) && (
+            {/* BOTÓN DESCARGAR EXCEL (Exclusivo Talento Humano, Administrador & Auditor VRX en vista global) */}
+            {(isHrAdmin || isAdmin || isAuditorVrx) && !isPdv && selectedPdvId === 'ALL' && (
               <button
                 type="button"
                 onClick={handleExportScheduleExcel}
