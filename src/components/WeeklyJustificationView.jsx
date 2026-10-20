@@ -2,10 +2,10 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { 
   FileSpreadsheet, Clock, Store, Building2, Send, CheckCircle2, 
   AlertCircle, AlertTriangle, Filter, Calendar, Search, RefreshCw, MessageSquare, 
-  FileText, ShieldCheck, ChevronDown, ChevronUp, Check, X, Sparkles, User, Users,
+  FileText, ShieldCheck, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Check, X, Sparkles, User, Users,
   TrendingUp, ArrowRight, ShieldAlert
 } from 'lucide-react';
-import { ALL_WEEKS_2026, CURRENT_WEEK_START, isWeekInMonth } from '../utils/weeks.js';
+import { ALL_WEEKS_2026, CURRENT_WEEK_START } from '../utils/weeks.js';
 import { api } from '../services/api.js';
 
 const REASON_CATEGORIES = [
@@ -17,6 +17,17 @@ const REASON_CATEGORIES = [
   'Evento Comercial',
   'Tiempo Adicional Autorizado',
   'Recepción Logística'
+];
+
+const FEATURED_WEEKS = [
+  '2026-08-31', // Sem 36
+  '2026-09-07', // Sem 37
+  '2026-09-14', // Sem 38
+  '2026-09-21', // Sem 39
+  '2026-09-28', // Sem 40
+  '2026-10-05', // Sem 41
+  '2026-10-12', // Sem 42
+  '2026-10-19'  // Sem 43
 ];
 
 export default function WeeklyJustificationView({ currentUser, pdvs = [], supervisors = [] }) {
@@ -44,15 +55,47 @@ export default function WeeklyJustificationView({ currentUser, pdvs = [], superv
   // Sub-tabs: 'CAPACITY_EXCESS' (Auditoría de Excedente de Capacidad por PDV) | 'JUSTIFICATIONS_LOG' (Histórico Radicado)
   const [activeSubTab, setActiveSubTab] = useState('CAPACITY_EXCESS');
 
-  // Filters
-  const [filterPeriodType, setFilterPeriodType] = useState('WEEK'); // 'WEEK' | 'MONTH' | 'ALL'
-  const [selectedWeek, setSelectedWeek] = useState('2026-10-05'); // Default to recent active week
-  const [selectedMonth, setSelectedMonth] = useState('2026-10');
+  // Filters (Strictly Weekly)
+  const [selectedWeek, setSelectedWeek] = useState('2026-10-12'); // Default to recent active week (Semana 42)
   const [selectedPdvId, setSelectedPdvId] = useState(isPdv ? (activePdvObj?.id || '') : 'ALL');
   const [selectedZoneId, setSelectedZoneId] = useState(isSupervisor ? (currentSupervisorObj?.id || '') : 'ALL');
   const [searchTerm, setSearchTerm] = useState('');
   const [onlyExceeded, setOnlyExceeded] = useState(true);
   const [expandedPdvId, setExpandedPdvId] = useState(null);
+
+  // Week navigation helpers
+  const currentWeekIndex = useMemo(() => {
+    return ALL_WEEKS_2026.findIndex(w => w.weekStart === selectedWeek);
+  }, [selectedWeek]);
+
+  const activeWeekObj = useMemo(() => {
+    if (currentWeekIndex >= 0) return ALL_WEEKS_2026[currentWeekIndex];
+    return ALL_WEEKS_2026.find(w => w.weekStart === selectedWeek) || ALL_WEEKS_2026[41];
+  }, [currentWeekIndex, selectedWeek]);
+
+  const hasPrevWeek = currentWeekIndex > 0;
+  const hasNextWeek = currentWeekIndex >= 0 && currentWeekIndex < ALL_WEEKS_2026.length - 1;
+
+  function goToPrevWeek() {
+    if (hasPrevWeek) {
+      const prev = ALL_WEEKS_2026[currentWeekIndex - 1];
+      setSelectedWeek(prev.weekStart);
+      setFormWeek(prev.weekStart);
+    }
+  }
+
+  function goToNextWeek() {
+    if (hasNextWeek) {
+      const next = ALL_WEEKS_2026[currentWeekIndex + 1];
+      setSelectedWeek(next.weekStart);
+      setFormWeek(next.weekStart);
+    }
+  }
+
+  function handleSelectWeek(wStart) {
+    setSelectedWeek(wStart);
+    setFormWeek(wStart);
+  }
 
   // Schedules and Capacity Data
   const [schedules, setSchedules] = useState([]);
@@ -100,10 +143,34 @@ export default function WeeklyJustificationView({ currentUser, pdvs = [], superv
     setLoadingSchedules(true);
     try {
       const [schedList, cfg] = await Promise.all([
-        api.getSchedules(filterPeriodType === 'WEEK' ? { weekStart: selectedWeek } : {}).catch(() => []),
+        api.getSchedules({ weekStart: selectedWeek }).catch(() => []),
         api.getConfig().catch(() => ({ weeklyMaxStandardHours: 42 }))
       ]);
-      setSchedules(Array.isArray(schedList) ? schedList : []);
+
+      let combined = Array.isArray(schedList) ? [...schedList] : [];
+
+      // Local storage fallback / merge in case turnos were updated locally for this week
+      try {
+        const localScheds = localStorage.getItem('control_turnos_schedules_' + selectedWeek);
+        if (localScheds) {
+          const parsed = JSON.parse(localScheds);
+          if (Array.isArray(parsed)) {
+            parsed.forEach(ls => {
+              const idx = combined.findIndex(c => 
+                (c.userId === ls.userId || (c.documentId && c.documentId === ls.documentId)) && 
+                (c.weekStart === selectedWeek || c.week_start === selectedWeek)
+              );
+              if (idx >= 0) {
+                combined[idx] = { ...combined[idx], ...ls };
+              } else {
+                combined.push(ls);
+              }
+            });
+          }
+        }
+      } catch (e) {}
+
+      setSchedules(combined);
       if (cfg?.weeklyMaxStandardHours) {
         setStandardMaxHours(Number(cfg.weeklyMaxStandardHours) || 42);
       }
@@ -120,7 +187,7 @@ export default function WeeklyJustificationView({ currentUser, pdvs = [], superv
 
   useEffect(() => {
     loadSchedulesData();
-  }, [selectedWeek, filterPeriodType]);
+  }, [selectedWeek]);
 
   // Handle open justification modal prefilled for an exceeded PDV
   function handleOpenJustifyPdv(pdvAuditItem) {
@@ -179,12 +246,10 @@ export default function WeeklyJustificationView({ currentUser, pdvs = [], superv
   const pdvCapacityAuditList = useMemo(() => {
     if (!schedules || schedules.length === 0) return [];
 
-    // Filter schedules by period
+    // Filter schedules strictly by active week
     const filteredSchedules = schedules.filter(s => {
       const sWeek = s.weekStart || s.week_start;
-      const sMonth = sWeek ? sWeek.substring(0, 7) : '';
-      if (filterPeriodType === 'WEEK' && sWeek !== selectedWeek) return false;
-      if (filterPeriodType === 'MONTH' && sMonth !== selectedMonth && !isWeekInMonth(sWeek, selectedMonth)) return false;
+      if (sWeek && sWeek !== selectedWeek) return false;
       return true;
     });
 
@@ -280,7 +345,7 @@ export default function WeeklyJustificationView({ currentUser, pdvs = [], superv
     }
 
     return filtered.sort((a, b) => b.excessHours - a.excessHours);
-  }, [schedules, allowedPdvs, supervisors, selectedWeek, selectedMonth, filterPeriodType, selectedPdvId, selectedZoneId, searchTerm, onlyExceeded, standardMaxHours]);
+  }, [schedules, allowedPdvs, supervisors, selectedWeek, selectedPdvId, selectedZoneId, searchTerm, onlyExceeded, standardMaxHours]);
 
   // Aggregate KPI metrics for Capacity Excess
   const excessKpis = useMemo(() => {
@@ -312,15 +377,13 @@ export default function WeeklyJustificationView({ currentUser, pdvs = [], superv
     };
   }, [pdvCapacityAuditList]);
 
-  // Filtered list of submitted justifications
+  // Filtered list of submitted justifications (strictly weekly)
   const filteredJustifications = justifications.filter(item => {
     const itemWeek = item.weekStart || item.week_start;
-    const itemMonth = item.month || (itemWeek ? itemWeek.substring(0, 7) : '');
     const itemPdvId = item.pdvId || item.pdv_id;
     const itemSupId = item.supervisorId || item.supervisor_id;
 
-    if (filterPeriodType === 'WEEK' && itemWeek !== selectedWeek) return false;
-    if (filterPeriodType === 'MONTH' && itemMonth !== selectedMonth && (!itemWeek || !isWeekInMonth(itemWeek, selectedMonth))) return false;
+    if (itemWeek && itemWeek !== selectedWeek) return false;
     if (selectedPdvId && selectedPdvId !== 'ALL' && itemPdvId !== selectedPdvId) return false;
     if (selectedZoneId && selectedZoneId !== 'ALL' && itemSupId !== selectedZoneId) return false;
 
@@ -437,72 +500,137 @@ export default function WeeklyJustificationView({ currentUser, pdvs = [], superv
         </button>
       </div>
 
-      {/* 4. Filters Bar */}
+      {/* 4. WEEK CONTROLLER & NAVIGATOR (100% SEMANAL) */}
+      <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-950 text-white rounded-2xl p-4 sm:p-5 shadow-lg border border-slate-700 space-y-4">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+          {/* Prev Week Button */}
+          <button
+            type="button"
+            disabled={!hasPrevWeek}
+            onClick={goToPrevWeek}
+            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-black transition cursor-pointer shrink-0 ${
+              hasPrevWeek
+                ? 'bg-white/10 hover:bg-white/20 text-white border border-white/20 hover:border-white/40'
+                : 'bg-white/5 text-slate-500 border border-white/5 cursor-not-allowed'
+            }`}
+            title="Ir a la semana anterior"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            <span>Semana Anterior</span>
+          </button>
+
+          {/* Active Week Central Title & Stats */}
+          <div className="text-center flex-1">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/20 border border-rose-500/40 text-rose-300 text-xs font-black mb-1.5">
+              <Calendar className="w-3.5 h-3.5 text-rose-400" />
+              <span>AUDITORÍA SEMANAL ACTIVA</span>
+              {activeWeekObj?.isCurrent && (
+                <span className="bg-amber-400 text-amber-950 text-[10px] font-black px-1.5 py-0.2 rounded-full">
+                  Semana Actual ⭐
+                </span>
+              )}
+            </div>
+
+            <h3 className="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center justify-center gap-2">
+              <span>Semana {activeWeekObj?.weekNumber || '--'}</span>
+              <span className="text-slate-400 font-normal text-sm sm:text-base">
+                ({activeWeekObj?.weekStart} al {activeWeekObj?.weekEnd})
+              </span>
+            </h3>
+
+            <div className="text-xs text-slate-300 mt-1 flex flex-wrap items-center justify-center gap-2">
+              {loadingSchedules ? (
+                <span className="inline-flex items-center gap-1.5 text-amber-300 font-bold">
+                  <RefreshCw className="w-3 h-3 animate-spin" /> Recalculando turnos y capacidad de la semana...
+                </span>
+              ) : (
+                <>
+                  <span className="bg-white/10 px-2 py-0.5 rounded text-[11px] font-bold text-slate-200">
+                    🏬 <strong>{excessKpis.totalEvaluatedPdvs}</strong> PDVs programados
+                  </span>
+                  <span className="bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded text-[11px] font-bold border border-rose-500/30">
+                    🚨 <strong>{excessKpis.totalExceededPdvs}</strong> con sobrecupo
+                  </span>
+                  <span className="bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded text-[11px] font-bold border border-amber-500/30">
+                    ⏱️ <strong>+{excessKpis.totalExcessHours.toLocaleString('es-CO')} hrs</strong> excedente neto
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Next Week Button */}
+          <button
+            type="button"
+            disabled={!hasNextWeek}
+            onClick={goToNextWeek}
+            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-black transition cursor-pointer shrink-0 ${
+              hasNextWeek
+                ? 'bg-white/10 hover:bg-white/20 text-white border border-white/20 hover:border-white/40'
+                : 'bg-white/5 text-slate-500 border border-white/5 cursor-not-allowed'
+            }`}
+            title="Ir a la semana siguiente"
+          >
+            <span>Semana Siguiente</span>
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Quick Week Chips Strip */}
+        <div className="border-t border-slate-700/80 pt-3 flex flex-wrap items-center justify-between gap-2.5">
+          <div className="flex items-center gap-1.5 text-xs text-slate-300 font-bold shrink-0">
+            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            <span>Semanas Oficiales:</span>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-1.5">
+            {FEATURED_WEEKS.map(fw => {
+              const wObj = ALL_WEEKS_2026.find(w => w.weekStart === fw);
+              const isSelected = selectedWeek === fw;
+              return (
+                <button
+                  key={fw}
+                  type="button"
+                  onClick={() => handleSelectWeek(fw)}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-black transition cursor-pointer ${
+                    isSelected
+                      ? 'bg-rose-600 text-white shadow-md ring-2 ring-rose-400 scale-105'
+                      : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700'
+                  }`}
+                >
+                  Sem {wObj?.weekNumber || fw.substring(5)}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Jump to Any Week Selector */}
+          <div className="flex items-center gap-1 bg-slate-800 border border-slate-700 px-2 py-1 rounded-lg">
+            <Calendar className="w-3.5 h-3.5 text-blue-400" />
+            <select
+              value={selectedWeek}
+              onChange={(e) => handleSelectWeek(e.target.value)}
+              className="bg-transparent text-xs font-bold text-white focus:outline-hidden cursor-pointer"
+            >
+              {ALL_WEEKS_2026.map(w => (
+                <option key={w.weekStart} value={w.weekStart} className="bg-slate-900 text-white">
+                  {w.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* 5. Filters & Search Box */}
       <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
           <div className="flex items-center gap-2">
             <Filter className="w-4 h-4 text-slate-500" />
-            <span className="text-xs font-bold text-slate-700">Filtros de Período y Tiendas:</span>
+            <span className="text-xs font-bold text-slate-700">Filtros de Tiendas (Semana {activeWeekObj?.weekNumber}):</span>
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
-            {/* Period Type: WEEK | MONTH | ALL */}
-            <div className="flex items-center bg-slate-100 p-1 rounded-xl text-xs font-bold">
-              <button
-                onClick={() => setFilterPeriodType('WEEK')}
-                className={`px-3 py-1 rounded-lg transition cursor-pointer ${filterPeriodType === 'WEEK' ? 'bg-white text-blue-700 shadow-2xs' : 'text-slate-500 hover:text-slate-800'}`}
-              >
-                Por Semana
-              </button>
-              <button
-                onClick={() => setFilterPeriodType('MONTH')}
-                className={`px-3 py-1 rounded-lg transition cursor-pointer ${filterPeriodType === 'MONTH' ? 'bg-white text-purple-700 shadow-2xs' : 'text-slate-500 hover:text-slate-800'}`}
-              >
-                Por Mes
-              </button>
-              <button
-                onClick={() => setFilterPeriodType('ALL')}
-                className={`px-3 py-1 rounded-lg transition cursor-pointer ${filterPeriodType === 'ALL' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800'}`}
-              >
-                Todas las Semanas
-              </button>
-            </div>
-
-            {/* Week Selector */}
-            {filterPeriodType === 'WEEK' && (
-              <div className="flex items-center gap-1.5 bg-blue-50 border border-blue-200 p-1.5 rounded-xl">
-                <Calendar className="w-3.5 h-3.5 text-blue-600 ml-1" />
-                <select
-                  value={selectedWeek}
-                  onChange={(e) => setSelectedWeek(e.target.value)}
-                  className="bg-transparent text-xs font-bold text-blue-900 focus:outline-hidden pr-2 cursor-pointer"
-                >
-                  {ALL_WEEKS_2026.map(w => (
-                    <option key={w.weekStart} value={w.weekStart}>
-                      {w.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            {/* Month Selector */}
-            {filterPeriodType === 'MONTH' && (
-              <div className="flex items-center gap-1.5 bg-purple-50 border border-purple-200 p-1.5 rounded-xl">
-                <Calendar className="w-3.5 h-3.5 text-purple-600 ml-1" />
-                <select
-                  value={selectedMonth}
-                  onChange={(e) => setSelectedMonth(e.target.value)}
-                  className="bg-transparent text-xs font-bold text-purple-900 focus:outline-hidden pr-2 cursor-pointer"
-                >
-                  <option value="2026-10">Octubre 2026</option>
-                  <option value="2026-09">Septiembre 2026</option>
-                  <option value="2026-08">Agosto 2026</option>
-                  <option value="2026-07">Julio 2026</option>
-                </select>
-              </div>
-            )}
-
             {/* PDV Selector */}
             {(!isPdv && allowedPdvs.length > 1) && (
               <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 p-1.5 rounded-xl">
@@ -541,7 +669,7 @@ export default function WeeklyJustificationView({ currentUser, pdvs = [], superv
                 loadJustifications();
               }}
               className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition cursor-pointer"
-              title="Actualizar datos"
+              title="Actualizar datos de la semana"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${(loadingSchedules || loadingJustifications) ? 'animate-spin' : ''}`} />
             </button>
@@ -615,7 +743,7 @@ export default function WeeklyJustificationView({ currentUser, pdvs = [], superv
             <div className="flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 text-rose-600" />
               <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">
-                PDVs con Horas Superiores a su Capacidad ({pdvCapacityAuditList.length})
+                PDVs con Horas Superiores a su Capacidad en Semana {activeWeekObj?.weekNumber} ({pdvCapacityAuditList.length})
               </h3>
             </div>
 
@@ -631,8 +759,8 @@ export default function WeeklyJustificationView({ currentUser, pdvs = [], superv
                 <span>Mostrar solo PDVs que superaron la capacidad</span>
               </label>
 
-              <span className="text-[11px] font-bold text-slate-500 bg-white px-2.5 py-1 rounded-lg border border-slate-200">
-                {filterPeriodType === 'WEEK' ? `Semana: ${selectedWeek}` : filterPeriodType === 'MONTH' ? `Mes: ${selectedMonth}` : 'Todas las Semanas'}
+              <span className="text-[11px] font-black text-slate-700 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs">
+                🗓️ Sem {activeWeekObj?.weekNumber} ({activeWeekObj?.weekStart} al {activeWeekObj?.weekEnd})
               </span>
             </div>
           </div>
@@ -651,15 +779,42 @@ export default function WeeklyJustificationView({ currentUser, pdvs = [], superv
           {loadingSchedules ? (
             <div className="p-12 text-center text-slate-400 text-xs">
               <div className="animate-spin w-6 h-6 border-3 border-rose-600 border-t-transparent rounded-full mx-auto mb-2"></div>
-              Auditando capacidad y excedente de horas por punto de venta...
+              Auditando capacidad y recalculando excedentes de la Semana {activeWeekObj?.weekNumber}...
             </div>
           ) : pdvCapacityAuditList.length === 0 ? (
-            <div className="p-12 text-center text-slate-500 text-xs space-y-2">
-              <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center mx-auto text-emerald-600">
-                <CheckCircle2 className="w-5 h-5" />
+            <div className="p-12 text-center text-slate-500 text-xs space-y-3">
+              <div className="w-12 h-12 rounded-full bg-blue-50 border border-blue-200 flex items-center justify-center mx-auto text-blue-600">
+                <Calendar className="w-6 h-6" />
               </div>
-              <p className="font-bold text-slate-800 text-sm">¡Excelente! Ningún punto de venta superó su capacidad semanal en este período.</p>
-              <p className="text-slate-400 text-[11px]">Todos los PDVs operaron dentro del tope legal de {standardMaxHours} horas por colaborador.</p>
+              <div>
+                <p className="font-black text-slate-800 text-sm">
+                  {schedules.length === 0
+                    ? `No hay turnos registrados en la Semana ${activeWeekObj?.weekNumber || ''} (${activeWeekObj?.weekStart} al ${activeWeekObj?.weekEnd})`
+                    : `¡Excelente! Ningún punto de venta superó su capacidad semanal en la Semana ${activeWeekObj?.weekNumber || ''}`}
+                </p>
+                <p className="text-slate-400 text-xs mt-1">
+                  {schedules.length === 0
+                    ? 'Para auditar semanas con turnos activos, selecciona una de las siguientes semanas cargadas:'
+                    : `Todos los PDVs operaron dentro del tope legal de ${standardMaxHours} horas semanales por colaborador.`}
+                </p>
+              </div>
+              {schedules.length === 0 && (
+                <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+                  {FEATURED_WEEKS.map(fw => {
+                    const wObj = ALL_WEEKS_2026.find(w => w.weekStart === fw);
+                    return (
+                      <button
+                        key={fw}
+                        type="button"
+                        onClick={() => handleSelectWeek(fw)}
+                        className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-300 border border-slate-200 text-xs font-bold text-slate-700 transition cursor-pointer shadow-2xs"
+                      >
+                        Semana {wObj?.weekNumber || fw} ({wObj?.weekStart})
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -834,8 +989,8 @@ export default function WeeklyJustificationView({ currentUser, pdvs = [], superv
                 Tablero de Histórico Semanal de Justificaciones ({filteredJustifications.length})
               </h3>
             </div>
-            <span className="text-[11px] font-bold text-slate-500">
-              {filterPeriodType === 'WEEK' ? `Semana: ${selectedWeek}` : filterPeriodType === 'MONTH' ? `Mes: ${selectedMonth}` : 'Todas las Semanas'}
+            <span className="text-[11px] font-black text-slate-700 bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs">
+              🗓️ Sem {activeWeekObj?.weekNumber} ({activeWeekObj?.weekStart} al {activeWeekObj?.weekEnd})
             </span>
           </div>
 
