@@ -63,8 +63,23 @@ export default function PendingCoverageMonitorView({ currentUser, pdvs, supervis
         targetWeeks = [WEEKS_DEF['43'], WEEKS_DEF['42'], WEEKS_DEF['41'], WEEKS_DEF['40']].filter(Boolean);
       }
 
-      const schedPromises = targetWeeks.map(w => api.getSchedules({ weekStart: w.start }).catch(() => []));
-      const punchPromises = targetWeeks.map(w => api.getPunchRecords({ weekStart: w.start }).catch(() => []));
+      // Automatically fetch the 2 prior weeks to enforce the 2-week inactivity retirement rule
+      const targetWeekNums = targetWeeks.map(w => Number(w.week)).filter(n => !isNaN(n));
+      const minWeekNum = targetWeekNums.length > 0 ? Math.min(...targetWeekNums) : 43;
+      const historyWeeks = [
+        WEEKS_DEF[String(minWeekNum - 1)],
+        WEEKS_DEF[String(minWeekNum - 2)]
+      ].filter(Boolean);
+
+      const allWeeksToFetch = [...targetWeeks];
+      historyWeeks.forEach(hw => {
+        if (!allWeeksToFetch.some(w => w.start === hw.start)) {
+          allWeeksToFetch.push(hw);
+        }
+      });
+
+      const schedPromises = allWeeksToFetch.map(w => api.getSchedules({ weekStart: w.start }).catch(() => []));
+      const punchPromises = allWeeksToFetch.map(w => api.getPunchRecords({ weekStart: w.start }).catch(() => []));
 
       const [schedResults, punchResults] = await Promise.all([
         Promise.all(schedPromises),
@@ -75,7 +90,7 @@ export default function PendingCoverageMonitorView({ currentUser, pdvs, supervis
       const flatPunches = punchResults.flat();
 
       // Check localStorage for offline/draft schedules saved locally
-      targetWeeks.forEach(w => {
+      allWeeksToFetch.forEach(w => {
         if (typeof window !== 'undefined' && window.localStorage && w.start) {
           try {
             const raw = window.localStorage.getItem('control_turnos_schedules_' + w.start);
@@ -140,7 +155,7 @@ export default function PendingCoverageMonitorView({ currentUser, pdvs, supervis
       if (!doc || !entryDate) return;
       const docStr = String(doc).trim();
 
-      targetWeeks.forEach(w => {
+      Object.values(WEEKS_DEF).forEach(w => {
         if (entryDate >= w.start && entryDate <= w.end) {
           const key = `${w.start}_${docStr}`;
           punchLookup.set(key, (punchLookup.get(key) || 0) + 1);
@@ -207,25 +222,48 @@ export default function PendingCoverageMonitorView({ currentUser, pdvs, supervis
       });
 
       const sup = effectiveSupervisors.find(s => s.id === pdv.supervisorId);
-      const storeTotalStaff = storeStaff.length;
       let storePendingCollabs = [];
+      let storeAutoRetiredCollabs = [];
 
       targetWeeks.forEach(w => {
+        const wNum = Number(w.week);
+        const prevW1 = WEEKS_DEF[String(wNum - 1)];
+        const prevW2 = WEEKS_DEF[String(wNum - 2)];
+
         storeStaff.forEach(collab => {
           const docStr = String(collab.documentId).trim();
           const uidStr = collab.id || `emp-${docStr}`;
 
           // Check real schedule
           const hasSchedule = schedLookup.has(`${w.start}_doc_${docStr}`) || schedLookup.has(`${w.start}_uid_${uidStr}`);
-          const isPendingProgram = !hasSchedule;
-
-          // Check real punch or authorized legal leave
           const schedObj = schedLookup.get(`${w.start}_doc_${docStr}`) || schedLookup.get(`${w.start}_uid_${uidStr}`);
           const allPaidNovelty = schedObj && Array.isArray(schedObj.shifts) && schedObj.shifts.length > 0 && schedObj.shifts.every(sh => 
             sh.shiftType === 'VACACIONES' || sh.shiftType === 'INCAPACIDAD' || sh.shiftType === 'LICENCIA'
           );
 
           const hasPunch = (punchLookup.get(`${w.start}_${docStr}`) || 0) > 0 || allPaidNovelty;
+
+          // Regla de Negocio: Inactividad >= 2 semanas sin turno ni marcacion = Retirado
+          const hasSchedPrev1 = prevW1 ? (schedLookup.has(`${prevW1.start}_doc_${docStr}`) || schedLookup.has(`${prevW1.start}_uid_${uidStr}`)) : false;
+          const hasPunchPrev1 = prevW1 ? ((punchLookup.get(`${prevW1.start}_${docStr}`) || 0) > 0) : false;
+
+          const hasSchedPrev2 = prevW2 ? (schedLookup.has(`${prevW2.start}_doc_${docStr}`) || schedLookup.has(`${prevW2.start}_uid_${uidStr}`)) : false;
+          const hasPunchPrev2 = prevW2 ? ((punchLookup.get(`${prevW2.start}_${docStr}`) || 0) > 0) : false;
+
+          const isNewlyHired = collab.isNewEmployee;
+          const hasRecentActivity = hasSchedule || hasPunch || hasSchedPrev1 || hasPunchPrev1 || hasSchedPrev2 || hasPunchPrev2 || isNewlyHired;
+
+          if (!hasRecentActivity) {
+            storeAutoRetiredCollabs.push({
+              documentId: collab.documentId,
+              fullName: collab.fullName,
+              position: collab.position || 'ASESOR(A) DE IMAGEN',
+              reason: 'Inactivo (+2 semanas sin turnos ni marcación)'
+            });
+            return; // Excluir del conteo de pendientes activos
+          }
+
+          const isPendingProgram = !hasSchedule;
           const isPendingPunch = !hasPunch;
 
           if (isPendingProgram || isPendingPunch) {
@@ -263,6 +301,18 @@ export default function PendingCoverageMonitorView({ currentUser, pdvs, supervis
       });
       const pendingCollaborators = Array.from(uniquePendingMap.values());
 
+      // Group unique auto-retired collaborators for this PDV
+      const uniqueRetiredMap = new Map();
+      storeAutoRetiredCollabs.forEach(item => {
+        if (!uniqueRetiredMap.has(item.documentId)) {
+          uniqueRetiredMap.set(item.documentId, { ...item });
+        }
+      });
+      const retiredCollaborators = Array.from(uniqueRetiredMap.values());
+
+      // Personal activo real (excluyendo automáticamente retirados por >= 2 semanas de inactividad)
+      const storeTotalStaff = Math.max(0, storeStaff.length - retiredCollaborators.length);
+
       const pendingProgramCount = pendingCollaborators.filter(c => c.isPendingProgram).length;
       const pendingPunchesCount = pendingCollaborators.filter(c => c.isPendingPunch).length;
       const programmedCount = Math.max(0, storeTotalStaff - pendingProgramCount);
@@ -293,6 +343,7 @@ export default function PendingCoverageMonitorView({ currentUser, pdvs, supervis
         punchesCount,
         pendingPunchesCount,
         pendingCollaborators,
+        retiredCollaborators,
         status
       });
     });
@@ -343,6 +394,10 @@ export default function PendingCoverageMonitorView({ currentUser, pdvs, supervis
           c.fullName?.toLowerCase().includes(s) || String(c.documentId).includes(s)
         );
 
+        const matchRetired = (p.retiredCollaborators || []).some(r => 
+          r.fullName?.toLowerCase().includes(s) || String(r.documentId).includes(s)
+        );
+
         const matches = (
           name.includes(s) ||
           nameNorm.includes(sNorm) ||
@@ -351,7 +406,8 @@ export default function PendingCoverageMonitorView({ currentUser, pdvs, supervis
           (sDigits && codeDigits && codeDigits === sDigits) ||
           city.includes(s) ||
           sup.includes(s) ||
-          matchStaff
+          matchStaff ||
+          matchRetired
         );
 
         if (!matches) return false;
@@ -896,6 +952,38 @@ export default function PendingCoverageMonitorView({ currentUser, pdvs, supervis
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+
+              {/* Colaboradores Retirados Automáticamente (+2 semanas sin turnos ni marcación) */}
+              {activeModalPdv.retiredCollaborators && activeModalPdv.retiredCollaborators.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-slate-200">
+                  <div className="flex items-center justify-between text-xs font-bold text-slate-500 mb-2">
+                    <span className="flex items-center gap-1.5 text-slate-600">
+                      <UserX className="w-3.5 h-3.5 text-slate-400" />
+                      Retirados por Inactividad (+2 semanas sin turnos): {activeModalPdv.retiredCollaborators.length}
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-normal">Excluidos de faltantes de programación</span>
+                  </div>
+                  <div className="space-y-1.5">
+                    {activeModalPdv.retiredCollaborators.map((r, rIdx) => (
+                      <div 
+                        key={`retired-${r.documentId}-${rIdx}`}
+                        className="bg-slate-100/70 p-2.5 rounded-lg border border-slate-200 flex items-center justify-between gap-2 opacity-85"
+                      >
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-slate-700 text-xs line-through decoration-slate-400">{r.fullName}</span>
+                            <span className="text-[10px] text-slate-400 font-mono">CC: {r.documentId}</span>
+                          </div>
+                          <span className="text-[10px] text-slate-400 block">{r.position}</span>
+                        </div>
+                        <span className="bg-slate-200 text-slate-600 text-[10px] font-bold px-2 py-0.5 rounded border border-slate-300">
+                          Retirado (+2 sem)
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
