@@ -19,9 +19,11 @@ class ErrorBoundary extends Component {
   }
 
   handleReload = () => {
-    localStorage.clear();
-    sessionStorage.clear();
-    window.location.reload();
+    try {
+      localStorage.removeItem('control_turnos_user');
+      sessionStorage.clear();
+    } catch (e) {}
+    window.location.href = window.location.origin + window.location.pathname + '?v=' + Date.now();
   };
 
   render() {
