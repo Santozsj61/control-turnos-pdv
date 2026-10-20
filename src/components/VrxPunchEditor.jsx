@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Clock, Calendar, CheckCircle2, AlertCircle, Edit3, Sparkles } from 'lucide-react';
+import { Clock, Calendar, CheckCircle2, AlertCircle, Edit3, Sparkles, Trash2, ShieldAlert } from 'lucide-react';
 import { api } from '../services/api.js';
 import { recordAuditEvent } from '../services/auditService.js';
 
@@ -9,22 +9,66 @@ import { recordAuditEvent } from '../services/auditService.js';
  */
 export default function VrxPunchEditor({ row, currentUser, onSaved }) {
   // 1. Estado Marcación Biométrico
-  const [entry, setEntry] = useState(row.rawPunchEntry ? String(row.rawPunchEntry).substring(0, 5) : '');
-  const [exit, setExit] = useState(row.rawPunchExit ? String(row.rawPunchExit).substring(0, 5) : '');
+  const [entry, setEntry] = useState(row.rawPunchEntry ? String(row.rawPunchEntry).substring(0, 5) : (row.realStart && !row.autoFilledEntry ? String(row.realStart).substring(0, 5) : ''));
+  const [exit, setExit] = useState(row.rawPunchExit ? String(row.rawPunchExit).substring(0, 5) : (row.realEnd && !row.autoFilledExit ? String(row.realEnd).substring(0, 5) : ''));
   const [savingPunch, setSavingPunch] = useState(false);
+  const [deletingPunch, setDeletingPunch] = useState(false);
   const [punchMsg, setPunchMsg] = useState(null);
 
   // 2. Estado Programación / Turno
   const [schedStart, setSchedStart] = useState(row.scheduledStart ? String(row.scheduledStart).substring(0, 5) : '10:00');
   const [schedEnd, setSchedEnd] = useState(row.scheduledEnd ? String(row.scheduledEnd).substring(0, 5) : '20:00');
-  const [isDayOff, setIsDayOff] = useState(!row.isScheduled);
+  const [isDayOff, setIsDayOff] = useState(!row.isScheduled || row.isDescanso);
   const [savingSched, setSavingSched] = useState(false);
   const [schedMsg, setSchedMsg] = useState(null);
 
   if (currentUser?.role !== 'AUDITOR_VRX') return null;
 
+  const hasAnyPunchRecord = !!(row.punchId || row.rawPunchEntry || row.rawPunchExit || (row.hasPunch && !row.autoFilledEntry && !row.autoFilledExit));
+
+  // Eliminar Marcación Biométrico (dejar sin marcación)
+  async function deletePunch() {
+    if (!window.confirm(`¿Deseas eliminar la marcación biométrica de ${row.fullName} para el día ${row.date}? El día quedará sin registros de asistencia.`)) {
+      return;
+    }
+    setDeletingPunch(true);
+    setPunchMsg(null);
+    try {
+      await api.vrxDeletePunch({
+        role: currentUser.role,
+        punchId: row.punchId,
+        documentId: row.documentId,
+        date: row.date
+      });
+
+      // Registrar auditoría forense
+      recordAuditEvent({
+        userName: currentUser.fullName || 'AUDITORÍA DE ASISTENCIA VRX',
+        userRole: currentUser.role,
+        action: 'VRX_PUNCH_DELETE',
+        actionLabel: 'Eliminación de Marcación Biométrico',
+        pdvName: row.pdvName,
+        detail: `Eliminó marcación biométrica de ${row.fullName} (${row.date})`
+      });
+
+      setEntry('');
+      setExit('');
+      setPunchMsg({ type: 'ok', text: '✓ Marcación eliminada con éxito.' });
+      onSaved?.();
+    } catch (err) {
+      setPunchMsg({ type: 'error', text: err.message || 'Error al eliminar marcación.' });
+    } finally {
+      setDeletingPunch(false);
+    }
+  }
+
   // Guardar Marcación Biométrico
   async function savePunch() {
+    // Si ambos campos están vacíos, interpretar como eliminación
+    if (!entry && !exit) {
+      return deletePunch();
+    }
+
     setSavingPunch(true);
     setPunchMsg(null);
     try {
@@ -117,8 +161,10 @@ export default function VrxPunchEditor({ row, currentUser, onSaved }) {
                 <Clock className="w-3.5 h-3.5 text-blue-600" />
                 <span>1. Marcación Real (Biométrico)</span>
               </span>
-              <span className="text-[10px] text-slate-400 font-mono">
-                {row.punchId ? 'Registrado' : 'Sin Punch'}
+              <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded font-bold ${
+                hasAnyPunchRecord ? 'bg-blue-100 text-blue-800' : 'bg-slate-100 text-slate-500'
+              }`}>
+                {hasAnyPunchRecord ? 'Registrado' : 'Sin Marcación'}
               </span>
             </div>
 
@@ -142,22 +188,39 @@ export default function VrxPunchEditor({ row, currentUser, onSaved }) {
                 />
               </div>
             </div>
+            <p className="text-[9.5px] text-slate-400">
+              Deja los campos vacíos o pulsa "Quitar Marcación" si el colaborador no tuvo asistencia biométrica.
+            </p>
           </div>
 
-          <div className="pt-1 flex items-center justify-between gap-2">
+          <div className="pt-1 flex flex-wrap items-center justify-between gap-1.5 border-t border-slate-100 mt-2">
             {punchMsg ? (
-              <span className={`text-[10px] font-bold truncate ${punchMsg.type === 'ok' ? 'text-emerald-700' : 'text-rose-700'}`}>
+              <span className={`text-[10px] font-bold truncate max-w-[160px] ${punchMsg.type === 'ok' ? 'text-emerald-700' : 'text-rose-700'}`}>
                 {punchMsg.text}
               </span>
             ) : <span />}
-            <button 
-              type="button" 
-              onClick={savePunch} 
-              disabled={savingPunch || !entry}
-              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-lg font-bold text-xs shadow-xs transition cursor-pointer shrink-0"
-            >
-              {savingPunch ? 'Guardando...' : 'Guardar Marcación'}
-            </button>
+            <div className="flex items-center gap-1.5 shrink-0 ml-auto">
+              {(hasAnyPunchRecord || entry || exit) && (
+                <button 
+                  type="button" 
+                  onClick={deletePunch} 
+                  disabled={savingPunch || deletingPunch}
+                  className="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg font-bold text-xs shadow-2xs transition cursor-pointer flex items-center gap-1"
+                  title="Eliminar marcación biométrica y dejar en Sin Marcación"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>{deletingPunch ? 'Quitando...' : 'Quitar Marc.'}</span>
+                </button>
+              )}
+              <button 
+                type="button" 
+                onClick={savePunch} 
+                disabled={savingPunch || deletingPunch}
+                className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-lg font-bold text-xs shadow-xs transition cursor-pointer shrink-0"
+              >
+                {savingPunch ? 'Guardando...' : (!entry && !exit ? 'Limpiar Marcación' : 'Guardar Marcación')}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -181,8 +244,23 @@ export default function VrxPunchEditor({ row, currentUser, onSaved }) {
             </div>
 
             {isDayOff ? (
-              <div className="py-2.5 px-3 bg-slate-50 border border-dashed border-slate-300 rounded-lg text-center text-slate-500 font-bold text-[11px]">
-                😴 Configurado como DÍA DE DESCANSO
+              <div className="space-y-2">
+                <div className="py-2.5 px-3 bg-slate-50 border border-dashed border-slate-300 rounded-lg text-center text-slate-500 font-bold text-[11px]">
+                  😴 Configurado como DÍA DE DESCANSO
+                </div>
+                {(hasAnyPunchRecord || entry || exit) && (
+                  <div className="py-1.5 px-2 bg-amber-50 border border-amber-200 rounded-lg text-[9.5px] text-amber-900 flex items-center justify-between gap-1.5">
+                    <span>⚠️ Marcación presente en día de descanso.</span>
+                    <button
+                      type="button"
+                      onClick={deletePunch}
+                      disabled={deletingPunch}
+                      className="px-2 py-0.5 bg-rose-600 hover:bg-rose-500 text-white rounded font-bold text-[9px] shrink-0 cursor-pointer"
+                    >
+                      {deletingPunch ? '...' : 'Quitar Marc.'}
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-2">
@@ -208,7 +286,7 @@ export default function VrxPunchEditor({ row, currentUser, onSaved }) {
             )}
           </div>
 
-          <div className="pt-1 flex items-center justify-between gap-2">
+          <div className="pt-1 flex items-center justify-between gap-2 border-t border-slate-100 mt-2">
             {schedMsg ? (
               <span className={`text-[10px] font-bold truncate ${schedMsg.type === 'ok' ? 'text-emerald-700' : 'text-rose-700'}`}>
                 {schedMsg.text}
@@ -218,7 +296,7 @@ export default function VrxPunchEditor({ row, currentUser, onSaved }) {
               type="button" 
               onClick={saveSchedule} 
               disabled={savingSched || (!isDayOff && (!schedStart || !schedEnd))}
-              className="px-3 py-1.5 bg-purple-700 hover:bg-purple-600 disabled:opacity-50 text-white rounded-lg font-bold text-xs shadow-xs transition cursor-pointer shrink-0"
+              className="px-3 py-1.5 bg-purple-700 hover:bg-purple-600 disabled:opacity-50 text-white rounded-lg font-bold text-xs shadow-xs transition cursor-pointer shrink-0 ml-auto"
             >
               {savingSched ? 'Guardando...' : 'Guardar Horario'}
             </button>

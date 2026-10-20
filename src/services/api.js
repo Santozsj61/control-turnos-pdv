@@ -1107,6 +1107,24 @@ export const api = {
   // ----------------------------------------------------
   // Edición maestra (exclusiva perfil AUDITOR_VRX): marcaciones y programación sin restricción de fecha
   // ----------------------------------------------------
+  vrxDeletePunch: async ({ role, punchId, documentId, date }) => {
+    if (role !== 'AUDITOR_VRX') throw new Error('Solo el perfil maestro VRX puede eliminar marcaciones.');
+    if (!isSupabaseConfigured) throw new Error('Se requiere conexión a la base de datos.');
+
+    let query = supabase.from('punch_records').delete();
+    if (punchId) {
+      query = query.eq('id', punchId);
+    } else if (documentId && date) {
+      query = query.eq('document_id', documentId).eq('entry_date', date);
+    } else {
+      throw new Error('Identificador de marcación no encontrado para eliminar.');
+    }
+    const { error } = await query;
+    if (error) throw new Error(error.message);
+    memoryCache.clearReconciliation();
+    return { success: true };
+  },
+
   vrxEditPunch: async ({ role, punchId, documentId, fullName, position, pdvName, supervisorName, date, entryTime, exitTime }) => {
     if (role !== 'AUDITOR_VRX') throw new Error('Solo el perfil maestro VRX puede modificar marcaciones.');
     if (!isSupabaseConfigured) throw new Error('La edición maestra requiere conexión a la base de datos.');
@@ -1116,6 +1134,12 @@ export const api = {
     };
     const entry = norm(entryTime);
     const exit = norm(exitTime);
+
+    // Si ambos campos están vacíos, interpretar como eliminación / limpieza de la marcación
+    if (!entry && !exit) {
+      return api.vrxDeletePunch({ role, punchId, documentId, date });
+    }
+
     if (!entry) throw new Error('Hora de entrada inválida (use HH:MM).');
     let exitDate = date;
     if (exit && exit.substring(0, 5) < entry.substring(0, 5)) {
