@@ -23,7 +23,7 @@ export default function PendingCoverageMonitorView({ currentUser, pdvs, supervis
   const [selectedMonth, setSelectedMonth] = useState('ALL'); // 'ALL' | 'Octubre' | 'Septiembre' | ...
   const [selectedWeek, setSelectedWeek] = useState('43'); // Defaults to active current week
   const [selectedZone, setSelectedZone] = useState(isSupervisor ? (currentSupervisorObj?.id || '') : '');
-  const [selectedStatus, setSelectedStatus] = useState(isAuditorVrx ? 'PENDIENTE_PROGRAMAR' : 'ALL'); // 'ALL' | 'AL_DIA' | 'PENDIENTE_MARCACION' | 'PENDIENTE_PROGRAMAR' | 'PENDIENTE_AMBOS'
+  const [selectedStatus, setSelectedStatus] = useState('ALL'); // 'ALL' | 'AL_DIA' | 'PENDIENTE_MARCACION' | 'PENDIENTE_PROGRAMAR' | 'PENDIENTE_AMBOS'
   const [searchTerm, setSearchTerm] = useState(isEmployee && userPdvObj ? (userPdvObj.code || userPdvObj.name) : '');
   const [activeModalPdv, setActiveModalPdv] = useState(null);
 
@@ -301,9 +301,9 @@ export default function PendingCoverageMonitorView({ currentUser, pdvs, supervis
   }, [selectedWeek, selectedMonth, realSchedules, realPunches, pdvs, supervisors, users]);
 
   // Apply Search, Zone, Status Filters
-  const filteredPdvs = useMemo(() => {
+  // Filter by Zone first (for global KPIs across the selected region/period)
+  const zoneFilteredPdvs = useMemo(() => {
     return aggregatedData.filter(p => {
-      // Zone filter
       if (selectedZone) {
         const sup = supervisors?.find(s => s.id === selectedZone);
         if (sup) {
@@ -316,36 +316,67 @@ export default function PendingCoverageMonitorView({ currentUser, pdvs, supervis
           }
         }
       }
+      return true;
+    });
+  }, [aggregatedData, selectedZone, supervisors]);
+
+  // Apply Search, Zone, Status Filters for Table View
+  const filteredPdvs = useMemo(() => {
+    return zoneFilteredPdvs.filter(p => {
+      // Search term (flexible match for codes like q87 vs Q087, numbers, city, supervisor, collaborator)
+      if (searchTerm.trim()) {
+        const s = searchTerm.toLowerCase().trim();
+        const sNorm = s.replace(/^q0*/i, 'q').replace(/\s+/g, '');
+        const sDigits = s.replace(/\D/g, '');
+
+        const code = (p.pdvCode || '').toLowerCase();
+        const codeNorm = code.replace(/^q0*/i, 'q');
+        const codeDigits = code.replace(/\D/g, '');
+
+        const name = (p.pdvName || '').toLowerCase();
+        const nameNorm = name.replace(/\s+/g, '');
+
+        const city = (p.city || '').toLowerCase();
+        const sup = (p.supervisorName || '').toLowerCase();
+
+        const matchStaff = (p.pendingCollaborators || []).some(c => 
+          c.fullName?.toLowerCase().includes(s) || String(c.documentId).includes(s)
+        );
+
+        const matches = (
+          name.includes(s) ||
+          nameNorm.includes(sNorm) ||
+          code.includes(s) ||
+          (codeNorm && sNorm && (codeNorm === sNorm || codeNorm.includes(sNorm))) ||
+          (sDigits && codeDigits && codeDigits === sDigits) ||
+          city.includes(s) ||
+          sup.includes(s) ||
+          matchStaff
+        );
+
+        if (!matches) return false;
+      }
 
       // Status filter
-      if (selectedStatus !== 'ALL') {
+      // If user is explicitly searching by store or code, we don't hide the search result
+      if (selectedStatus !== 'ALL' && !searchTerm.trim()) {
         if (selectedStatus === 'AL_DIA' && p.status !== 'AL_DIA') return false;
         if (selectedStatus === 'PENDIENTE_MARCACION' && p.pendingPunchesCount === 0) return false;
         if (selectedStatus === 'PENDIENTE_PROGRAMAR' && p.pendingProgramCount === 0) return false;
         if (selectedStatus === 'PENDIENTE_AMBOS' && p.status !== 'PENDIENTE_AMBOS') return false;
       }
 
-      // Search term
-      if (searchTerm.trim()) {
-        const s = searchTerm.toLowerCase();
-        const matchName = p.pdvName?.toLowerCase().includes(s);
-        const matchCode = p.pdvCode?.toLowerCase().includes(s);
-        const matchCity = p.city?.toLowerCase().includes(s);
-        const matchSup = p.supervisorName?.toLowerCase().includes(s);
-        if (!matchName && !matchCode && !matchCity && !matchSup) return false;
-      }
-
       return true;
     });
-  }, [aggregatedData, selectedZone, selectedStatus, searchTerm, supervisors]);
+  }, [zoneFilteredPdvs, selectedStatus, searchTerm]);
 
   // KPIs
   const kpis = useMemo(() => {
-    const totalPdvs = filteredPdvs.length;
-    const alDia = filteredPdvs.filter(p => p.status === 'AL_DIA').length;
-    const conPendienteMarcacion = filteredPdvs.filter(p => p.pendingPunchesCount > 0).length;
-    const conPendienteProgramar = filteredPdvs.filter(p => p.pendingProgramCount > 0).length;
-    const totalColaboradoresPendientes = filteredPdvs.reduce((acc, p) => acc + p.pendingCollaborators.length, 0);
+    const totalPdvs = zoneFilteredPdvs.length;
+    const alDia = zoneFilteredPdvs.filter(p => p.status === 'AL_DIA').length;
+    const conPendienteMarcacion = zoneFilteredPdvs.filter(p => p.pendingPunchesCount > 0).length;
+    const conPendienteProgramar = zoneFilteredPdvs.filter(p => p.pendingProgramCount > 0).length;
+    const totalColaboradoresPendientes = zoneFilteredPdvs.reduce((acc, p) => acc + p.pendingCollaborators.length, 0);
 
     return {
       totalPdvs,
@@ -355,7 +386,7 @@ export default function PendingCoverageMonitorView({ currentUser, pdvs, supervis
       totalColaboradoresPendientes,
       pctAlDia: totalPdvs > 0 ? Math.round((alDia / totalPdvs) * 100) : 100
     };
-  }, [filteredPdvs]);
+  }, [zoneFilteredPdvs]);
 
   // Export to Excel
   const handleExportExcel = () => {
@@ -550,7 +581,12 @@ export default function PendingCoverageMonitorView({ currentUser, pdvs, supervis
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3.5">
         
         {/* Total PDVs */}
-        <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs flex items-center gap-3">
+        <div 
+          onClick={() => setSelectedStatus('ALL')}
+          className={`bg-white p-4 rounded-xl border shadow-xs flex items-center gap-3 cursor-pointer transition-all hover:shadow-md ${
+            selectedStatus === 'ALL' ? 'ring-2 ring-indigo-500 border-indigo-400 bg-indigo-50/10' : 'border-slate-200/80 hover:border-slate-300'
+          }`}
+        >
           <div className="p-3 bg-slate-100 text-slate-700 rounded-xl">
             <Store className="w-5 h-5" />
           </div>
@@ -561,7 +597,12 @@ export default function PendingCoverageMonitorView({ currentUser, pdvs, supervis
         </div>
 
         {/* 100% Al Día */}
-        <div className="bg-white p-4 rounded-xl border border-emerald-200 shadow-xs flex items-center gap-3 bg-emerald-50/20">
+        <div 
+          onClick={() => setSelectedStatus(selectedStatus === 'AL_DIA' ? 'ALL' : 'AL_DIA')}
+          className={`bg-white p-4 rounded-xl border shadow-xs flex items-center gap-3 cursor-pointer transition-all hover:shadow-md ${
+            selectedStatus === 'AL_DIA' ? 'ring-2 ring-emerald-500 border-emerald-400 bg-emerald-50/40' : 'border-emerald-200 bg-emerald-50/20 hover:border-emerald-300'
+          }`}
+        >
           <div className="p-3 bg-emerald-100 text-emerald-700 rounded-xl">
             <CheckCircle2 className="w-5 h-5 text-emerald-600" />
           </div>
@@ -575,7 +616,12 @@ export default function PendingCoverageMonitorView({ currentUser, pdvs, supervis
         </div>
 
         {/* Pendiente Marcación */}
-        <div className="bg-white p-4 rounded-xl border border-amber-200 shadow-xs flex items-center gap-3 bg-amber-50/20">
+        <div 
+          onClick={() => setSelectedStatus(selectedStatus === 'PENDIENTE_MARCACION' ? 'ALL' : 'PENDIENTE_MARCACION')}
+          className={`bg-white p-4 rounded-xl border shadow-xs flex items-center gap-3 cursor-pointer transition-all hover:shadow-md ${
+            selectedStatus === 'PENDIENTE_MARCACION' ? 'ring-2 ring-amber-500 border-amber-400 bg-amber-50/40' : 'border-amber-200 bg-amber-50/20 hover:border-amber-300'
+          }`}
+        >
           <div className="p-3 bg-amber-100 text-amber-700 rounded-xl">
             <Clock className="w-5 h-5 text-amber-600" />
           </div>
@@ -586,7 +632,12 @@ export default function PendingCoverageMonitorView({ currentUser, pdvs, supervis
         </div>
 
         {/* Pendiente Programación */}
-        <div className="bg-white p-4 rounded-xl border border-blue-200 shadow-xs flex items-center gap-3 bg-blue-50/20">
+        <div 
+          onClick={() => setSelectedStatus(selectedStatus === 'PENDIENTE_PROGRAMAR' ? 'ALL' : 'PENDIENTE_PROGRAMAR')}
+          className={`bg-white p-4 rounded-xl border shadow-xs flex items-center gap-3 cursor-pointer transition-all hover:shadow-md ${
+            selectedStatus === 'PENDIENTE_PROGRAMAR' ? 'ring-2 ring-blue-500 border-blue-400 bg-blue-50/40' : 'border-blue-200 bg-blue-50/20 hover:border-blue-300'
+          }`}
+        >
           <div className="p-3 bg-blue-100 text-blue-700 rounded-xl">
             <Calendar className="w-5 h-5 text-blue-600" />
           </div>
@@ -597,7 +648,12 @@ export default function PendingCoverageMonitorView({ currentUser, pdvs, supervis
         </div>
 
         {/* Total Colaboradores Afectados */}
-        <div className="bg-white p-4 rounded-xl border border-rose-200 shadow-xs flex items-center gap-3 bg-rose-50/20 col-span-2 md:col-span-1">
+        <div 
+          onClick={() => setSelectedStatus(selectedStatus === 'PENDIENTE_AMBOS' ? 'ALL' : 'PENDIENTE_AMBOS')}
+          className={`bg-white p-4 rounded-xl border shadow-xs flex items-center gap-3 cursor-pointer transition-all hover:shadow-md col-span-2 md:col-span-1 ${
+            selectedStatus === 'PENDIENTE_AMBOS' ? 'ring-2 ring-rose-500 border-rose-400 bg-rose-50/40' : 'border-rose-200 bg-rose-50/20 hover:border-rose-300'
+          }`}
+        >
           <div className="p-3 bg-rose-100 text-rose-700 rounded-xl">
             <UserX className="w-5 h-5 text-rose-600" />
           </div>
