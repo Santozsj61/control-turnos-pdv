@@ -82,6 +82,9 @@ export default function App() {
         const matched = (loadedUsers || []).find(u => u.id === restoredUser.id) || restoredUser;
         setCurrentUser(matched);
         setShowHomeScreen(false);
+        if (matched.role === 'MAINTENANCE_APPROVER') {
+          setActiveTab('permissions');
+        }
       } else {
         setCurrentUser(null);
         setShowHomeScreen(true);
@@ -113,7 +116,7 @@ export default function App() {
             filters.excludeMaintenance = true;
           }
         } else if (currentUser.role === 'MAINTENANCE_APPROVER') {
-          filters.recipientRole = 'MAINTENANCE_APPROVER';
+          filters.isMaintenanceApprover = true;
         }
         const perms = await api.getPermissions(filters);
         if (Array.isArray(perms)) {

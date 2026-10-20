@@ -5,7 +5,7 @@ import { parsePunchExcel, parseNoveltiesReport, parsePayrollLiquidation } from '
 import { initialSupervisors, initialPDVs, initialUsers } from '../data/seedData.js';
 import { initialNovelties } from '../data/initialNovelties.js';
 import { OFFICIAL_PAYROLL_BY_WEEK } from '../data/officialPayrollData.js';
-import { registerLoadedWeek, registerLoadedWeeks, ALL_WEEKS_2026, KNOWN_WEEKS_WITH_DATA, getWeeksOverlappingMonth, getWeekStartsForMonth, isWeekInMonth, cleanNormalizeStr } from '../utils/weeks.js';
+import { registerLoadedWeek, registerLoadedWeeks, ALL_WEEKS_2026, KNOWN_WEEKS_WITH_DATA, getWeeksOverlappingMonth, getWeekStartsForMonth, isWeekInMonth, cleanNormalizeStr, getMondayForDate } from '../utils/weeks.js';
 
 import { buildAuditDataLocally } from '../utils/auditCalculator.js';
 import { getPdvPassword, validatePdvPassword, AUTH_CREDENTIALS } from '../utils/authRules.js';
@@ -371,6 +371,22 @@ export const api = {
         position: 'SUPERUSUARIO / ADMIN GENERAL',
         area: 'OPERACIONES & AUDITORÍA GLOBAL'
       };
+    }
+
+    // 1.5 Mantenimiento (clave única de líderes: 200101 o admin)
+    if (supervisorId === 'sup-mantenimiento' || cleanUser === 'mantenimiento' || cleanUser === 'mant') {
+      if (cleanPass === AUTH_CREDENTIALS.ZONA_PASSWORD || cleanPass === 'admin') {
+        return {
+          id: 'user-mant',
+          username: 'mantenimiento',
+          fullName: 'MANTENIMIENTO',
+          role: 'MAINTENANCE_APPROVER',
+          position: 'ENCARGADO DE MANTENIMIENTO',
+          area: 'MANTENIMIENTO Y OBRAS',
+          supervisorId: 'sup-mantenimiento'
+        };
+      }
+      throw new Error(`Contraseña de Mantenimiento incorrecta (clave única: ${AUTH_CREDENTIALS.ZONA_PASSWORD})`);
     }
 
     // 2. Líder de Zona (Perfil #2: clave única 200101)
@@ -859,6 +875,10 @@ export const api = {
     if (filters.pdvId) query = query.eq('pdv_id', filters.pdvId);
     if (filters.supervisorId) query = query.eq('supervisor_id', filters.supervisorId);
     if (filters.recipientRole) query = query.eq('recipient_role', filters.recipientRole);
+    if (filters.assignedArea) query = query.eq('assigned_area', filters.assignedArea);
+    if (filters.isMaintenanceApprover) {
+      query = query.or('recipient_role.eq.MAINTENANCE_APPROVER,assigned_area.eq.Mantenimiento y Obras');
+    }
     if (filters.excludeMaintenance) query = query.neq('assigned_area', 'Mantenimiento y Obras');
     const { data, error } = await query;
     if (error) throw new Error(error.message);
@@ -899,10 +919,8 @@ export const api = {
         body: JSON.stringify(permData)
       });
     }
-    const config = await api.getConfig();
     const assignedArea = permData.assignedArea || 'Líder de Zona';
     const isMaintenance = assignedArea === 'Mantenimiento y Obras';
-    const maintenanceEmail = config.maintenanceApprovalEmail || 'mantenimiento.obras@quest.com.co';
 
     const payload = {
       id: `perm-${Date.now()}`,
@@ -920,9 +938,9 @@ export const api = {
       reason: permData.reason,
       assigned_area: assignedArea,
       recipient_role: isMaintenance ? 'MAINTENANCE_APPROVER' : 'SUPERVISOR',
-      notification_email: isMaintenance ? maintenanceEmail : null,
-      email_sent: isMaintenance,
-      email_sent_at: isMaintenance ? new Date().toISOString() : null,
+      notification_email: null,
+      email_sent: false,
+      email_sent_at: null,
       status: 'PENDING',
       requested_at: new Date().toISOString()
     };
@@ -947,7 +965,153 @@ export const api = {
       reviewed_at: reviewedAt
     }).eq('id', permId).select().single();
     if (error) throw new Error(error.message);
+
+    // Si la solicitud es APROBADA, sincronizar automáticamente la programación del día correspondiente
+    if (status === 'APPROVED' && data) {
+      try {
+        await api.applyPermissionToSchedule(data);
+      } catch (applyErr) {
+        console.error('Error al sincronizar permiso aprobado con la programación:', applyErr);
+      }
+    }
+
     return data;
+  },
+
+  applyPermissionToSchedule: async (perm) => {
+    if (!perm || !perm.date) return null;
+    const permDate = perm.date;
+    const weekStart = getMondayForDate(permDate);
+    const rawUid = perm.user_id || perm.userId || '';
+    const docId = perm.document_id || perm.documentId || (rawUid ? String(rawUid).replace(/^emp-(doc-)?/, '') : '');
+
+    if (!isSupabaseConfigured) {
+      return null;
+    }
+
+    try {
+      // 1. Buscar la programación del usuario para esa semana en Supabase
+      const candidateUserIds = [
+        rawUid,
+        docId ? `emp-${docId}` : '',
+        docId ? `emp-doc-${docId}` : ''
+      ].filter(Boolean);
+
+      let matchingSchedules = [];
+      if (candidateUserIds.length > 0) {
+        const { data } = await supabase
+          .from('schedules')
+          .select('*')
+          .eq('week_start', weekStart)
+          .in('user_id', candidateUserIds);
+        if (data && data.length > 0) matchingSchedules = data;
+      }
+
+      // Si no se encontró por user_id, buscar por id que contenga el documento y weekStart
+      if (matchingSchedules.length === 0 && docId) {
+        const { data: byDoc } = await supabase
+          .from('schedules')
+          .select('*')
+          .eq('week_start', weekStart)
+          .ilike('id', `%${docId}%`);
+        if (byDoc && byDoc.length > 0) matchingSchedules = byDoc;
+      }
+
+      // Si aún no se encontró, buscar por nombre del colaborador en users
+      if (matchingSchedules.length === 0 && (perm.employee_name || perm.employeeName)) {
+        const empName = perm.employee_name || perm.employeeName;
+        const { data: usersFound } = await supabase
+          .from('users')
+          .select('id')
+          .ilike('full_name', `%${empName}%`)
+          .limit(1);
+        if (usersFound && usersFound[0]) {
+          const { data: byName } = await supabase
+            .from('schedules')
+            .select('*')
+            .eq('week_start', weekStart)
+            .eq('user_id', usersFound[0].id);
+          if (byName && byName.length > 0) matchingSchedules = byName;
+        }
+      }
+
+      if (matchingSchedules.length === 0) {
+        console.warn(`[applyPermissionToSchedule] No se encontró programación para ${rawUid} (${docId}) en semana ${weekStart}`);
+        return null;
+      }
+
+      const config = await api.getConfig();
+      const isDayOff = !!(perm.is_day_off_change || perm.isDayOffChange || perm.shift_type === 'DESCANSO' || perm.shiftType === 'DESCANSO');
+      const shiftType = isDayOff ? 'DESCANSO' : (perm.shift_type || perm.shiftType || 'ORDINARIO');
+      const startTime = isDayOff ? '' : (perm.requested_start_time || perm.requestedStartTime || '10:00');
+      const endTime = isDayOff ? '' : (perm.requested_end_time || perm.requestedEndTime || '20:30');
+
+      for (const targetSched of matchingSchedules) {
+        if (!Array.isArray(targetSched.shifts)) continue;
+
+        let modified = false;
+        const updatedShifts = targetSched.shifts.map(s => {
+          if (s.date === permDate) {
+            modified = true;
+            if (isDayOff) {
+              return {
+                ...s,
+                startTime: '',
+                endTime: '',
+                isDayOff: true,
+                shiftType: 'DESCANSO',
+                grossHours: 0,
+                lunchHours: 0,
+                netHours: 0,
+                dayHours: 0,
+                nightHours: 0,
+                sundayDayHours: 0,
+                sundayNightHours: 0,
+                holidayDayHours: 0,
+                holidayNightHours: 0,
+                sundayOrHolidayHours: 0,
+                lunchApplied: false,
+                lunchReason: 'Descanso aprobado por novedad'
+              };
+            } else {
+              const calcs = calculateShiftHours(startTime, endTime, permDate, config, shiftType);
+              return {
+                ...s,
+                startTime,
+                endTime,
+                isDayOff: false,
+                shiftType,
+                ...calcs
+              };
+            }
+          }
+          return s;
+        });
+
+        if (modified) {
+          const totalNetHours = +updatedShifts.reduce((sum, s) => sum + (s.netHours || 0), 0).toFixed(2);
+          const totalLunchHours = +updatedShifts.reduce((sum, s) => sum + (s.lunchHours || 0), 0).toFixed(2);
+
+          await supabase.from('schedules').update({
+            shifts: updatedShifts,
+            total_net_hours: totalNetHours,
+            total_lunch_hours: totalLunchHours,
+            updated_at: new Date().toISOString()
+          }).eq('id', targetSched.id);
+        }
+      }
+
+      memoryCache.clearSchedules();
+      memoryCache.clearReconciliation();
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('schedules_data_updated', { detail: { weekStart, permDate } }));
+        window.dispatchEvent(new CustomEvent('weeks_data_updated', { detail: { weekStart } }));
+      }
+      return true;
+    } catch (err) {
+      console.error('[applyPermissionToSchedule] Error actualizando horario en Supabase:', err);
+      return false;
+    }
   },
 
   deletePermission: async (permId) => {

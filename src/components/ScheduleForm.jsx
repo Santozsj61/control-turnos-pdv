@@ -100,10 +100,17 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
   const [, setWeeksRevision] = useState(0);
 
   useEffect(() => {
-    const handler = () => setWeeksRevision(r => r + 1);
+    const handler = () => {
+      setWeeksRevision(r => r + 1);
+      loadScheduleData();
+    };
     window.addEventListener('weeks_data_updated', handler);
-    return () => window.removeEventListener('weeks_data_updated', handler);
-  }, []);
+    window.addEventListener('schedules_data_updated', handler);
+    return () => {
+      window.removeEventListener('weeks_data_updated', handler);
+      window.removeEventListener('schedules_data_updated', handler);
+    };
+  }, [selectedWeekStart, selectedPdvId]);
 
   // Filters & Sorting state
   const [filterHours, setFilterHours] = useState('ALL'); // 'ALL' | 'LE_42' | 'GT_42'

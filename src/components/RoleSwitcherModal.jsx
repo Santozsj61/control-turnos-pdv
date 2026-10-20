@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
 import { 
   X, User, Shield, Briefcase, Store, Check, Lock, Key, 
-  ArrowRight, AlertCircle, Sparkles, Building2, Search, Eye, EyeOff
+  ArrowRight, AlertCircle, Sparkles, Building2, Search, Eye, EyeOff, Wrench
 } from 'lucide-react';
 import { initialSupervisors, initialPDVs, initialUsers } from '../data/seedData.js';
 import { getPdvPassword, validatePdvPassword, AUTH_CREDENTIALS } from '../utils/authRules.js';
@@ -55,6 +54,16 @@ export default function RoleSwitcherModal({ isOpen, onClose, users, pdvs, superv
       badge: 'Supervisor',
       color: 'amber',
       desc: 'Supervisión regional, aprobación de horarios y 3er domingo'
+    },
+    {
+      user: 'Mantenimiento',
+      pass: '200101',
+      label: 'Mantenimiento',
+      role: 'MAINTENANCE_APPROVER',
+      icon: Wrench,
+      badge: 'Mantenimiento',
+      color: 'amber',
+      desc: 'Aprobación exclusiva de solicitudes de Mantenimiento y Obras'
     },
     {
       user: 'THumano',
@@ -112,6 +121,17 @@ export default function RoleSwitcherModal({ isOpen, onClose, users, pdvs, superv
       } else if (cleanU === 'zona' && cleanP === '200101') {
         onSelectUser({ id: 'user-zone-1', fullName: 'LÍDER ZONA 2', role: 'SUPERVISOR', supervisorId: 'zone-1' });
         onClose();
+      } else if ((cleanU === 'mantenimiento' || cleanU === 'mant') && (cleanP === '200101' || cleanP === 'admin')) {
+        onSelectUser({
+          id: 'user-mant',
+          username: 'mantenimiento',
+          fullName: 'MANTENIMIENTO',
+          role: 'MAINTENANCE_APPROVER',
+          position: 'ENCARGADO DE MANTENIMIENTO',
+          area: 'MANTENIMIENTO Y OBRAS',
+          supervisorId: 'sup-mantenimiento'
+        });
+        onClose();
       } else if (cleanU === 'thumano' && cleanP === '200102') {
         onSelectUser({ id: 'user-thumano', fullName: 'TALENTO HUMANO (HR)', role: 'HR_ADMIN' });
         onClose();
@@ -161,6 +181,17 @@ export default function RoleSwitcherModal({ isOpen, onClose, users, pdvs, superv
         position: `LÍDER DE ZONA - ${defaultSup.zoneName || defaultSup.name}` 
       });
       onClose();
+    } else if (quick.role === 'MAINTENANCE_APPROVER') {
+      onSelectUser({
+        id: 'user-mant',
+        username: 'mantenimiento',
+        fullName: 'MANTENIMIENTO',
+        role: 'MAINTENANCE_APPROVER',
+        position: 'ENCARGADO DE MANTENIMIENTO',
+        area: 'MANTENIMIENTO Y OBRAS',
+        supervisorId: 'sup-mantenimiento'
+      });
+      onClose();
     } else if (quick.role === 'HR_ADMIN') {
       onSelectUser({ id: 'user-thumano', username: 'THumano', fullName: 'TALENTO HUMANO (HR)', role: 'HR_ADMIN', position: 'GERENCIA DE TALENTO HUMANO' });
       onClose();
@@ -171,6 +202,19 @@ export default function RoleSwitcherModal({ isOpen, onClose, users, pdvs, superv
   }
 
   function handleSelectSupervisorDirect(sup) {
+    if (sup.id === 'sup-mantenimiento' || sup.role === 'MAINTENANCE_APPROVER') {
+      onSelectUser({
+        id: 'user-mant',
+        username: 'mantenimiento',
+        fullName: 'MANTENIMIENTO',
+        role: 'MAINTENANCE_APPROVER',
+        position: 'ENCARGADO DE MANTENIMIENTO',
+        area: 'MANTENIMIENTO Y OBRAS',
+        supervisorId: 'sup-mantenimiento'
+      });
+      onClose();
+      return;
+    }
     const supUser = {
       id: `user-${sup.id}`,
       username: sup.code || sup.id,
@@ -239,7 +283,18 @@ export default function RoleSwitcherModal({ isOpen, onClose, users, pdvs, superv
     (p.zoneName && p.zoneName.toLowerCase().includes(pdvSearch.toLowerCase()))
   );
 
-  const filteredSupervisors = effectiveSupervisors.filter(s => 
+  const allSupervisorsWithMant = [
+    {
+      id: 'sup-mantenimiento',
+      name: 'Mantenimiento',
+      zoneName: 'MANTENIMIENTO Y OBRAS (APROBADOR)',
+      role: 'MAINTENANCE_APPROVER',
+      code: 'MANT'
+    },
+    ...effectiveSupervisors
+  ];
+
+  const filteredSupervisors = allSupervisorsWithMant.filter(s => 
     s.name.toLowerCase().includes(zoneSearch.toLowerCase()) || 
     (s.zoneName && s.zoneName.toLowerCase().includes(zoneSearch.toLowerCase())) ||
     (s.code && s.code.toLowerCase().includes(zoneSearch.toLowerCase()))

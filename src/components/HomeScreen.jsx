@@ -162,9 +162,14 @@ export default function HomeScreen({ users, pdvs, supervisors, currentUser, onSe
       if (activeModalProfile.id === 'PDV') {
         payload.pdvId = selectedPdvId;
       } else if (activeModalProfile.id === 'ZONA') {
-        payload.supervisorId = selectedSupervisorId;
-        const matchedSup = effectiveSupervisors.find(s => s.id === selectedSupervisorId) || effectiveSupervisors[0];
-        if (matchedSup) payload.username = matchedSup.name;
+        if (selectedSupervisorId === 'sup-mantenimiento' || loginUsername.trim().toLowerCase() === 'mantenimiento' || loginUsername.trim().toLowerCase() === 'mant') {
+          payload.username = 'mantenimiento';
+          payload.supervisorId = 'sup-mantenimiento';
+        } else {
+          payload.supervisorId = selectedSupervisorId;
+          const matchedSup = effectiveSupervisors.find(s => s.id === selectedSupervisorId) || effectiveSupervisors[0];
+          if (matchedSup) payload.username = matchedSup.name;
+        }
       }
 
       const user = await api.login(payload);
@@ -178,20 +183,36 @@ export default function HomeScreen({ users, pdvs, supervisors, currentUser, onSe
       console.error('Error de autenticación:', err);
       // Fallback local matching
       const cleanP = loginPassword.trim();
+      const cleanU = loginUsername.trim().toLowerCase();
 
-      if (activeModalProfile.id === 'ZONA' && (cleanP === AUTH_CREDENTIALS.ZONA_PASSWORD || cleanP === 'admin')) {
-        const chosenSup = effectiveSupervisors.find(s => s.id === selectedSupervisorId) || effectiveSupervisors[0];
-        onSelectUser({
-          id: `user-${chosenSup.id}`,
-          username: chosenSup.code || chosenSup.name,
-          fullName: chosenSup.name,
-          zoneName: chosenSup.zoneName || chosenSup.name,
-          role: 'SUPERVISOR',
-          supervisorId: chosenSup.id,
-          position: `LÍDER DE ZONA - ${chosenSup.zoneName || chosenSup.name}`,
-          area: 'OPERACIONES COMERCIALES'
-        });
-        handleCloseModal();
+      if (activeModalProfile.id === 'ZONA') {
+        if ((selectedSupervisorId === 'sup-mantenimiento' || cleanU === 'mantenimiento' || cleanU === 'mant') && (cleanP === AUTH_CREDENTIALS.ZONA_PASSWORD || cleanP === 'admin')) {
+          onSelectUser({
+            id: 'user-mant',
+            username: 'mantenimiento',
+            fullName: 'MANTENIMIENTO',
+            role: 'MAINTENANCE_APPROVER',
+            position: 'ENCARGADO DE MANTENIMIENTO',
+            area: 'MANTENIMIENTO Y OBRAS',
+            supervisorId: 'sup-mantenimiento'
+          });
+          handleCloseModal();
+        } else if (cleanP === AUTH_CREDENTIALS.ZONA_PASSWORD || cleanP === 'admin') {
+          const chosenSup = effectiveSupervisors.find(s => s.id === selectedSupervisorId) || effectiveSupervisors[0];
+          onSelectUser({
+            id: `user-${chosenSup.id}`,
+            username: chosenSup.code || chosenSup.name,
+            fullName: chosenSup.name,
+            zoneName: chosenSup.zoneName || chosenSup.name,
+            role: 'SUPERVISOR',
+            supervisorId: chosenSup.id,
+            position: `LÍDER DE ZONA - ${chosenSup.zoneName || chosenSup.name}`,
+            area: 'OPERACIONES COMERCIALES'
+          });
+          handleCloseModal();
+        } else {
+          triggerPasswordError();
+        }
       } else if (activeModalProfile.id === 'HR' && (cleanP === AUTH_CREDENTIALS.HR_PASSWORD || cleanP === 'admin')) {
         onSelectUser({ id: 'user-thumano', username: 'THumano', fullName: 'TALENTO HUMANO (HR)', role: 'HR_ADMIN' });
         handleCloseModal();
@@ -485,14 +506,19 @@ export default function HomeScreen({ users, pdvs, supervisors, currentUser, onSe
                     onChange={(e) => {
                       const supId = e.target.value;
                       setSelectedSupervisorId(supId);
-                      const matched = effectiveSupervisors.find(s => s.id === supId);
-                      if (matched) {
-                        setLoginUsername(matched.name || matched.zoneName);
+                      if (supId === 'sup-mantenimiento') {
+                        setLoginUsername('mantenimiento');
+                      } else {
+                        const matched = effectiveSupervisors.find(s => s.id === supId);
+                        if (matched) {
+                          setLoginUsername(matched.name || matched.zoneName);
+                        }
                       }
                       setErrorMsg(null);
                     }}
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white font-bold focus:ring-2 focus:ring-amber-500 focus:outline-hidden cursor-pointer"
                   >
+                    <option value="sup-mantenimiento">🛠️ MANTENIMIENTO — Mantenimiento y Obras</option>
                     {effectiveSupervisors.map(sup => (
                       <option key={sup.id} value={sup.id}>
                         {sup.zoneName} — {sup.name}

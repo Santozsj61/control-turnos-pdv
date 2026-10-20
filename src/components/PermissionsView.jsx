@@ -118,7 +118,7 @@ export default function PermissionsView({ currentUser, pdvs, supervisors, onRefr
         if (supId) filters.supervisorId = supId;
         filters.excludeMaintenance = true;
       } else if (isMaintenanceApprover) {
-        filters.recipientRole = 'MAINTENANCE_APPROVER';
+        filters.isMaintenanceApprover = true;
       }
       let data = await api.getPermissions(filters).catch(() => []);
       if (Array.isArray(data)) {
@@ -198,7 +198,7 @@ export default function PermissionsView({ currentUser, pdvs, supervisors, onRefr
       });
 
       const destText = assignedArea === 'Mantenimiento y Obras'
-        ? 'al Correo Corporativo de Mantenimiento y Obras'
+        ? 'directamente en el aplicativo para aprobación del usuario Mantenimiento'
         : `a tu jefe inmediato (${mySupervisor?.name || 'Asignado'})`;
       setFormMsg({ type: 'success', text: `¡Solicitud para "${targetEmployee.fullName}" [${assignedArea}] radicada exitosamente ${destText}!` });
       setReason('');
@@ -239,8 +239,12 @@ export default function PermissionsView({ currentUser, pdvs, supervisors, onRefr
       setSupervisorNotes('');
       fetchPermissions();
       if (onRefreshSchedules) onRefreshSchedules();
+      if (status === 'APPROVED') {
+        alert(`✅ ¡Solicitud APROBADA con éxito!\n\nSe actualizó automáticamente la programación de turnos de ${targetPerm?.employee_name || 'el colaborador'} para el día ${targetPerm?.date || ''}.`);
+      }
     } catch (err) {
       console.error('Error updating permission in Supabase:', err);
+      alert(`Error al procesar la solicitud: ${err.message || 'Error desconocido'}`);
     } finally {
       setReviewing(false);
     }
@@ -297,7 +301,7 @@ export default function PermissionsView({ currentUser, pdvs, supervisors, onRefr
           <div className="flex items-center gap-2">
             <span className="bg-amber-100 text-amber-800 text-xs font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1">
               <ShieldCheck className="w-3.5 h-3.5" />
-              {isSupervisor ? 'Bandeja de Autorización de Jefatura' : 'Gestión de Permisos y Novedades'}
+              {isMaintenanceApprover ? 'Bandeja de Aprobación de Mantenimiento y Obras' : isSupervisor ? 'Bandeja de Autorización de Jefatura' : 'Gestión de Permisos y Novedades'}
             </span>
             {pendingCount > 0 && (
               <span className="bg-rose-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
@@ -306,16 +310,22 @@ export default function PermissionsView({ currentUser, pdvs, supervisors, onRefr
             )}
           </div>
           <h2 className="text-xl font-extrabold text-slate-900 mt-1">
-            {isSupervisor ? `Solicitudes de Zona: ${currentUser.zoneName || 'Zona Asignada'}` : 'Solicitud de Cambio de Horario / Permiso'}
+            {isMaintenanceApprover
+              ? 'Aprobación de Solicitudes de Mantenimiento y Obras'
+              : isSupervisor
+              ? `Solicitudes de Zona: ${currentUser.zoneName || 'Zona Asignada'}`
+              : 'Solicitud de Cambio de Horario / Permiso'}
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            {isSupervisor
+            {isMaintenanceApprover
+              ? 'Revisa y autoriza o rechaza las novedades y adecuaciones locativas de Mantenimiento y Obras solicitadas por las tiendas.'
+              : isSupervisor
               ? 'Revisa y autoriza o rechaza los cambios de horario solicitados por los colaboradores de tus PDVs asignados.'
               : `Todo cambio durante el día debe ser previamente autorizado por tu jefe inmediato (${mySupervisor?.name || 'Asignado'}).`}
           </p>
         </div>
 
-        {(isPdv || !isSupervisor) && (
+        {((isPdv && !isMaintenanceApprover) || (!isSupervisor && !isMaintenanceApprover && !isAuditorVrx)) && (
           <button
             onClick={() => setShowModal(true)}
             className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-md cursor-pointer"
@@ -408,10 +418,10 @@ export default function PermissionsView({ currentUser, pdvs, supervisors, onRefr
                           <Tag className="w-3 h-3 text-indigo-500" />
                           Área: {perm.assignedArea}
                         </span>
-                        {perm.recipientRole === 'MAINTENANCE_APPROVER' && (
+                        {(perm.recipientRole === 'MAINTENANCE_APPROVER' || perm.assignedArea === 'Mantenimiento y Obras') && (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-purple-100 text-purple-800 border border-purple-200">
-                            <Mail className="w-2.5 h-2.5 text-purple-600" />
-                            Notificado a Mantenimiento
+                            <Wrench className="w-2.5 h-2.5 text-purple-600" />
+                            Aprobador: Mantenimiento
                           </span>
                         )}
                       </div>
@@ -513,7 +523,7 @@ export default function PermissionsView({ currentUser, pdvs, supervisors, onRefr
 
             <form onSubmit={handleSubmitRequest} className="space-y-4 text-xs">
               <div className="bg-blue-50/70 p-3 rounded-xl border border-blue-200 text-blue-900 text-xs">
-                <strong>Destinatario de Autorización:</strong> {assignedArea === 'Mantenimiento y Obras' ? 'Correo Corporativo de Mantenimiento y Obras' : `Tu jefe directo ${mySupervisor?.name || 'Asignado'} (${userPdv?.name})`}.
+                <strong>Destinatario de Autorización:</strong> {assignedArea === 'Mantenimiento y Obras' ? 'Aprobador de Mantenimiento (en el aplicativo)' : `Tu jefe directo ${mySupervisor?.name || 'Asignado'} (${userPdv?.name})`}.
               </div>
 
               {/* Selector de Colaborador del PDV */}
@@ -568,10 +578,10 @@ export default function PermissionsView({ currentUser, pdvs, supervisors, onRefr
               {/* Alerta si es Mantenimiento y Obras */}
               {assignedArea === 'Mantenimiento y Obras' && (
                 <div className="bg-purple-50 border border-purple-200 rounded-xl p-3 flex items-start gap-2.5 text-purple-950 text-xs animate-in fade-in">
-                  <Mail className="w-4 h-4 text-purple-600 shrink-0 mt-0.5" />
+                  <Wrench className="w-4 h-4 text-purple-600 shrink-0 mt-0.5" />
                   <div>
-                    <strong className="block font-bold text-purple-900">Enrutamiento Directo a Mantenimiento y Obras:</strong>
-                    Esta solicitud será remitida directamente al correo corporativo parametrizado por Auditoría VRX para su aprobación inmediata.
+                    <strong className="block font-bold text-purple-900">Enrutamiento Exclusivo en el Aplicativo:</strong>
+                    Esta solicitud quedará radicada directamente en la plataforma para ser revisada y aprobada por el usuario <strong>Mantenimiento</strong>.
                   </div>
                 </div>
               )}

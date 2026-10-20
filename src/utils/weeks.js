@@ -364,3 +364,16 @@ export function isWeekInMonth(weekStart, monthStr) {
   const starts = getWeekStartsForMonth(monthStr);
   return starts.includes(weekStart);
 }
+
+/**
+ * Retorna el lunes (inicio de semana) para una fecha dada en formato YYYY-MM-DD.
+ */
+export function getMondayForDate(dateStr) {
+  if (!dateStr) return '';
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+  const day = dt.getUTCDay();
+  const diff = (day === 0 ? -6 : 1) - day;
+  dt.setUTCDate(dt.getUTCDate() + diff);
+  return dt.toISOString().split('T')[0];
+}
