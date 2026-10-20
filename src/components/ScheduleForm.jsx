@@ -1919,7 +1919,7 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
                                     {shiftType}
                                   </div>
                                   <div className="text-[9px] font-semibold text-slate-500">
-                                    {shiftType === 'NO_PROGRAMADO' ? '0.0 hrs' : '7.0 hrs'}
+                                    {shiftType === 'NO_PROGRAMADO' ? '0.0 hrs' : (shiftType === 'DESCANSO' && wd.isSunday) ? '0.0 hrs' : '7.0 hrs'}
                                   </div>
                                 </>
                               )}
@@ -3081,7 +3081,7 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
               {/* Footer */}
               <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
                 <span className="text-xs text-slate-500 font-medium">
-                  {shiftType === 'ORDINARIO' ? `${shift.netHours || 0} hrs netas computadas` : '7.0 hrs computadas'}
+                  {shiftType === 'ORDINARIO' ? `${shift.netHours || 0} hrs netas computadas` : (shiftType === 'DESCANSO' && modalDayIndex === 6) ? '0.0 hrs computadas (Domingo)' : '7.0 hrs computadas'}
                 </span>
                 <button
                   type="button"
@@ -3112,7 +3112,7 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
             <strong>2. Descuento de Almuerzo:</strong> Se deducen 1.5 hrs si la jornada es &ge; 6.0 hrs y el ingreso es &le; 12:30 PM (ícono ☕).
           </div>
           <div>
-            <strong>3. Novedades y Descansos:</strong> Descanso, Incapacidad, Vacaciones y Licencias computan automáticamente como 7.0 horas.
+            <strong>3. Novedades y Descansos:</strong> Descanso de Lunes a Sábado, Incapacidad, Vacaciones y Licencias computan automáticamente como 7.0 horas; Descansos en domingo computan 0.0 horas.
           </div>
         </div>
       </div>

@@ -355,7 +355,7 @@ export function runReconciliation({
           scheduleTypeLabel = isIncapacidad ? 'Incapacidad' : isVacaciones ? 'Vacaciones' : 'Licencia';
         } else if (isDescanso) {
           isScheduled = false;
-          scheduledNetHours = 0;
+          scheduledNetHours = isSunday ? 0 : 7;
           scheduledLunchHours = 0;
           scheduleTypeLabel = 'Descanso';
         } else if (isNoProgramado) {
@@ -368,7 +368,7 @@ export function runReconciliation({
           isScheduled = !shift.isDayOff;
           scheduledStart = isScheduled ? (shift.startTime || '') : '';
           scheduledEnd = isScheduled ? (shift.endTime || '') : '';
-          scheduledNetHours = isScheduled ? (Number(shift.netHours) || 0) : 0;
+          scheduledNetHours = isScheduled ? (Number(shift.netHours) || 0) : (isSunday ? 0 : 7);
           scheduledLunchHours = isScheduled ? (Number(shift.lunchHours) || 0) : 0;
           scheduleTypeLabel = isScheduled ? `${scheduledStart}-${scheduledEnd}` : 'Descanso';
         }
@@ -432,6 +432,11 @@ export function runReconciliation({
       // If on paid corporate novelty (incapacidad, vacaciones, licencia) and has no punches: recognized as 7 hours!
       if (!hasAnyPunch && isPaidNovelty) {
         realNetHours = 7;
+      }
+
+      // If on scheduled descanso and has no punches: Lunes a Sábado = 7 horas, Domingo = 0 horas
+      if (!hasAnyPunch && isDescanso) {
+        realNetHours = isSunday ? 0 : 7;
       }
 
       // Discrepancy Analysis

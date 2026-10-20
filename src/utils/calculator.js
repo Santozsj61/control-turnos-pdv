@@ -68,7 +68,46 @@ export function calculateShiftHours(startTime, endTime, dateStr, config = {}, sh
     holidayName = getHolidayName(dateStr);
   }
 
-  if (['INCAPACIDAD', 'VACACIONES', 'LICENCIA', 'DESCANSO'].includes(normalizedType)) {
+  if (normalizedType === 'DESCANSO') {
+    if (isSunday) {
+      return {
+        grossHours: 0,
+        lunchHours: 0,
+        netHours: 0,
+        dayHours: 0,
+        nightHours: 0,
+        isSunday: true,
+        isHoliday,
+        holidayName,
+        sundayDayHours: 0,
+        sundayNightHours: 0,
+        holidayDayHours: 0,
+        holidayNightHours: 0,
+        sundayOrHolidayHours: 0,
+        lunchApplied: false,
+        lunchReason: 'Descanso Dominical (0.0 hrs)'
+      };
+    }
+    return {
+      grossHours: 7,
+      lunchHours: 0,
+      netHours: 7,
+      dayHours: 7,
+      nightHours: 0,
+      isSunday: false,
+      isHoliday,
+      holidayName,
+      sundayDayHours: 0,
+      sundayNightHours: 0,
+      holidayDayHours: isHoliday ? 7 : 0,
+      holidayNightHours: 0,
+      sundayOrHolidayHours: isHoliday ? 7 : 0,
+      lunchApplied: false,
+      lunchReason: 'Descanso computable Lunes a Sábado (7.0 hrs)'
+    };
+  }
+
+  if (['INCAPACIDAD', 'VACACIONES', 'LICENCIA'].includes(normalizedType)) {
     return {
       grossHours: 7,
       lunchHours: 0,
@@ -84,7 +123,7 @@ export function calculateShiftHours(startTime, endTime, dateStr, config = {}, sh
       holidayNightHours: 0,
       sundayOrHolidayHours: (isSunday || isHoliday) ? 7 : 0,
       lunchApplied: false,
-      lunchReason: normalizedType === 'DESCANSO' ? 'Descanso computable (7.0 hrs)' : `${normalizedType} legal computable (7.0 hrs)`
+      lunchReason: `${normalizedType} legal computable (7.0 hrs)`
     };
   }
 

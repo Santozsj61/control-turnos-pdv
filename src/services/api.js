@@ -1171,24 +1171,14 @@ export const api = {
           if (s.date === permDate) {
             modified = true;
             if (isDayOff) {
+              const calcs = calculateShiftHours('', '', permDate, config, 'DESCANSO');
               return {
                 ...s,
                 startTime: '',
                 endTime: '',
                 isDayOff: true,
                 shiftType: 'DESCANSO',
-                grossHours: 0,
-                lunchHours: 0,
-                netHours: 0,
-                dayHours: 0,
-                nightHours: 0,
-                sundayDayHours: 0,
-                sundayNightHours: 0,
-                holidayDayHours: 0,
-                holidayNightHours: 0,
-                sundayOrHolidayHours: 0,
-                lunchApplied: false,
-                lunchReason: 'Descanso aprobado por novedad'
+                ...calcs
               };
             } else {
               const calcs = calculateShiftHours(startTime, endTime, permDate, config, shiftType);
@@ -1533,23 +1523,25 @@ export const api = {
       const dayDate = new Date(Date.UTC(wy, wm - 1, wd + dayOffset));
       const dateStr = dayDate.toISOString().slice(0, 10);
       if (!shiftsMap.has(dateStr)) {
+        const calcs = calculateShiftHours('', '', dateStr, {}, 'DESCANSO');
         shiftsMap.set(dateStr, {
           date: dateStr,
           shiftType: 'DESCANSO',
           isDayOff: true,
           startTime: '',
           endTime: '',
-          netHours: 0,
-          grossHours: 0,
-          lunchHours: 0
+          ...calcs
         });
       }
     }
 
     const base = shiftsMap.get(targetDate) || { date: targetDate };
+    const calcs = isDayOff
+      ? calculateShiftHours('', '', targetDate, {}, 'DESCANSO')
+      : calculateShiftHours(startTime, endTime, targetDate, {}, 'ORDINARIO');
     const updated = isDayOff
-      ? { ...base, date: targetDate, shiftType: 'DESCANSO', isDayOff: true, startTime: '', endTime: '', netHours: 0, grossHours: 0, lunchHours: 0 }
-      : { ...base, date: targetDate, shiftType: 'ORDINARIO', isDayOff: false, startTime, endTime };
+      ? { ...base, date: targetDate, shiftType: 'DESCANSO', isDayOff: true, startTime: '', endTime: '', ...calcs }
+      : { ...base, date: targetDate, shiftType: 'ORDINARIO', isDayOff: false, startTime, endTime, ...calcs };
     shiftsMap.set(targetDate, updated);
 
     const shifts = Array.from(shiftsMap.values()).sort((a, b) => String(a.date).localeCompare(String(b.date)));

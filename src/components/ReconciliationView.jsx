@@ -950,7 +950,7 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                                     )}
                                   </span>
                                   <span className={`font-bold shrink-0 ${
-                                    isAutoFilled ? 'text-indigo-950 font-black' : (dayRow.hasPunch || dayRow.isNovelty7h) ? 'text-slate-900' : (isNoShow ? 'text-rose-700 font-bold' : 'text-slate-400')
+                                    isAutoFilled ? 'text-indigo-950 font-black' : (dayRow.hasPunch || dayRow.isNovelty7h || dayRow.realNetHours > 0) ? 'text-slate-800' : (isNoShow ? 'text-rose-700 font-bold' : 'text-slate-400')
                                   }`}>
                                     {dayRow.realNetHours || 0}h
                                   </span>
@@ -983,7 +983,9 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                                   </div>
                                 ) : (
                                   <div className="pt-0.5 border-t border-slate-200/40 text-center text-[8px]">
-                                    <span className="text-slate-400 font-medium">Libre</span>
+                                    <span className="text-slate-400 font-medium">
+                                      {dayRow.isDescanso ? (dayRow.isSunday ? 'Libre (0h)' : 'Libre (7h)') : 'Libre'}
+                                    </span>
                                   </div>
                                 )}
                               </div>
@@ -2503,7 +2505,7 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                                     )}
                                   </span>
                                   <span className={`font-bold shrink-0 ${
-                                    isAutoFilled ? 'text-indigo-950 font-black' : (dayRow.hasPunch || dayRow.isNovelty7h) ? 'text-slate-900' : (isNoShow ? 'text-rose-700 font-bold' : 'text-slate-400')
+                                    isAutoFilled ? 'text-indigo-950 font-black' : (dayRow.hasPunch || dayRow.isNovelty7h || dayRow.realNetHours > 0) ? 'text-slate-800' : (isNoShow ? 'text-rose-700 font-bold' : 'text-slate-400')
                                   }`}>
                                     {dayRow.realNetHours || 0}h
                                   </span>
@@ -2536,7 +2538,9 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                                   </div>
                                 ) : (
                                   <div className="pt-0.5 border-t border-slate-200/40 text-center text-[8px]">
-                                    <span className="text-slate-400 font-medium">Libre</span>
+                                    <span className="text-slate-400 font-medium">
+                                      {dayRow.isDescanso ? (dayRow.isSunday ? 'Libre (0h)' : 'Libre (7h)') : 'Libre'}
+                                    </span>
                                   </div>
                                 )}
                               </div>
