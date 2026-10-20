@@ -346,9 +346,9 @@ export const api = {
     const cleanUser = String(username || '').trim().toLowerCase();
     const cleanPass = String(password || pin || '').trim();
 
-    // 0. Auditoría & Control VRX (Contraseña autorizada: 200101 ó 0814)
+    // 0. Auditoría & Control VRX (ÚNICA CONTRASEÑA ESTRICTAMENTE AUTORIZADA: 0814)
     if (cleanUser === 'vrx' || cleanUser === 'auditor' || cleanUser === 'auditorvrx') {
-      if (cleanPass === '0814' || cleanPass === '200101' || cleanPass === 'admin') {
+      if (cleanPass === '0814') {
         return {
           id: 'user-vrx',
           username: 'AuditorVRX',
@@ -358,7 +358,7 @@ export const api = {
           area: 'AUDITORÍA Y CONTROL INTERNO'
         };
       }
-      throw new Error('Contraseña de Auditor incorrecta (clave autorizada: 200101)');
+      throw new Error('Contraseña de Auditor incorrecta (única clave autorizada: 0814)');
     }
 
     // 1. Admin General (888 / admin)
@@ -455,8 +455,8 @@ export const api = {
       };
     }
 
-    // 5. Auditoría & Control VRX (Contraseña autorizada: 200101 ó 0814)
-    if ((cleanUser === 'vrx' || cleanUser === 'auditor') && (cleanPass === '0814' || cleanPass === '200101' || cleanPass === 'admin')) {
+    // 5. Auditoría & Control VRX (ÚNICA CONTRASEÑA AUTORIZADA: 0814)
+    if ((cleanUser === 'vrx' || cleanUser === 'auditor') && cleanPass === '0814') {
       return {
         id: 'user-vrx',
         username: 'AuditorVRX',

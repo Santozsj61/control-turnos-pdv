@@ -216,7 +216,7 @@ export default function HomeScreen({ users, pdvs, supervisors, currentUser, onSe
       } else if (activeModalProfile.id === 'HR' && (cleanP === AUTH_CREDENTIALS.HR_PASSWORD || cleanP === 'admin')) {
         onSelectUser({ id: 'user-thumano', username: 'THumano', fullName: 'TALENTO HUMANO (HR)', role: 'HR_ADMIN' });
         handleCloseModal();
-      } else if (activeModalProfile.id === 'VRX' && (cleanP === AUTH_CREDENTIALS.AUDITOR_VRX_PASSWORD || cleanP === '200101' || cleanP === 'admin')) {
+      } else if (activeModalProfile.id === 'VRX' && cleanP === AUTH_CREDENTIALS.AUDITOR_VRX_PASSWORD) {
         onSelectUser({ id: 'user-vrx', username: 'AuditorVRX', fullName: 'AUDITORÍA DE ASISTENCIA VRX (David Hortúa)', role: 'AUDITOR_VRX' });
         handleCloseModal();
       } else if (activeModalProfile.id === 'PDV') {

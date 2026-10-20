@@ -25,9 +25,9 @@ app.post('/api/auth/login', (req, res) => {
     const cleanUser = String(username || '').trim().toLowerCase();
     const cleanPass = String(password || pin || '').trim();
 
-    // 0. Auditor VRX / Control (Clave autorizada: 200101 ó 0814)
+    // 0. Auditor VRX / Control (ÚNICA CLAVE ESTRICTAMENTE AUTORIZADA: 0814)
     if (cleanUser === 'vrx' || cleanUser === 'auditor' || cleanUser === 'auditorvrx') {
-      if (cleanPass === '0814' || cleanPass === '200101' || cleanPass === 'admin') {
+      if (cleanPass === '0814') {
         return res.json({
           success: true,
           user: {
@@ -40,7 +40,7 @@ app.post('/api/auth/login', (req, res) => {
           }
         });
       }
-      return res.status(401).json({ success: false, error: 'Contraseña de Auditor incorrecta (clave autorizada: 200101)' });
+      return res.status(401).json({ success: false, error: 'Contraseña de Auditor incorrecta (única clave autorizada: 0814)' });
     }
 
     // 1. Admin General
