@@ -1258,6 +1258,15 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
           text: `✓ Colaborador ${newEmpObj.fullName} asociado y agregado a la grilla exitosamente.` 
         });
 
+        recordAuditEvent({
+          userName: currentUser?.fullName || 'Usuario PDV',
+          userRole: currentUser?.role || 'PDV',
+          action: 'COLLABORATOR_ADD',
+          actionLabel: 'Registro de Colaborador en PDV',
+          pdvName: (allowedPdvs.find(p => p.id === targetPdvId) || {}).name || 'Punto de Venta',
+          detail: `Registró a ${newEmpObj.fullName} (CC: ${newEmpObj.documentId}) como ${newEmpObj.position} (${newEmpObj.contractType})`
+        });
+
         if (onReloadUsers) onReloadUsers();
       }
     } catch (err) {

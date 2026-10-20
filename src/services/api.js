@@ -1554,7 +1554,10 @@ export const api = {
       const q = new URLSearchParams(filters).toString();
       return fetchLocal(`/api/reconciliation/supplementary-justifications${q ? '?' + q : ''}`);
     }
-    let query = supabase.from('supplementary_justifications').select('*').order('submitted_at', { ascending: false });
+    let query = supabase.from('supplementary_justifications')
+      .select('*')
+      .neq('status', 'AUDIT_LOG')
+      .order('submitted_at', { ascending: false });
     if (filters.pdvId) query = query.eq('pdv_id', filters.pdvId);
     if (filters.supervisorId) query = query.eq('supervisor_id', filters.supervisorId);
     if (filters.weekStart) query = query.eq('week_start', filters.weekStart);

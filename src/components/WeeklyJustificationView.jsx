@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { ALL_WEEKS_2026, CURRENT_WEEK_START } from '../utils/weeks.js';
 import { api } from '../services/api.js';
+import { recordAuditEvent } from '../services/auditService.js';
 
 const REASON_CATEGORIES = [
   'Mantenimiento y Obras',
@@ -228,6 +229,16 @@ export default function WeeklyJustificationView({ currentUser, pdvs = [], superv
       });
 
       setFeedbackMsg({ type: 'success', text: `✓ Justificación semanal para ${pdvObj?.name} radicada exitosamente ante el Líder de Zona.` });
+      
+      recordAuditEvent({
+        userName: currentUser?.fullName || 'Administrador PDV',
+        userRole: currentUser?.role || 'PDV',
+        action: 'JUSTIFICATION_SUBMIT',
+        actionLabel: 'Radicación de Justificación Semanal',
+        pdvName: pdvObj?.name || 'Punto de Venta',
+        detail: `Radicó justificación de ${Number(formHours) || 0} hrs para ${pdvObj?.name} (${formWeek}): ${formCategory}`
+      });
+
       setFormReason('');
       setFormHours('');
       setShowModal(false);

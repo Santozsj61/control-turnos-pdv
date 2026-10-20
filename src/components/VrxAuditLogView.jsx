@@ -183,6 +183,22 @@ export default function VrxAuditLogView({ currentUser, pdvs = [], supervisors = 
         </span>
       );
     }
+    if (action.includes('COLLABORATOR') || action.includes('USER')) {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-cyan-100 text-cyan-900 border border-cyan-300">
+          <UserCheck className="w-3 h-3 text-cyan-600" />
+          {actionLabel || 'Gestión Personal'}
+        </span>
+      );
+    }
+    if (action.includes('JUSTIFICATION')) {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-purple-100 text-purple-900 border border-purple-300">
+          <FileText className="w-3 h-3 text-purple-600" />
+          {actionLabel || 'Justificación Semanal'}
+        </span>
+      );
+    }
     return (
       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-purple-100 text-purple-900 border border-purple-200">
         <Sparkles className="w-3 h-3 text-purple-600" />
