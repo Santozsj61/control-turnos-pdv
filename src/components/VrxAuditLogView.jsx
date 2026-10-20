@@ -143,6 +143,14 @@ export default function VrxAuditLogView({ currentUser, pdvs = [], supervisors = 
         </span>
       );
     }
+    if (action.includes('DELETE')) {
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800 border border-rose-300">
+          <AlertTriangle className="w-3 h-3 text-rose-600" />
+          {actionLabel || 'Eliminación de Malla'}
+        </span>
+      );
+    }
     if (action.includes('SCHEDULE')) {
       return (
         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
