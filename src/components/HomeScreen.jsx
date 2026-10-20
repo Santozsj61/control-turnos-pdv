@@ -296,36 +296,36 @@ export default function HomeScreen({ users, pdvs, supervisors, currentUser, onSe
       {/* ----------------------------------------------------------------- */}
       {/* 2. HERO BANNER WITH BACKGROUND IMAGE */}
       {/* ----------------------------------------------------------------- */}
-      <section className="relative overflow-hidden border-b border-slate-800 bg-slate-900">
+      <section className="relative overflow-hidden border-b border-slate-800 bg-slate-900 select-none cursor-default">
         
         {/* Background Image with Dark Gradient Overlay */}
-        <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 z-0 pointer-events-none">
           <img 
             src="/banner_bg.jpg" 
             alt="Fondo Operaciones de Turnos QUEST" 
-            className="w-full h-full object-cover object-center opacity-30 filter brightness-90 contrast-125"
+            className="w-full h-full object-cover object-center opacity-30 filter brightness-90 contrast-125 select-none pointer-events-none"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/90 to-slate-900/80"></div>
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-slate-950/60"></div>
         </div>
 
         {/* Hero Content */}
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-8 py-10 sm:py-14 space-y-4">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-8 py-10 sm:py-14 space-y-4 select-none cursor-default">
           
-          <div className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-400/30 text-blue-300 px-3.5 py-1.5 rounded-full text-xs font-bold tracking-wide uppercase">
+          <div className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-400/30 text-blue-300 px-3.5 py-1.5 rounded-full text-xs font-bold tracking-wide uppercase select-none cursor-default pointer-events-none">
             <Sparkles className="w-3.5 h-3.5 text-amber-400" />
             <span>Plataforma Oficial de Control & Programación de Turnos</span>
           </div>
 
-          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight max-w-4xl">
+          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight max-w-4xl select-none cursor-default">
             EFICIENCIA EN LA GESTIÓN DEL TIEMPO & PROGRAMACIÓN DE HORARIOS
           </h1>
 
-          <p className="text-sm sm:text-base text-slate-300 font-normal max-w-3xl leading-relaxed">
+          <p className="text-sm sm:text-base text-slate-300 font-normal max-w-3xl leading-relaxed select-none cursor-default">
             Plataforma corporativa de <strong>QUEST / QST (NCS S.A.S.)</strong> para la programación semanal de turnos, cumplimiento de la jornada legal ordinaria (<strong>42 horas semanales - Ley 2101 / CST</strong>), auditoría de descansos dominicales y conciliación con el reloj biométrico.
           </p>
 
-          <div className="pt-2 flex flex-wrap items-center gap-4 text-xs font-semibold text-slate-400">
+          <div className="pt-2 flex flex-wrap items-center gap-4 text-xs font-semibold text-slate-400 select-none cursor-default">
             <span className="flex items-center gap-1.5 bg-slate-900/80 px-3 py-1.5 rounded-lg border border-slate-800">
               <Store className="w-4 h-4 text-blue-400" /> {pdvs.length > 0 ? `${pdvs.length} Puntos de Venta Nacionales` : 'Red de Puntos de Venta Nacionales'}
             </span>

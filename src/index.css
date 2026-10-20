@@ -6,6 +6,19 @@ body {
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
 
+/* Eliminar el cursor de inserción de texto (|) en cualquier elemento que no sea un campo de entrada */
+*:not(input):not(textarea):not([contenteditable="true"]) {
+  caret-color: transparent !important;
+}
+
+/* Prevenir selección accidental y cursores de texto en componentes interactivos y badges */
+.select-none {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
 /* Custom modern scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
