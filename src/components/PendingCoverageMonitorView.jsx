@@ -1,13 +1,14 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { 
   ShieldCheck, AlertTriangle, Clock, Calendar, Store, Users, Search, 
   Filter, Download, ChevronRight, CheckCircle2, XCircle, AlertCircle, 
-  Eye, RefreshCw, Sparkles, Building2, UserX, ArrowUpDown
+  Eye, RefreshCw, Sparkles, Building2, UserX, ArrowUpDown, Loader2
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
-import { COVERAGE_MONITOR_BY_WEEK } from '../data/coverageMonitorData.js';
-import { initialSupervisors } from '../data/seedData.js';
-import { isCollaboratorActive } from '../data/activeCollaborators371.js';
+import { WEEKS_DEF } from '../data/coverageMonitorData.js';
+import { initialSupervisors, initialPDVs } from '../data/seedData.js';
+import { ACTIVE_371_COLLABORATORS, isCollaboratorActive } from '../data/activeCollaborators371.js';
+import { api } from '../services/api.js';
 
 export default function PendingCoverageMonitorView({ currentUser, pdvs, supervisors }) {
   const isSupervisor = currentUser?.role === 'SUPERVISOR';
@@ -19,20 +20,27 @@ export default function PendingCoverageMonitorView({ currentUser, pdvs, supervis
   const userPdvObj = pdvs?.find(p => p.id === currentUser?.pdvId || p.code === currentUser?.pdvId);
 
   // Filter States
-  const [selectedMonth, setSelectedMonth] = useState('ALL'); // 'ALL' | 'Junio' | 'Julio' | 'Agosto'
-  const [selectedWeek, setSelectedWeek] = useState('ALL'); // 'ALL' | '23'..'35'
+  const [selectedMonth, setSelectedMonth] = useState('ALL'); // 'ALL' | 'Octubre' | 'Septiembre' | ...
+  const [selectedWeek, setSelectedWeek] = useState('43'); // Defaults to active current week
   const [selectedZone, setSelectedZone] = useState(isSupervisor ? (currentSupervisorObj?.id || '') : '');
   const [selectedStatus, setSelectedStatus] = useState(isAuditorVrx ? 'PENDIENTE_PROGRAMAR' : 'ALL'); // 'ALL' | 'AL_DIA' | 'PENDIENTE_MARCACION' | 'PENDIENTE_PROGRAMAR' | 'PENDIENTE_AMBOS'
   const [searchTerm, setSearchTerm] = useState(isEmployee && userPdvObj ? (userPdvObj.code || userPdvObj.name) : '');
   const [activeModalPdv, setActiveModalPdv] = useState(null);
 
-  // Available Weeks
+  // Real Database State
+  const [realSchedules, setRealSchedules] = useState([]);
+  const [realPunches, setRealPunches] = useState([]);
+  const [loadingRealData, setLoadingRealData] = useState(false);
+
+  // Available Weeks sorted descending (Semana 43, 42, 41... down to 23)
   const availableWeeks = useMemo(() => {
-    return Object.entries(COVERAGE_MONITOR_BY_WEEK).map(([w, data]) => ({
+    return Object.entries(WEEKS_DEF).map(([w, data]) => ({
       week: w,
       label: data.label,
-      month: data.month
-    }));
+      month: data.month,
+      start: data.start,
+      end: data.end
+    })).sort((a, b) => Number(b.week) - Number(a.week));
   }, []);
 
   // Filter weeks by selected month if not ALL
@@ -41,102 +49,207 @@ export default function PendingCoverageMonitorView({ currentUser, pdvs, supervis
     return availableWeeks.filter(w => w.month.includes(selectedMonth));
   }, [availableWeeks, selectedMonth]);
 
-  // Aggregate Data based on selected week / month
-  const aggregatedData = useMemo(() => {
-    const targetWeeks = selectedWeek !== 'ALL' 
-      ? [selectedWeek]
-      : (selectedMonth !== 'ALL' 
-          ? availableWeeks.filter(w => w.month.includes(selectedMonth)).map(w => w.week)
-          : Object.keys(COVERAGE_MONITOR_BY_WEEK)
-        );
-
-    const pdvMap = new Map();
-
-    targetWeeks.forEach(w => {
-      const weekData = COVERAGE_MONITOR_BY_WEEK[w];
-      if (!weekData || !weekData.pdvs) return;
-
-      // Check if store submitted schedules in localStorage for this week
-      let localWeekSchedules = null;
-      if (typeof window !== 'undefined' && window.localStorage && weekData.start) {
-        try {
-          const raw = window.localStorage.getItem('control_turnos_schedules_' + weekData.start);
-          if (raw) localWeekSchedules = JSON.parse(raw);
-        } catch (e) {}
+  // Load real schedules and biometric punches from cloud database
+  const loadRealCoverageData = useCallback(async () => {
+    setLoadingRealData(true);
+    try {
+      let targetWeeks = [];
+      if (selectedWeek !== 'ALL' && WEEKS_DEF[selectedWeek]) {
+        targetWeeks = [WEEKS_DEF[selectedWeek]];
+      } else if (selectedMonth !== 'ALL') {
+        targetWeeks = Object.values(WEEKS_DEF).filter(w => w.month.includes(selectedMonth));
+      } else {
+        // Evaluate active weeks
+        targetWeeks = [WEEKS_DEF['43'], WEEKS_DEF['42'], WEEKS_DEF['41'], WEEKS_DEF['40']].filter(Boolean);
       }
 
-      weekData.pdvs.forEach(p => {
-        let programmedCount = p.programmedCount;
-        let pendingProgramCount = p.pendingProgramCount;
-        let pendingCollabs = p.pendingCollaborators;
+      const schedPromises = targetWeeks.map(w => api.getSchedules({ weekStart: w.start }).catch(() => []));
+      const punchPromises = targetWeeks.map(w => api.getPunchRecords({ weekStart: w.start }).catch(() => []));
 
-        if (localWeekSchedules && Array.isArray(localWeekSchedules) && localWeekSchedules.length > 0) {
-          const storeScheds = localWeekSchedules.filter(s => s.pdvId === p.pdvId);
-          if (storeScheds.length > 0) {
-            const programmedDocIds = new Set(
-              storeScheds.map(s => s.user?.document_id || (s.userId?.startsWith('emp-') ? s.userId.replace('emp-', '') : s.userId)).filter(Boolean)
-            );
-            pendingCollabs = p.pendingCollaborators.map(c => {
-              const isProg = programmedDocIds.has(c.documentId);
-              return isProg ? { ...c, isPendingProgram: false, issues: (c.issues || []).filter(i => !i.toLowerCase().includes('turno')) } : c;
-            });
-            const stillPendingProg = pendingCollabs.filter(c => c.isPendingProgram).length;
-            programmedCount = Math.max(programmedCount, p.totalStaff - stillPendingProg);
-            pendingProgramCount = stillPendingProg;
-          }
-        }
+      const [schedResults, punchResults] = await Promise.all([
+        Promise.all(schedPromises),
+        Promise.all(punchPromises)
+      ]);
 
-        if (!pdvMap.has(p.pdvId)) {
-          pdvMap.set(p.pdvId, {
-            pdvId: p.pdvId,
-            pdvCode: p.pdvCode,
-            pdvName: p.pdvName,
-            city: p.city,
-            zone: p.zone,
-            supervisorName: p.supervisorName,
-            supervisorId: p.supervisorId,
-            totalStaff: p.totalStaff,
-            programmedCount,
-            pendingProgramCount,
-            punchesCount: p.punchesCount,
-            pendingPunchesCount: p.pendingPunchesCount,
-            weeksCovered: 1,
-            pendingCollaborators: pendingCollabs.map(c => ({ ...c, week: w }))
-          });
-        } else {
-          const item = pdvMap.get(p.pdvId);
-          item.weeksCovered++;
-          item.totalStaff = Math.max(item.totalStaff, p.totalStaff);
-          item.programmedCount = Math.min(item.programmedCount, programmedCount);
-          item.pendingProgramCount = Math.max(item.pendingProgramCount, pendingProgramCount);
-          item.punchesCount = Math.min(item.punchesCount, p.punchesCount);
-          item.pendingPunchesCount = Math.max(item.pendingPunchesCount, p.pendingPunchesCount);
+      const flatScheds = schedResults.flat();
+      const flatPunches = punchResults.flat();
 
-          pendingCollabs.forEach(collab => {
-            const exists = item.pendingCollaborators.find(c => c.documentId === collab.documentId && c.week === w);
-            if (!exists) {
-              item.pendingCollaborators.push({ ...collab, week: w });
+      // Check localStorage for offline/draft schedules saved locally
+      targetWeeks.forEach(w => {
+        if (typeof window !== 'undefined' && window.localStorage && w.start) {
+          try {
+            const raw = window.localStorage.getItem('control_turnos_schedules_' + w.start);
+            if (raw) {
+              const parsed = JSON.parse(raw);
+              if (Array.isArray(parsed)) flatScheds.push(...parsed);
             }
-          });
+          } catch (e) {}
+        }
+      });
+
+      setRealSchedules(flatScheds);
+      setRealPunches(flatPunches);
+    } catch (e) {
+      console.error('Error cargando datos reales de cobertura:', e);
+    } finally {
+      setLoadingRealData(false);
+    }
+  }, [selectedWeek, selectedMonth]);
+
+  useEffect(() => {
+    loadRealCoverageData();
+  }, [loadRealCoverageData]);
+
+  // Aggregate Data based on REAL schedules and REAL punches
+  const aggregatedData = useMemo(() => {
+    let targetWeeks = [];
+    if (selectedWeek !== 'ALL' && WEEKS_DEF[selectedWeek]) {
+      targetWeeks = [WEEKS_DEF[selectedWeek]];
+    } else if (selectedMonth !== 'ALL') {
+      targetWeeks = Object.values(WEEKS_DEF).filter(w => w.month.includes(selectedMonth));
+    } else {
+      targetWeeks = [WEEKS_DEF['43'], WEEKS_DEF['42'], WEEKS_DEF['41'], WEEKS_DEF['40']].filter(Boolean);
+    }
+
+    const effectivePdvs = (pdvs && pdvs.length > 0) ? pdvs : initialPDVs;
+    const effectiveSupervisors = (supervisors && supervisors.length > 0) ? supervisors : initialSupervisors;
+
+    // Index schedules by "weekStart_docId" and "weekStart_userId"
+    const schedLookup = new Map();
+    realSchedules.forEach(s => {
+      const wStart = s.weekStart || s.week_start;
+      if (!wStart) return;
+      const doc = s.user?.document_id || s.user?.documentId || s.documentId || (s.userId?.startsWith('emp-') ? s.userId.replace('emp-', '') : s.userId);
+      const uId = s.userId || s.user_id;
+
+      const hasValidShifts = Array.isArray(s.shifts) && s.shifts.some(sh => 
+        sh.startTime || sh.isDayOff || sh.shiftType === 'DESCANSO' || sh.shiftType === 'VACACIONES' || sh.shiftType === 'INCAPACIDAD' || sh.shiftType === 'LICENCIA'
+      );
+
+      if (hasValidShifts) {
+        if (doc) schedLookup.set(`${wStart}_doc_${String(doc).trim()}`, s);
+        if (uId) schedLookup.set(`${wStart}_uid_${String(uId).trim()}`, s);
+      }
+    });
+
+    // Index punches by "weekStart_docId"
+    const punchLookup = new Map();
+    realPunches.forEach(p => {
+      const doc = p.documentId || p.document_id;
+      const entryDate = p.entryDate || p.entry_date;
+      if (!doc || !entryDate) return;
+      const docStr = String(doc).trim();
+
+      targetWeeks.forEach(w => {
+        if (entryDate >= w.start && entryDate <= w.end) {
+          const key = `${w.start}_${docStr}`;
+          punchLookup.set(key, (punchLookup.get(key) || 0) + 1);
         }
       });
     });
 
-    const list = Array.from(pdvMap.values()).map(p => {
-      // Calculate normalized status
+    const pdvMap = new Map();
+
+    effectivePdvs.forEach(pdv => {
+      // Find assigned staff for this store
+      const storeStaff = ACTIVE_371_COLLABORATORS.filter(c => 
+        c.pdvId === pdv.id || 
+        (pdv.code && c.pdvCode?.toUpperCase() === pdv.code.toUpperCase())
+      );
+
+      const sup = effectiveSupervisors.find(s => s.id === pdv.supervisorId);
+      const storeTotalStaff = storeStaff.length;
+      let storePendingCollabs = [];
+
+      targetWeeks.forEach(w => {
+        storeStaff.forEach(collab => {
+          const docStr = String(collab.documentId).trim();
+          const uidStr = collab.id || `emp-${docStr}`;
+
+          // Check real schedule
+          const hasSchedule = schedLookup.has(`${w.start}_doc_${docStr}`) || schedLookup.has(`${w.start}_uid_${uidStr}`);
+          const isPendingProgram = !hasSchedule;
+
+          // Check real punch or authorized legal leave
+          const schedObj = schedLookup.get(`${w.start}_doc_${docStr}`) || schedLookup.get(`${w.start}_uid_${uidStr}`);
+          const allPaidNovelty = schedObj && Array.isArray(schedObj.shifts) && schedObj.shifts.length > 0 && schedObj.shifts.every(sh => 
+            sh.shiftType === 'VACACIONES' || sh.shiftType === 'INCAPACIDAD' || sh.shiftType === 'LICENCIA'
+          );
+
+          const hasPunch = (punchLookup.get(`${w.start}_${docStr}`) || 0) > 0 || allPaidNovelty;
+          const isPendingPunch = !hasPunch;
+
+          if (isPendingProgram || isPendingPunch) {
+            const issues = [];
+            if (isPendingProgram) issues.push('Sin turno programado');
+            if (isPendingPunch) issues.push('Sin marcación biométrica');
+
+            storePendingCollabs.push({
+              documentId: collab.documentId,
+              fullName: collab.fullName,
+              position: collab.position || 'ASESOR(A) DE IMAGEN',
+              isPendingProgram,
+              isPendingPunch,
+              issues,
+              week: w.week,
+              weekLabel: w.label
+            });
+          }
+        });
+      });
+
+      // Group unique pending collaborators for this PDV
+      const uniquePendingMap = new Map();
+      storePendingCollabs.forEach(item => {
+        if (!uniquePendingMap.has(item.documentId)) {
+          uniquePendingMap.set(item.documentId, { ...item });
+        } else {
+          const existing = uniquePendingMap.get(item.documentId);
+          existing.isPendingProgram = existing.isPendingProgram || item.isPendingProgram;
+          existing.isPendingPunch = existing.isPendingPunch || item.isPendingPunch;
+          item.issues.forEach(iss => {
+            if (!existing.issues.includes(iss)) existing.issues.push(iss);
+          });
+        }
+      });
+      const pendingCollaborators = Array.from(uniquePendingMap.values());
+
+      const pendingProgramCount = pendingCollaborators.filter(c => c.isPendingProgram).length;
+      const pendingPunchesCount = pendingCollaborators.filter(c => c.isPendingPunch).length;
+      const programmedCount = Math.max(0, storeTotalStaff - pendingProgramCount);
+      const punchesCount = Math.max(0, storeTotalStaff - pendingPunchesCount);
+
       let status = 'AL_DIA';
-      if (p.pendingProgramCount > 0 && p.pendingPunchesCount > 0) {
+      if (storeTotalStaff === 0) {
+        status = 'AL_DIA';
+      } else if (pendingProgramCount > 0 && pendingPunchesCount > 0) {
         status = 'PENDIENTE_AMBOS';
-      } else if (p.pendingPunchesCount > 0) {
-        status = 'PENDIENTE_MARCACION';
-      } else if (p.pendingProgramCount > 0) {
+      } else if (pendingProgramCount > 0) {
         status = 'PENDIENTE_PROGRAMAR';
+      } else if (pendingPunchesCount > 0) {
+        status = 'PENDIENTE_MARCACION';
       }
-      return { ...p, status };
+
+      pdvMap.set(pdv.id, {
+        pdvId: pdv.id,
+        pdvCode: pdv.code,
+        pdvName: pdv.name,
+        city: pdv.city,
+        zone: sup?.zoneName || pdv.zone || 'ZONA NACIONAL',
+        supervisorName: sup?.name || pdv.supervisorName || 'Líder Regional',
+        supervisorId: sup?.id || pdv.supervisorId,
+        totalStaff: storeTotalStaff,
+        programmedCount,
+        pendingProgramCount,
+        punchesCount,
+        pendingPunchesCount,
+        pendingCollaborators,
+        status
+      });
     });
 
-    return list;
-  }, [selectedWeek, selectedMonth, availableWeeks]);
+    return Array.from(pdvMap.values());
+  }, [selectedWeek, selectedMonth, realSchedules, realPunches, pdvs, supervisors]);
 
   // Apply Search, Zone, Status Filters
   const filteredPdvs = useMemo(() => {
@@ -271,6 +384,26 @@ export default function PendingCoverageMonitorView({ currentUser, pdvs, supervis
               : 'Monitoreo en tiempo real de colaboradores y tiendas. Identifica con exactitud los puntos de venta con personal pendiente por marcación biométrica y pendiente por programación de turno.'}
           </p>
         </div>
+
+        <div className="flex items-center gap-3 flex-wrap">
+          <button
+            onClick={loadRealCoverageData}
+            disabled={loadingRealData}
+            className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-xs cursor-pointer"
+            title="Refrescar y cruzar con la base de datos real en la nube"
+          >
+            <RefreshCw className={`w-4 h-4 text-blue-400 ${loadingRealData ? 'animate-spin' : ''}`} />
+            <span>{loadingRealData ? 'Cruzando Datos...' : 'Refrescar Nube'}</span>
+          </button>
+          <button
+            onClick={handleExportExcel}
+            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2.5 rounded-xl text-xs transition shadow-md shadow-emerald-900/40 cursor-pointer"
+            title="Descargar informe completo en Excel"
+          >
+            <Download className="w-4 h-4" />
+            <span>Exportar Excel</span>
+          </button>
+        </div>
       </div>
 
       {/* Filter Toolbar */}
@@ -288,12 +421,12 @@ export default function PendingCoverageMonitorView({ currentUser, pdvs, supervis
               }}
               className="w-full text-xs bg-slate-50 border border-slate-300 rounded-lg p-2 font-medium text-slate-800 focus:ring-2 focus:ring-indigo-500 focus:bg-white"
             >
-              <option value="ALL">🗓️ Todos los Meses (Jun - Oct)</option>
-              <option value="Junio">Junio 2026 (Sem 23-26)</option>
-              <option value="Julio">Julio 2026 (Sem 27-31)</option>
-              <option value="Agosto">Agosto 2026 (Sem 31-35)</option>
-              <option value="Septiembre">Septiembre 2026 (Sem 36-40)</option>
+              <option value="ALL">🗓️ Todos los Meses</option>
               <option value="Octubre">Octubre 2026 (Sem 40-43)</option>
+              <option value="Septiembre">Septiembre 2026 (Sem 36-40)</option>
+              <option value="Agosto">Agosto 2026 (Sem 31-35)</option>
+              <option value="Julio">Julio 2026 (Sem 27-31)</option>
+              <option value="Junio">Junio 2026 (Sem 23-26)</option>
             </select>
           </div>
 
