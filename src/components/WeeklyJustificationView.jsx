@@ -45,23 +45,36 @@ export default function WeeklyJustificationView({ currentUser, pdvs = [], superv
   // Sub-tabs: 'CAPACITY_EXCESS' (Auditoría de Excedente de Capacidad por PDV) | 'JUSTIFICATIONS_LOG' (Histórico Radicado)
   const [activeSubTab, setActiveSubTab] = useState('CAPACITY_EXCESS');
 
-  // Solo esta semana (Semana Actual)
-  const selectedWeek = CURRENT_WEEK_START;
+  // Selector de Semana (Por defecto: Semana Actual)
+  const [selectedWeek, setSelectedWeek] = useState(CURRENT_WEEK_START);
+  const isCurrentWeek = selectedWeek === CURRENT_WEEK_START;
+
+  const currentWeekNum = useMemo(() => {
+    return ALL_WEEKS_2026.find(w => w.weekStart === CURRENT_WEEK_START)?.weekNumber || 43;
+  }, []);
+
+  // Semanas anteriores ordenadas de la más reciente a la más antigua
+  const pastWeeks = useMemo(() => {
+    return ALL_WEEKS_2026
+      .filter(w => w.weekStart !== CURRENT_WEEK_START)
+      .sort((a, b) => b.weekNumber - a.weekNumber);
+  }, []);
+
   const [selectedPdvId, setSelectedPdvId] = useState(isPdv ? (activePdvObj?.id || '') : 'ALL');
   const [selectedZoneId, setSelectedZoneId] = useState(isSupervisor ? (currentSupervisorObj?.id || '') : 'ALL');
   const [searchTerm, setSearchTerm] = useState('');
   const [onlyExceeded, setOnlyExceeded] = useState(true);
   const [expandedPdvId, setExpandedPdvId] = useState(null);
 
-  // Semana Actual Metadata
+  // Metadata de la Semana Consultada
   const activeWeekObj = useMemo(() => {
-    return ALL_WEEKS_2026.find(w => w.weekStart === CURRENT_WEEK_START) || {
+    return ALL_WEEKS_2026.find(w => w.weekStart === selectedWeek) || {
       weekNumber: 43,
-      weekStart: CURRENT_WEEK_START,
+      weekStart: selectedWeek,
       weekEnd: '2026-10-25',
-      label: `Semana 43 (${CURRENT_WEEK_START})`
+      label: `Semana 43 (${selectedWeek})`
     };
-  }, []);
+  }, [selectedWeek]);
 
   // Schedules and Capacity Data
   const [schedules, setSchedules] = useState([]);
@@ -476,20 +489,38 @@ export default function WeeklyJustificationView({ currentUser, pdvs = [], superv
         </button>
       </div>
 
-      {/* 4. Resumen de la Semana Actual */}
+      {/* 4. Resumen de la Semana Consultada */}
       <div className="bg-slate-900 text-white rounded-2xl p-5 border border-slate-800 shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
-          <div className="p-3 bg-rose-500/20 text-rose-400 rounded-xl border border-rose-500/30 shrink-0">
+          <div className={`p-3 rounded-xl border shrink-0 ${
+            isCurrentWeek 
+              ? 'bg-rose-500/20 text-rose-400 border-rose-500/30' 
+              : 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+          }`}>
             <Calendar className="w-6 h-6" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="bg-rose-600 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                Semana Actual
+              <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
+                isCurrentWeek ? 'bg-rose-600 text-white' : 'bg-amber-500 text-slate-950 font-black'
+              }`}>
+                {isCurrentWeek ? 'Semana Actual' : `Semana Anterior #${activeWeekObj?.weekNumber}`}
               </span>
               <span className="text-slate-400 text-xs font-mono">
                 {activeWeekObj?.weekStart} al {activeWeekObj?.weekEnd}
               </span>
+              {!isCurrentWeek && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedWeek(CURRENT_WEEK_START);
+                    setFormWeek(CURRENT_WEEK_START);
+                  }}
+                  className="text-[11px] font-bold text-rose-300 hover:text-white underline cursor-pointer ml-1"
+                >
+                  ← Ir a Semana Actual
+                </button>
+              )}
             </div>
             <h3 className="text-lg font-black text-white mt-1">
               Semana {activeWeekObj?.weekNumber || 43} - Auditoría de Sobrecupo y Capacidad
@@ -529,6 +560,29 @@ export default function WeeklyJustificationView({ currentUser, pdvs = [], superv
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
+            {/* Week Selector: Semana Actual o Semanas Anteriores */}
+            <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 p-1.5 rounded-xl">
+              <Calendar className="w-3.5 h-3.5 text-rose-600 ml-1" />
+              <select
+                value={selectedWeek}
+                onChange={(e) => {
+                  setSelectedWeek(e.target.value);
+                  setFormWeek(e.target.value);
+                }}
+                className="bg-transparent text-xs font-bold text-slate-800 focus:outline-hidden pr-2 cursor-pointer max-w-[260px]"
+                title="Seleccionar Semana Actual o Semanas Anteriores"
+              >
+                <option value={CURRENT_WEEK_START}>⭐ Semana Actual (Sem {currentWeekNum})</option>
+                <optgroup label="── Semanas Anteriores ──">
+                  {pastWeeks.map(w => (
+                    <option key={w.weekStart} value={w.weekStart}>
+                      Semana {w.weekNumber} ({w.weekStart} al {w.weekEnd})
+                    </option>
+                  ))}
+                </optgroup>
+              </select>
+            </div>
+
             {/* PDV Selector */}
             {(!isPdv && allowedPdvs.length > 1) && (
               <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 p-1.5 rounded-xl">
@@ -982,11 +1036,21 @@ export default function WeeklyJustificationView({ currentUser, pdvs = [], superv
             <form onSubmit={handleCreateJustification} className="p-6 space-y-4 text-xs">
               {/* Semana */}
               <div className="space-y-1">
-                <label className="block font-bold text-slate-700">Semana a Justificar (Semana Actual) *</label>
-                <div className="w-full bg-slate-100 border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-800 flex items-center justify-between">
-                  <span>{activeWeekObj?.label || `Semana ${activeWeekObj?.weekNumber} (${CURRENT_WEEK_START})`}</span>
-                  <span className="bg-amber-200 text-amber-900 text-[10px] font-black px-2 py-0.5 rounded-full">Esta Semana</span>
-                </div>
+                <label className="block font-bold text-slate-700">Semana a Justificar *</label>
+                <select
+                  value={formWeek}
+                  onChange={(e) => setFormWeek(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-800 focus:ring-2 focus:ring-amber-500 focus:outline-hidden cursor-pointer"
+                >
+                  <option value={CURRENT_WEEK_START}>⭐ Semana Actual (Sem {currentWeekNum})</option>
+                  <optgroup label="── Semanas Anteriores ──">
+                    {pastWeeks.map(w => (
+                      <option key={w.weekStart} value={w.weekStart}>
+                        Semana {w.weekNumber} ({w.weekStart} al {w.weekEnd})
+                      </option>
+                    ))}
+                  </optgroup>
+                </select>
               </div>
 
               {/* PDV (Locked to active PDV if store) */}
