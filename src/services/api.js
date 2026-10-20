@@ -885,7 +885,10 @@ export const api = {
       supervisorNotes: p.supervisor_notes,
       reviewerId: p.reviewer_id,
       requestedAt: p.requested_at,
-      reviewedAt: p.reviewed_at
+      reviewedAt: p.reviewed_at,
+      userName: p.employee_name,
+      userDocument: p.document_id,
+      pdvName: p.pdv_id
     }));
   },
 
@@ -945,6 +948,15 @@ export const api = {
     }).eq('id', permId).select().single();
     if (error) throw new Error(error.message);
     return data;
+  },
+
+  deletePermission: async (permId) => {
+    if (!isSupabaseConfigured) {
+      return fetchLocal(`/api/permissions/${permId}`, { method: 'DELETE' });
+    }
+    const { error } = await supabase.from('permissions').delete().eq('id', permId);
+    if (error) throw new Error(error.message);
+    return { success: true };
   },
 
   // ----------------------------------------------------

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { CheckSquare, Clock, User, Store, AlertCircle, CheckCircle2, XCircle, Plus, Send, ShieldCheck, MessageSquare, Sparkles, Mail, Tag, Building2 } from 'lucide-react';
+import { CheckSquare, Clock, User, Store, AlertCircle, CheckCircle2, XCircle, Plus, Send, ShieldCheck, MessageSquare, Sparkles, Mail, Tag, Building2, Trash2 } from 'lucide-react';
 import { api } from '../services/api.js';
 import { recordAuditEvent } from '../services/auditService.js';
 
@@ -17,6 +17,7 @@ const ASSIGNED_AREAS = [
 export default function PermissionsView({ currentUser, pdvs, supervisors, onRefreshSchedules }) {
   const isSupervisor = currentUser.role === 'SUPERVISOR';
   const isAdmin = currentUser.role === 'ADMIN';
+  const isAuditorVrx = currentUser.role === 'AUDITOR_VRX';
   const isEmployee = currentUser.role === 'EMPLOYEE';
   const isPdv = currentUser.role === 'PDV' || isEmployee;
   const isMaintenanceApprover = currentUser.role === 'MAINTENANCE_APPROVER';
@@ -28,7 +29,7 @@ export default function PermissionsView({ currentUser, pdvs, supervisors, onRefr
     s.id === currentUser.supervisorId
   );
 
-  const allowedPdvs = (isAdmin || isMaintenanceApprover)
+  const allowedPdvs = (isAdmin || isMaintenanceApprover || isAuditorVrx)
     ? pdvs
     : isSupervisor
     ? pdvs.filter(p => p.supervisorId === currentSupervisorObj?.id || p.supervisorId === currentUser.supervisorId)
@@ -244,6 +245,46 @@ export default function PermissionsView({ currentUser, pdvs, supervisors, onRefr
     }
   }
 
+  const [deletingId, setDeletingId] = useState(null);
+
+  // Exclusivo para Auditoría VRX / Admin: Borrar solicitudes (Sin aprobar)
+  async function handleDeletePermission(perm) {
+    const empName = perm.employeeName || perm.userName || 'el colaborador';
+    const storeObj = pdvs.find(p => p.id === perm.pdvId || p.code === perm.pdvId);
+    const storeLabel = storeObj ? `${storeObj.code} - ${storeObj.name}` : (perm.pdvName || perm.pdvId || 'Punto de Venta');
+
+    const confirmed = window.confirm(
+      `¿Deseas ELIMINAR permanentemente esta solicitud de novedad?\n\n` +
+      `• Colaborador: ${empName}\n` +
+      `• Documento: CC ${perm.documentId || perm.userDocument || 'N/A'}\n` +
+      `• Tienda: ${storeLabel}\n` +
+      `• Fecha solicitada: ${perm.date}\n` +
+      `• Motivo: "${perm.reason}"\n\n` +
+      `Esta acción borrará el registro de la base de datos de manera definitiva.`
+    );
+    if (!confirmed) return;
+
+    setDeletingId(perm.id);
+    try {
+      await api.deletePermission(perm.id);
+
+      recordAuditEvent({
+        userName: currentUser.fullName || currentUser.username,
+        userRole: currentUser.role,
+        action: 'PERMISSION_DELETE',
+        actionLabel: 'Eliminación de Solicitud de Novedad',
+        pdvName: storeLabel,
+        detail: `Eliminó la solicitud de novedad de ${empName} (Fecha: ${perm.date}, Motivo: ${perm.reason}, Estado: ${perm.status})`
+      });
+
+      setPermissions(prev => prev.filter(p => p.id !== perm.id));
+    } catch (err) {
+      alert(`Error al eliminar la solicitud: ${err.message || 'Error inesperado'}`);
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
   const pendingCount = permissions.filter(p => p.status === 'PENDING').length;
   const filteredList = permissions.filter(p => filterStatus === 'ALL' || p.status === filterStatus);
 
@@ -326,18 +367,42 @@ export default function PermissionsView({ currentUser, pdvs, supervisors, onRefr
                   isPending ? 'border-amber-300 ring-2 ring-amber-400/20' : isApproved ? 'border-emerald-200' : 'border-rose-200'
                 }`}
               >
-                {/* Header */}
+                {/* Header: Datos de quien lo pide */}
                 <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <div className="font-bold text-sm text-slate-900 flex items-center gap-2">
-                      <User className="w-4 h-4 text-slate-400" />
-                      <span>{perm.userName}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-black text-xs shrink-0">
+                        <User className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="font-extrabold text-sm text-slate-900 truncate">
+                          {perm.employeeName || perm.userName || 'Colaborador'}
+                        </div>
+                        <div className="text-[11px] text-slate-500 font-medium">
+                          {perm.position || 'ASESOR(A) DE IMAGEN'} {(perm.documentId || perm.userDocument) ? `| CC: ${perm.documentId || perm.userDocument}` : ''}
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-xs text-slate-500 mt-0.5">
-                      {perm.pdvName} | CC: {perm.userDocument}
+
+                    {/* PDV / Tienda que solicita */}
+                    <div className="mt-2.5 flex flex-wrap items-center gap-2 text-xs">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-slate-100 text-slate-800 font-bold border border-slate-200">
+                        <Store className="w-3.5 h-3.5 text-blue-600" />
+                        {(() => {
+                          const pObj = pdvs.find(p => p.id === perm.pdvId || p.code === perm.pdvId);
+                          return pObj ? `${pObj.code} - ${pObj.name}` : (perm.pdvName || perm.pdvId || 'Punto de Venta');
+                        })()}
+                      </span>
+
+                      {perm.requestedAt && (
+                        <span className="text-[10px] text-slate-400 font-mono">
+                          🕒 Solicitado: {new Date(perm.requestedAt).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })}
+                        </span>
+                      )}
                     </div>
+
                     {perm.assignedArea && (
-                      <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
+                      <div className="mt-2 flex items-center gap-1.5 flex-wrap">
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
                           <Tag className="w-3 h-3 text-indigo-500" />
                           Área: {perm.assignedArea}
@@ -352,7 +417,7 @@ export default function PermissionsView({ currentUser, pdvs, supervisors, onRefr
                     )}
                   </div>
 
-                  <span className={`text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full flex items-center gap-1 ${
+                  <span className={`text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full flex items-center gap-1 shrink-0 ${
                     isPending ? 'bg-amber-100 text-amber-800' : isApproved ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
                   }`}>
                     {isPending ? '🟡 Pendiente' : isApproved ? '🟢 Aprobado' : '🔴 Rechazado'}
@@ -393,16 +458,32 @@ export default function PermissionsView({ currentUser, pdvs, supervisors, onRefr
                   </div>
                 )}
 
-                {/* Action Buttons for Supervisor / Maintenance Approver */}
-                {canApprove && isPending && (
-                  <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-100">
-                    <button
-                      onClick={() => { setReviewModalPerm(perm); setSupervisorNotes(''); }}
-                      className="w-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2.5 px-4 rounded-xl transition shadow-xs flex items-center justify-center gap-2"
-                    >
-                      <CheckSquare className="w-4 h-4" />
-                      <span>Revisar y Decidir Solicitud</span>
-                    </button>
+                {/* Action Buttons: Aprobación (Jefatura) y Borrado (Auditoría VRX) */}
+                {((canApprove && isPending) || isAuditorVrx || isAdmin) && (
+                  <div className="pt-2 flex items-center justify-between gap-2 border-t border-slate-100">
+                    {canApprove && isPending ? (
+                      <button
+                        onClick={() => { setReviewModalPerm(perm); setSupervisorNotes(''); }}
+                        className="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold py-2 px-3.5 rounded-xl transition shadow-xs flex items-center justify-center gap-2 cursor-pointer"
+                      >
+                        <CheckSquare className="w-4 h-4" />
+                        <span>Revisar y Decidir Solicitud</span>
+                      </button>
+                    ) : <div />}
+
+                    {/* Botón para Usuario VRX o Admin: Exclusivo para Borrar (OJO: SOLO BORRAR, NO APROBAR) */}
+                    {(isAuditorVrx || isAdmin) && (
+                      <button
+                        type="button"
+                        disabled={deletingId === perm.id}
+                        onClick={() => handleDeletePermission(perm)}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-800 border border-rose-300 text-xs font-bold transition shadow-2xs cursor-pointer disabled:opacity-50 ml-auto"
+                        title="Eliminar permanentemente esta solicitud (Auditoría VRX)"
+                      >
+                        <Trash2 className="w-3.5 h-3.5 text-rose-600" />
+                        <span>{deletingId === perm.id ? 'Eliminando...' : 'Borrar Solicitud'}</span>
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
@@ -606,8 +687,8 @@ export default function PermissionsView({ currentUser, pdvs, supervisors, onRefr
             </h3>
 
             <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-1.5">
-              <div><strong>Colaborador:</strong> {reviewModalPerm.userName} (CC: {reviewModalPerm.userDocument})</div>
-              <div><strong>PDV:</strong> {reviewModalPerm.pdvName}</div>
+              <div><strong>Colaborador:</strong> {reviewModalPerm.employeeName || reviewModalPerm.userName || 'Colaborador'} (CC: {reviewModalPerm.documentId || reviewModalPerm.userDocument || 'N/A'})</div>
+              <div><strong>PDV:</strong> {(() => { const p = pdvs.find(x => x.id === reviewModalPerm.pdvId || x.code === reviewModalPerm.pdvId); return p ? `${p.code} - ${p.name}` : (reviewModalPerm.pdvName || reviewModalPerm.pdvId || 'Punto de Venta'); })()}</div>
               <div><strong>Área Asignada:</strong> <span className="font-bold text-indigo-700">{reviewModalPerm.assignedArea || 'Líder de Zona'}</span></div>
               <div><strong>Fecha Solicitada:</strong> {reviewModalPerm.date}</div>
               <div><strong>Horario Propuesto:</strong> {reviewModalPerm.isDayOffChange ? 'Día de Descanso' : `${reviewModalPerm.requestedStartTime} a ${reviewModalPerm.requestedEndTime}`}</div>
