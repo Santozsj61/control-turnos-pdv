@@ -10,7 +10,7 @@ import { initialSupervisors, initialPDVs } from '../data/seedData.js';
 import { ACTIVE_371_COLLABORATORS, isCollaboratorActive } from '../data/activeCollaborators371.js';
 import { api } from '../services/api.js';
 
-export default function PendingCoverageMonitorView({ currentUser, pdvs, supervisors }) {
+export default function PendingCoverageMonitorView({ currentUser, pdvs, supervisors, users }) {
   const isSupervisor = currentUser?.role === 'SUPERVISOR';
   const isEmployee = currentUser?.role === 'EMPLOYEE' || currentUser?.role === 'PDV';
   const isAuditorVrx = currentUser?.role === 'AUDITOR_VRX';
@@ -148,14 +148,62 @@ export default function PendingCoverageMonitorView({ currentUser, pdvs, supervis
       });
     });
 
+    // Map schedules to pdvId by documentId and userId
+    const schedPdvMap = new Map();
+    realSchedules.forEach(s => {
+      const doc = s.user?.document_id || s.user?.documentId || s.documentId || (s.userId?.startsWith('emp-') ? s.userId.replace('emp-', '') : s.userId);
+      const uId = s.userId || s.user_id;
+      const pId = s.pdvId || s.pdv_id;
+      if (pId) {
+        if (doc) schedPdvMap.set(String(doc).trim(), pId);
+        if (uId) schedPdvMap.set(String(uId).trim(), pId);
+      }
+    });
+
+    // Map DB users to pdvId by documentId and id
+    const dbUserPdvMap = new Map();
+    (users || []).forEach(u => {
+      const doc = u.document_id || u.documentId;
+      const uId = u.id;
+      const pId = u.pdv_id || u.pdvId;
+      if (pId) {
+        if (doc) dbUserPdvMap.set(String(doc).trim(), pId);
+        if (uId) dbUserPdvMap.set(String(uId).trim(), pId);
+      }
+    });
+
+    // Unified list of collaborators (ACTIVE_371 + any active employees in DB)
+    const baseCollabs = [...ACTIVE_371_COLLABORATORS];
+    const baseDocSet = new Set(baseCollabs.map(c => String(c.documentId).trim()));
+    (users || []).forEach(u => {
+      const doc = String(u.document_id || u.documentId || '').trim();
+      if (doc && !baseDocSet.has(doc) && (u.role === 'EMPLOYEE' || !u.role)) {
+        baseDocSet.add(doc);
+        baseCollabs.push({
+          id: u.id || `emp-${doc}`,
+          fullName: u.full_name || u.fullName,
+          documentId: doc,
+          role: u.role || 'EMPLOYEE',
+          pdvId: u.pdv_id || u.pdvId,
+          position: u.position || 'ASESOR(A) DE IMAGEN',
+          isActive: u.is_active !== false
+        });
+      }
+    });
+
     const pdvMap = new Map();
 
     effectivePdvs.forEach(pdv => {
-      // Find assigned staff for this store
-      const storeStaff = ACTIVE_371_COLLABORATORS.filter(c => 
-        c.pdvId === pdv.id || 
-        (pdv.code && c.pdvCode?.toUpperCase() === pdv.code.toUpperCase())
-      );
+      // Find assigned staff for this store (cross with DB schedules, DB users, and fallback to static pdvId)
+      const storeStaff = baseCollabs.filter(c => {
+        const docStr = String(c.documentId).trim();
+        const uidStr = c.id || `emp-${docStr}`;
+        const assignedPdvId = schedPdvMap.get(docStr) || schedPdvMap.get(uidStr) || dbUserPdvMap.get(docStr) || dbUserPdvMap.get(uidStr) || c.pdvId;
+        return (
+          assignedPdvId === pdv.id ||
+          (pdv.code && (assignedPdvId === pdv.code || (!schedPdvMap.has(docStr) && !dbUserPdvMap.has(docStr) && c.pdvCode?.toUpperCase() === pdv.code.toUpperCase())))
+        );
+      });
 
       const sup = effectiveSupervisors.find(s => s.id === pdv.supervisorId);
       const storeTotalStaff = storeStaff.length;
@@ -249,7 +297,7 @@ export default function PendingCoverageMonitorView({ currentUser, pdvs, supervis
     });
 
     return Array.from(pdvMap.values());
-  }, [selectedWeek, selectedMonth, realSchedules, realPunches, pdvs, supervisors]);
+  }, [selectedWeek, selectedMonth, realSchedules, realPunches, pdvs, supervisors, users]);
 
   // Apply Search, Zone, Status Filters
   const filteredPdvs = useMemo(() => {
