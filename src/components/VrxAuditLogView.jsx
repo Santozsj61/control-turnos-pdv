@@ -30,6 +30,11 @@ export default function VrxAuditLogView({ currentUser, pdvs = [], supervisors = 
 
   useEffect(() => {
     loadLogs();
+    // Auto-refresh every 20 seconds to monitor live logins and movements nationwide
+    const interval = setInterval(() => {
+      loadLogs();
+    }, 20000);
+    return () => clearInterval(interval);
   }, []);
 
   // Filter logs
@@ -230,15 +235,21 @@ export default function VrxAuditLogView({ currentUser, pdvs = [], supervisors = 
         <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-gradient-to-l from-indigo-500/10 to-transparent pointer-events-none"></div>
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black tracking-wider uppercase bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 mb-3">
-              <ShieldCheck className="w-4 h-4 text-indigo-400" />
-              <span>Módulo Exclusivo Auditor Maestro VRX</span>
+            <div className="flex items-center gap-2 flex-wrap mb-3">
+              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black tracking-wider uppercase bg-indigo-500/20 text-indigo-300 border border-indigo-400/30">
+                <ShieldCheck className="w-4 h-4 text-indigo-400" />
+                <span>Módulo Exclusivo Auditor Maestro VRX</span>
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                <span>Trazabilidad Nacional Nube (Toda Colombia)</span>
+              </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white flex items-center gap-3">
               <span>Bitácora de Auditoría & Control de Accesos</span>
             </h1>
             <p className="text-slate-300 text-xs sm:text-sm mt-2 max-w-3xl leading-relaxed">
-              Monitoreo y trazabilidad forense en vivo. Registra de forma inmutable cada persona que ingresa a la plataforma, fecha y hora de acceso, punto de venta y movimientos sobre turnos, horarios y novedades.
+              Monitoreo y trazabilidad forense en vivo centralizado en la nube Supabase. Registra de forma inmutable cada persona que ingresa a la plataforma desde cualquier lugar de Colombia, fecha y hora de acceso, tienda/zona y movimientos sobre turnos, horarios y novedades.
             </p>
           </div>
 

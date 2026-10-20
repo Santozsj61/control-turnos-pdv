@@ -384,7 +384,7 @@ export function runReconciliation({
 
       const hasRawEntry = !!rawPunchEntry && rawPunchEntry !== '-' && String(rawPunchEntry).trim() !== '';
       const hasRawExit = !!rawPunchExit && rawPunchExit !== '-' && String(rawPunchExit).trim() !== '';
-      const hasAnyPunch = hasRawEntry || hasRawExit;
+      let hasAnyPunch = hasRawEntry || hasRawExit;
 
       let realStart = hasRawEntry ? String(rawPunchEntry).substring(0, 5) : '';
       let realEnd = hasRawExit ? String(rawPunchExit).substring(0, 5) : '';
@@ -412,7 +412,7 @@ export function runReconciliation({
         punchCalcs = autoCalcs;
       }
 
-      const hasAnyPunch = hasRawEntry || hasRawExit || (autoFilledEntry && autoFilledExit);
+      hasAnyPunch = hasRawEntry || hasRawExit || (autoFilledEntry && autoFilledExit);
 
       let realNetHours = 0;
       let realLunchHours = 0;

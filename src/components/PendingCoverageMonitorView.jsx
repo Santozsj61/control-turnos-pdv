@@ -12,6 +12,7 @@ import { isCollaboratorActive } from '../data/activeCollaborators371.js';
 export default function PendingCoverageMonitorView({ currentUser, pdvs, supervisors }) {
   const isSupervisor = currentUser?.role === 'SUPERVISOR';
   const isEmployee = currentUser?.role === 'EMPLOYEE' || currentUser?.role === 'PDV';
+  const isAuditorVrx = currentUser?.role === 'AUDITOR_VRX';
   const currentSupervisorObj = supervisors?.find(
     s => s.name === currentUser?.fullName || currentUser?.id?.includes(s.id)
   );
@@ -21,7 +22,7 @@ export default function PendingCoverageMonitorView({ currentUser, pdvs, supervis
   const [selectedMonth, setSelectedMonth] = useState('ALL'); // 'ALL' | 'Junio' | 'Julio' | 'Agosto'
   const [selectedWeek, setSelectedWeek] = useState('ALL'); // 'ALL' | '23'..'35'
   const [selectedZone, setSelectedZone] = useState(isSupervisor ? (currentSupervisorObj?.id || '') : '');
-  const [selectedStatus, setSelectedStatus] = useState('ALL'); // 'ALL' | 'AL_DIA' | 'PENDIENTE_MARCACION' | 'PENDIENTE_PROGRAMAR' | 'PENDIENTE_AMBOS'
+  const [selectedStatus, setSelectedStatus] = useState(isAuditorVrx ? 'PENDIENTE_PROGRAMAR' : 'ALL'); // 'ALL' | 'AL_DIA' | 'PENDIENTE_MARCACION' | 'PENDIENTE_PROGRAMAR' | 'PENDIENTE_AMBOS'
   const [searchTerm, setSearchTerm] = useState(isEmployee && userPdvObj ? (userPdvObj.code || userPdvObj.name) : '');
   const [activeModalPdv, setActiveModalPdv] = useState(null);
 
@@ -248,17 +249,26 @@ export default function PendingCoverageMonitorView({ currentUser, pdvs, supervis
       <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-2xl p-6 text-white shadow-xl border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5">
-            <span className="p-2 bg-indigo-500/20 text-indigo-400 rounded-xl border border-indigo-400/30">
-              <ShieldCheck className="w-6 h-6 text-indigo-400" />
+            <span className={`p-2 rounded-xl border ${
+              isAuditorVrx 
+                ? 'bg-amber-500/20 text-amber-400 border-amber-400/30' 
+                : 'bg-indigo-500/20 text-indigo-400 border-indigo-400/30'
+            }`}>
+              {isAuditorVrx ? <AlertTriangle className="w-6 h-6 text-amber-400" /> : <ShieldCheck className="w-6 h-6 text-indigo-400" />}
             </span>
-            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">
-              Control de Cobertura y Cumplimiento PDV
+            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center gap-2 flex-wrap">
+              <span>{isAuditorVrx ? 'Control de Faltantes por Programar' : 'Control de Cobertura y Cumplimiento PDV'}</span>
+              {isAuditorVrx && (
+                <span className="text-[11px] font-black uppercase px-2.5 py-0.5 rounded-full bg-purple-600 text-purple-100 border border-purple-400 shadow-xs">
+                  Auditor Maestro VRX
+                </span>
+              )}
             </h1>
           </div>
           <p className="text-slate-300 text-xs sm:text-sm mt-1.5 max-w-3xl leading-relaxed">
-            Monitoreo en tiempo real de colaboradores y tiendas. Identifica con exactitud los puntos de venta con personal 
-            <span className="font-bold text-amber-300"> pendiente por marcación biométrica</span> y 
-            <span className="font-bold text-blue-300"> pendiente por programación de turno</span>.
+            {isAuditorVrx 
+              ? 'Monitoreo nacional exclusivo para VRX: identifica con exactitud qué puntos de venta y colaboradores aún no cuentan con turnos programados en el sistema.'
+              : 'Monitoreo en tiempo real de colaboradores y tiendas. Identifica con exactitud los puntos de venta con personal pendiente por marcación biométrica y pendiente por programación de turno.'}
           </p>
         </div>
       </div>

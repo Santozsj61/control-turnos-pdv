@@ -60,10 +60,27 @@ export async function recordAuditEvent({
     console.warn('Error saving audit log in localStorage:', e);
   }
 
-  // 2. Try inserting into Supabase audit_logs table
+  // 2. Insert into Supabase quest_cortes (replicated globally across Colombia)
   if (isSupabaseConfigured && supabase) {
     try {
-      const { error } = await supabase.from('audit_logs').insert([
+      const { error: corteErr } = await supabase.from('quest_cortes').upsert({
+        id: entry.id,
+        name: entry.action_label || entry.action || 'AUDIT_LOG',
+        date: entry.created_at ? entry.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
+        data: [entry],
+        pdv_data: entry,
+        created_at: entry.created_at
+      });
+      if (corteErr) {
+        console.warn('Error guardando auditoría en quest_cortes:', corteErr.message);
+      }
+    } catch (err) {
+      console.warn('Excepción guardando auditoría en la nube:', err);
+    }
+
+    // 3. Optional fallback to audit_logs table
+    try {
+      await supabase.from('audit_logs').insert([
         {
           id: entry.id,
           user_name: entry.user_name,
@@ -76,24 +93,51 @@ export async function recordAuditEvent({
           created_at: entry.created_at
         }
       ]);
-      if (error) {
-        // Table might not exist yet, silent warning
-        console.warn('Nota: audit_logs en Supabase no disponible o pendiente de migración SQL:', error.message);
-      }
-    } catch (err) {
-      // network/silent
-    }
+    } catch (e) {}
   }
 
   return entry;
 }
 
 /**
- * Fetch audit logs (combining Supabase + local cache)
+ * Fetch audit logs (combining Supabase cloud + local cache)
  */
 export async function getAuditLogs() {
   let remoteLogs = [];
   if (isSupabaseConfigured && supabase) {
+    // 1. Fetch from quest_cortes (global store)
+    try {
+      const { data, error } = await supabase
+        .from('quest_cortes')
+        .select('*')
+        .like('id', 'audit-%')
+        .order('created_at', { ascending: false })
+        .limit(1000);
+
+      if (!error && Array.isArray(data) && data.length > 0) {
+        data.forEach(row => {
+          const item = (row.pdv_data && row.pdv_data.id)
+            ? row.pdv_data
+            : (Array.isArray(row.data) && row.data[0]?.id)
+              ? row.data[0]
+              : {
+                  id: row.id,
+                  created_at: row.created_at,
+                  user_name: 'Usuario Registrado',
+                  user_role: 'SISTEMA',
+                  action: 'MOVIMIENTO',
+                  action_label: row.name,
+                  pdv_name: 'Nacional',
+                  detail: row.name
+                };
+          remoteLogs.push(item);
+        });
+      }
+    } catch (e) {
+      console.warn('Error leyendo auditoría de quest_cortes:', e);
+    }
+
+    // 2. Fetch from audit_logs table if exists
     try {
       const { data, error } = await supabase
         .from('audit_logs')
@@ -102,11 +146,9 @@ export async function getAuditLogs() {
         .limit(1000);
 
       if (!error && Array.isArray(data) && data.length > 0) {
-        remoteLogs = data;
+        remoteLogs.push(...data);
       }
-    } catch (e) {
-      // silent fallback
-    }
+    } catch (e) {}
   }
 
   // Local logs

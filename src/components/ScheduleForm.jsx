@@ -1652,6 +1652,38 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
     return map;
   }, [unprogrammedEmployees]);
 
+  // Colaboradores con turnos fuera del horario habitual en la semana activa
+  const shiftsOutsideHabitualList = useMemo(() => {
+    const list = [];
+    (filteredAndSortedEmployees || []).forEach(emp => {
+      const row = scheduleMatrix[emp.id];
+      if (!row || !row.shifts) return;
+      const empPdv = row.pdv || pdvs.find(p => p.id === emp.pdvId) || activeSinglePdv || currentHabitualPdv;
+      row.shifts.forEach((shift, dayIdx) => {
+        if (shift && shift.shiftType === 'ORDINARIO' && shift.startTime && shift.endTime && !shift.isDayOff) {
+          const check = checkOutsideHabitualHours(
+            empPdv, 
+            dayIdx, 
+            formatExcelTime(shift.startTime), 
+            formatExcelTime(shift.endTime)
+          );
+          if (check?.isOutside) {
+            list.push({
+              emp,
+              dayIdx,
+              dayName: DAYS_NAME[dayIdx],
+              startTime: formatExcelTime(shift.startTime),
+              endTime: formatExcelTime(shift.endTime),
+              reason: check.reason,
+              habitualRange: check.habitualRange
+            });
+          }
+        }
+      });
+    });
+    return list;
+  }, [filteredAndSortedEmployees, scheduleMatrix, pdvs, activeSinglePdv, currentHabitualPdv]);
+
 
   const renderHabitualRow = (targetPdv, keyPrefix = 'hab-sch') => {
     if (!targetPdv) return null;
@@ -1800,12 +1832,29 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
                         const isCellEditing = editingCell?.userId === emp.id && editingCell?.dayIndex === dayIdx;
                         const isShiftLocked = isSupervisor || isHrAdmin || (userRow.isSubmitted && !shift.correctionRequested && !isAdmin && !isAuditorVrx);
 
+                        const cellOutsideCheck = (shiftType === 'ORDINARIO' && shift.startTime && shift.endTime && !shift.isDayOff)
+                          ? checkOutsideHabitualHours(
+                              empPdv || currentHabitualPdv,
+                              dayIdx,
+                              formatExcelTime(shift.startTime),
+                              formatExcelTime(shift.endTime)
+                            )
+                          : null;
+
                         let badgeColor = 'bg-blue-50 text-blue-800 border-blue-200 hover:bg-blue-100';
-                        if (shiftType === 'DESCANSO') badgeColor = 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200';
-                        else if (shiftType === 'INCAPACIDAD') badgeColor = 'bg-rose-50 text-rose-800 border-rose-200 hover:bg-rose-100';
-                        else if (shiftType === 'VACACIONES') badgeColor = 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100';
-                        else if (shiftType === 'LICENCIA') badgeColor = 'bg-indigo-50 text-indigo-800 border-indigo-200 hover:bg-indigo-100';
-                        else if (shiftType === 'NO_PROGRAMADO') badgeColor = 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100';
+                        if (cellOutsideCheck?.isOutside) {
+                          badgeColor = 'bg-red-50 text-red-950 border-2 border-red-500 hover:bg-red-100 shadow-xs ring-1 ring-red-400';
+                        } else if (shiftType === 'DESCANSO') {
+                          badgeColor = 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200';
+                        } else if (shiftType === 'INCAPACIDAD') {
+                          badgeColor = 'bg-rose-50 text-rose-800 border-rose-200 hover:bg-rose-100';
+                        } else if (shiftType === 'VACACIONES') {
+                          badgeColor = 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100';
+                        } else if (shiftType === 'LICENCIA') {
+                          badgeColor = 'bg-indigo-50 text-indigo-800 border-indigo-200 hover:bg-indigo-100';
+                        } else if (shiftType === 'NO_PROGRAMADO') {
+                          badgeColor = 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100';
+                        }
 
                         return (
                           <td
@@ -1838,25 +1887,14 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
                                       <span title="Deducción de 1:30 de almuerzo" className="text-amber-600 font-extrabold">☕</span>
                                     )}
                                   </div>
-                                  {(() => {
-                                    const outsideCheck = checkOutsideHabitualHours(
-                                      empPdv || currentHabitualPdv,
-                                      dayIdx,
-                                      formatExcelTime(shift.startTime),
-                                      formatExcelTime(shift.endTime)
-                                    );
-                                    if (outsideCheck?.isOutside) {
-                                      return (
-                                        <span
-                                          className="bg-amber-100 text-amber-900 border border-amber-300 text-[7.5px] font-black px-1 py-0.2 rounded mt-0.5 block truncate max-w-full"
-                                          title={`Programado fuera del horario habitual: ${outsideCheck.reason} (Habitual: ${outsideCheck.habitualRange})`}
-                                        >
-                                          ⚠️ Fuera Habitual
-                                        </span>
-                                      );
-                                    }
-                                    return null;
-                                  })()}
+                                  {cellOutsideCheck?.isOutside && (
+                                    <span
+                                      className="bg-red-600 text-white text-[7.5px] font-black px-1.5 py-0.5 rounded shadow-2xs mt-0.5 block truncate max-w-full animate-pulse"
+                                      title={`⚠️ SOBREPASA HORARIO HABITUAL: ${cellOutsideCheck.reason} (Habitual: ${cellOutsideCheck.habitualRange})`}
+                                    >
+                                      ⚠️ SOBREPASA HORARIO
+                                    </span>
+                                  )}
                                 </>
                               ) : (
                                 <>
@@ -2406,6 +2444,20 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
                 </span>
               </button>
             )}
+
+            {/* ALERTA VISIBLE: Turnos que sobrepasan el horario habitual de la tienda */}
+            {shiftsOutsideHabitualList.length > 0 && (
+              <div 
+                className="flex items-center gap-1.5 bg-red-100 text-red-900 border-2 border-red-500 font-extrabold text-xs px-3 py-2 rounded-xl shadow-xs animate-pulse"
+                title={`${shiftsOutsideHabitualList.length} turno(s) configurados sobrepasan el horario habitual oficial de la tienda`}
+              >
+                <AlertTriangle className="w-3.5 h-3.5 text-red-600 shrink-0" />
+                <span>Sobrepasa Horario Habitual:</span>
+                <span className="bg-red-600 text-white text-[10px] font-black px-1.5 py-0.2 rounded-full ml-0.5">
+                  {shiftsOutsideHabitualList.length}
+                </span>
+              </div>
+            )}
             {/* BOTÓN SINCRONIZAR NUBE (Exclusivo Perfil Maestro Auditor VRX & Admin) */}
             {(isAuditorVrx || isAdmin) && (
               <button
@@ -2837,6 +2889,15 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
         const shift = empRow?.shifts?.[editingCell.dayIndex] || {};
         const wd = weekDates[editingCell.dayIndex] || {};
         const shiftType = shift.shiftType || 'NO_PROGRAMADO';
+        const empPdv = empRow?.pdv || pdvs.find(p => p.id === emp.pdvId) || activeSinglePdv || currentHabitualPdv;
+        const modalOutsideCheck = (shiftType === 'ORDINARIO' && shift.startTime && shift.endTime && !shift.isDayOff)
+          ? checkOutsideHabitualHours(
+              empPdv,
+              editingCell.dayIndex,
+              formatExcelTime(shift.startTime),
+              formatExcelTime(shift.endTime)
+            )
+          : null;
 
         return (
           <div 
@@ -2892,6 +2953,28 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
                   {SHIFT_TYPES.find(st => st.value === shiftType)?.desc}
                 </p>
               </div>
+
+              {/* Alerta Destacada: Sobrepasando Horario Habitual */}
+              {modalOutsideCheck?.isOutside && (
+                <div className="bg-red-50 border-2 border-red-500 rounded-2xl p-3.5 flex items-start gap-3 shadow-xs animate-in fade-in">
+                  <div className="p-2 bg-red-100 text-red-700 rounded-xl shrink-0 mt-0.5">
+                    <AlertTriangle className="w-5 h-5 text-red-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-black uppercase tracking-wider bg-red-600 text-white px-2 py-0.5 rounded shadow-2xs">
+                        ⚠️ ALERTA: SOBREPASANDO HORARIO HABITUAL
+                      </span>
+                    </div>
+                    <p className="text-xs text-red-900 font-extrabold mt-1 leading-snug">
+                      El horario asignado ({formatExcelTime(shift.startTime)} - {formatExcelTime(shift.endTime)}) sobrepasa el horario habitual oficial de la tienda ({modalOutsideCheck.habitualRange}).
+                    </p>
+                    <p className="text-[11px] text-red-700 mt-1 font-semibold">
+                      Motivo: {modalOutsideCheck.reason}. En el perfil de Punto de Venta (PDV) se recomienda programar dentro de la franja oficial de apertura y cierre.
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* Standard Presets & Custom Times (Displayed completely with no scroll limit) */}
               {shiftType === 'ORDINARIO' && (
@@ -3069,6 +3152,31 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
                 </div>
                 <p className="text-[10px] text-amber-700 italic">
                   Si guardas ahora, la tienda figurará con personal pendiente por programar en el módulo de Control de Cobertura PDV.
+                </p>
+              </div>
+            )}
+            {/* Warning if there are shifts outside habitual hours */}
+            {shiftsOutsideHabitualList.length > 0 && (
+              <div className="bg-red-50 border-2 border-red-500 rounded-xl p-3.5 text-xs text-red-950 space-y-2">
+                <div className="flex items-center gap-2 font-extrabold text-red-900">
+                  <AlertTriangle className="w-4 h-4 text-red-600 shrink-0" />
+                  <span>¡Alerta! Hay {shiftsOutsideHabitualList.length} turno(s) que sobrepasan el horario habitual de la tienda:</span>
+                </div>
+                <div className="max-h-28 overflow-y-auto space-y-1 pl-1">
+                  {shiftsOutsideHabitualList.slice(0, 10).map((item, idx) => (
+                    <div key={idx} className="text-[11px] flex items-center justify-between text-red-800 bg-white/70 p-1.5 rounded border border-red-200">
+                      <span className="font-bold">{item.emp.fullName} ({item.dayName}):</span>
+                      <span className="text-[10px] text-red-900 font-semibold">{item.startTime} - {item.endTime} ({item.reason})</span>
+                    </div>
+                  ))}
+                  {shiftsOutsideHabitualList.length > 10 && (
+                    <div className="text-[10px] text-slate-500 text-center font-bold">
+                      y {shiftsOutsideHabitualList.length - 10} turno(s) más...
+                    </div>
+                  )}
+                </div>
+                <p className="text-[10px] text-red-700 italic">
+                  Asegúrate de que estas jornadas cuenten con la debida justificación operativa.
                 </p>
               </div>
             )}
