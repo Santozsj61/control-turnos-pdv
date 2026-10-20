@@ -177,7 +177,8 @@ export default function PendingCoverageMonitorView({ currentUser, pdvs, supervis
     const baseDocSet = new Set(baseCollabs.map(c => String(c.documentId).trim()));
     (users || []).forEach(u => {
       const doc = String(u.document_id || u.documentId || '').trim();
-      if (doc && !baseDocSet.has(doc) && (u.role === 'EMPLOYEE' || !u.role)) {
+      const isRetired = u.is_active === false || (u.full_name && u.full_name.includes('(Retirado)'));
+      if (doc && !baseDocSet.has(doc) && (u.role === 'EMPLOYEE' || !u.role) && !isRetired) {
         baseDocSet.add(doc);
         baseCollabs.push({
           id: u.id || `emp-${doc}`,
@@ -186,7 +187,7 @@ export default function PendingCoverageMonitorView({ currentUser, pdvs, supervis
           role: u.role || 'EMPLOYEE',
           pdvId: u.pdv_id || u.pdvId,
           position: u.position || 'ASESOR(A) DE IMAGEN',
-          isActive: u.is_active !== false
+          isActive: true
         });
       }
     });
