@@ -2,18 +2,18 @@
 export const initialSupervisors = [
   {
     "id": "sup-antioquia-1",
-    "name": "Líder Antioquia 1",
+    "name": "Julián Marín",
     "code": "COD-ANT-1",
     "zoneName": "ZONA ANTIOQUIA (LIDER 1)",
-    "email": "lider.antioquia1@quest.com.co",
+    "email": "julian.marin@qst.com.co",
     "documentId": "1018010"
   },
   {
     "id": "sup-antioquia-casanare-2",
-    "name": "Líder Antioquia / Casanare 2",
+    "name": "Andrea Bañol",
     "code": "COD-ANT-CAS-2",
     "zoneName": "ZONA ANTIOQUIA Y CASANARE (LIDER 2)",
-    "email": "lider.antioquia2@quest.com.co",
+    "email": "andrea.banol@quest.com.co",
     "documentId": "1018012"
   },
   {
@@ -114,10 +114,10 @@ export const initialSupervisors = [
   },
   {
     "id": "sup-tolhuca",
-    "name": "Líder Tolhuca (Neiva / Caquetá)",
+    "name": "Anderson Gelvez",
     "code": "COD-TOLHUCA",
     "zoneName": "ZONA TOLHUCA",
-    "email": "lider.neiva@quest.com.co",
+    "email": "anderson.gelvez@quest.com.co",
     "documentId": "1018011"
   }
 ];
