@@ -938,7 +938,7 @@ export const api = {
       reason: permData.reason,
       assigned_area: assignedArea,
       recipient_role: isMaintenance ? 'MAINTENANCE_APPROVER' : 'SUPERVISOR',
-      notification_email: null,
+      notification_email: isMaintenance ? 'maria.cardona@quest.com.co' : null,
       email_sent: false,
       email_sent_at: null,
       status: 'PENDING',
@@ -948,20 +948,17 @@ export const api = {
     const { data, error } = await supabase.from('permissions').insert(payload).select().single();
     if (error) throw new Error(error.message);
 
-    // Enviar notificación por correo al Líder de Zona asignado
-    if (!isMaintenance) {
-      api.sendPermissionEmailNotification(permData).catch(err => {
-        console.warn('Aviso: No se pudo enviar el correo de notificación:', err);
-      });
-    }
+    // Enviar notificación por correo al Líder de Zona asignado o a María Cardona (Mantenimiento)
+    api.sendPermissionEmailNotification(permData).catch(err => {
+      console.warn('Aviso: No se pudo enviar el correo de notificación:', err);
+    });
 
     return data;
   },
 
   sendPermissionEmailNotification: async (permData) => {
-    if (permData.assignedArea === 'Mantenimiento y Obras') return null;
-
     try {
+      const isMaintenance = permData.assignedArea === 'Mantenimiento y Obras';
       const supervisors = await api.getSupervisors();
       const pdvs = await api.getPDVs();
 
@@ -969,7 +966,14 @@ export const api = {
       const targetSupId = permData.supervisorId || pdv?.supervisorId || pdv?.supervisor_id;
       const sup = supervisors.find(s => s.id === targetSupId || s.name === targetSupId);
 
-      const recipientEmail = sup?.email || 'analista.retail@quest.com.co';
+      const recipientEmail = isMaintenance
+        ? 'maria.cardona@quest.com.co'
+        : (sup?.email || 'analista.retail@quest.com.co');
+
+      const recipientGreeting = isMaintenance
+        ? 'María Cardona (Mantenimiento y Obras)'
+        : (sup?.name || 'Líder de Zona');
+
       const storeName = pdv ? `${pdv.code} - ${pdv.name}` : (permData.pdvId || 'Punto de Venta');
       const employeeName = permData.employeeName || 'Colaborador';
       const docText = permData.documentId ? `CC: ${permData.documentId}` : '';
@@ -980,13 +984,15 @@ export const api = {
             ? `Nuevo Horario: ${permData.requestedStartTime} a ${permData.requestedEndTime} (${permData.shiftType || 'Ordinario'})`
             : (permData.shiftType || 'Novedad Ordinaria'));
 
-      const subject = `[Solicitud de Permiso] - ${pdv?.code || 'PDV'} - ${employeeName}`;
+      const subject = isMaintenance
+        ? `[Mantenimiento y Obras] - ${pdv?.code || 'PDV'} - ${employeeName}`
+        : `[Solicitud de Permiso] - ${pdv?.code || 'PDV'} - ${employeeName}`;
 
       const html = `
         <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
           <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 24px; text-align: center; color: white;">
             <span style="background-color: #f59e0b; color: #0f172a; font-size: 10px; font-weight: 800; text-transform: uppercase; padding: 4px 10px; border-radius: 9999px; letter-spacing: 1px; display: inline-block; margin-bottom: 8px;">
-              SOLICITUD DE NOVEDAD / PERMISO
+              ${isMaintenance ? 'SOLICITUD DE MANTENIMIENTO Y OBRAS' : 'SOLICITUD DE NOVEDAD / PERMISO'}
             </span>
             <h2 style="margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.5px; color: #ffffff;">Control de Turnos PDV</h2>
             <p style="margin: 4px 0 0 0; font-size: 12px; color: #94a3b8;">NCS BRANDS • QUEST / QST</p>
@@ -994,7 +1000,7 @@ export const api = {
 
           <div style="padding: 28px 24px; color: #334155; line-height: 1.6; background-color: #ffffff;">
             <p style="font-size: 15px; margin-top: 0;">
-              Hola <strong>${sup?.name || 'Líder de Zona'}</strong>,
+              Hola <strong>${recipientGreeting}</strong>,
             </p>
             <p style="font-size: 13px; color: #475569;">
               Se ha radicado una nueva solicitud de cambio de horario o novedad que requiere tu revisión y autorización:

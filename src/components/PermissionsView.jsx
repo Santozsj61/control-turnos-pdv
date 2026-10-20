@@ -198,7 +198,7 @@ export default function PermissionsView({ currentUser, pdvs, supervisors, onRefr
       });
 
       const destText = assignedArea === 'Mantenimiento y Obras'
-        ? 'directamente en el aplicativo para aprobación del usuario Mantenimiento'
+        ? 'al correo de María Cardona (Mantenimiento) y disponible en la app para su aprobación'
         : `a tu jefe inmediato (${mySupervisor?.name || 'Asignado'})`;
       setFormMsg({ type: 'success', text: `¡Solicitud para "${targetEmployee.fullName}" [${assignedArea}] radicada exitosamente ${destText}!` });
       setReason('');
@@ -523,7 +523,7 @@ export default function PermissionsView({ currentUser, pdvs, supervisors, onRefr
 
             <form onSubmit={handleSubmitRequest} className="space-y-4 text-xs">
               <div className="bg-blue-50/70 p-3 rounded-xl border border-blue-200 text-blue-900 text-xs">
-                <strong>Destinatario de Autorización:</strong> {assignedArea === 'Mantenimiento y Obras' ? 'Aprobador de Mantenimiento (en el aplicativo)' : `Tu jefe directo ${mySupervisor?.name || 'Asignado'} (${userPdv?.name})`}.
+                <strong>Destinatario de Autorización:</strong> {assignedArea === 'Mantenimiento y Obras' ? 'María Cardona (maria.cardona@quest.com.co) - Mantenimiento' : `Tu jefe directo ${mySupervisor?.name || 'Asignado'} (${userPdv?.name})`}.
               </div>
 
               {/* Selector de Colaborador del PDV */}
@@ -580,8 +580,8 @@ export default function PermissionsView({ currentUser, pdvs, supervisors, onRefr
                 <div className="bg-purple-50 border border-purple-200 rounded-xl p-3 flex items-start gap-2.5 text-purple-950 text-xs animate-in fade-in">
                   <Wrench className="w-4 h-4 text-purple-600 shrink-0 mt-0.5" />
                   <div>
-                    <strong className="block font-bold text-purple-900">Enrutamiento Exclusivo en el Aplicativo:</strong>
-                    Esta solicitud quedará radicada directamente en la plataforma para ser revisada y aprobada por el usuario <strong>Mantenimiento</strong>.
+                    <strong className="block font-bold text-purple-900">Notificación Directa a Mantenimiento:</strong>
+                    Esta solicitud será notificada automáticamente al correo de <strong>María Cardona</strong> (<span className="text-purple-700 underline">maria.cardona@quest.com.co</span>) y quedará lista en el aplicativo para su aprobación.
                   </div>
                 </div>
               )}
