@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import { db } from './db.js';
 import { runReconciliation } from './reconciliation.js';
 import { getPdvPassword, validatePdvPassword, AUTH_CREDENTIALS } from '../src/utils/authRules.js';
+import nodemailer from 'nodemailer';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -304,6 +305,35 @@ app.get('/api/payroll', (req, res) => {
       records: filtered
     });
   } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 2.7 Send email notification
+app.post('/api/send-email', async (req, res) => {
+  try {
+    const { to, subject, html, bcc } = req.body;
+    if (!to) return res.status(400).json({ error: 'Falta destinatario (to)' });
+
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER || 'notificaciones.turnos.quest@gmail.com',
+        pass: process.env.EMAIL_PASS || 'mzhnsmkbviwqbopl'
+      }
+    });
+
+    const info = await transporter.sendMail({
+      from: '"Control de Turnos QUEST" <notificaciones.turnos.quest@gmail.com>',
+      to,
+      bcc: bcc || 'notificaciones.turnos.quest@gmail.com',
+      subject: subject || 'Nueva Solicitud de Permiso / Novedad PDV',
+      html
+    });
+
+    res.json({ success: true, messageId: info.messageId });
+  } catch (err) {
+    console.error('Error enviando correo en servidor local:', err);
     res.status(500).json({ success: false, error: err.message });
   }
 });

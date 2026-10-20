@@ -947,7 +947,118 @@ export const api = {
 
     const { data, error } = await supabase.from('permissions').insert(payload).select().single();
     if (error) throw new Error(error.message);
+
+    // Enviar notificación por correo al Líder de Zona asignado
+    if (!isMaintenance) {
+      api.sendPermissionEmailNotification(permData).catch(err => {
+        console.warn('Aviso: No se pudo enviar el correo de notificación:', err);
+      });
+    }
+
     return data;
+  },
+
+  sendPermissionEmailNotification: async (permData) => {
+    if (permData.assignedArea === 'Mantenimiento y Obras') return null;
+
+    try {
+      const supervisors = await api.getSupervisors();
+      const pdvs = await api.getPDVs();
+
+      const pdv = pdvs.find(p => p.id === permData.pdvId || p.code === permData.pdvId);
+      const targetSupId = permData.supervisorId || pdv?.supervisorId || pdv?.supervisor_id;
+      const sup = supervisors.find(s => s.id === targetSupId || s.name === targetSupId);
+
+      const recipientEmail = sup?.email || 'analista.retail@quest.com.co';
+      const storeName = pdv ? `${pdv.code} - ${pdv.name}` : (permData.pdvId || 'Punto de Venta');
+      const employeeName = permData.employeeName || 'Colaborador';
+      const docText = permData.documentId ? `CC: ${permData.documentId}` : '';
+      const dateText = permData.date || 'Fecha por definir';
+      const shiftText = permData.isDayOffChange
+        ? 'Cambio a Día de Descanso (DESCANSO)'
+        : (permData.requestedStartTime && permData.requestedEndTime
+            ? `Nuevo Horario: ${permData.requestedStartTime} a ${permData.requestedEndTime} (${permData.shiftType || 'Ordinario'})`
+            : (permData.shiftType || 'Novedad Ordinaria'));
+
+      const subject = `[Solicitud de Permiso] - ${pdv?.code || 'PDV'} - ${employeeName}`;
+
+      const html = `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+          <div style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 24px; text-align: center; color: white;">
+            <span style="background-color: #f59e0b; color: #0f172a; font-size: 10px; font-weight: 800; text-transform: uppercase; padding: 4px 10px; border-radius: 9999px; letter-spacing: 1px; display: inline-block; margin-bottom: 8px;">
+              SOLICITUD DE NOVEDAD / PERMISO
+            </span>
+            <h2 style="margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.5px; color: #ffffff;">Control de Turnos PDV</h2>
+            <p style="margin: 4px 0 0 0; font-size: 12px; color: #94a3b8;">NCS BRANDS • QUEST / QST</p>
+          </div>
+
+          <div style="padding: 28px 24px; color: #334155; line-height: 1.6; background-color: #ffffff;">
+            <p style="font-size: 15px; margin-top: 0;">
+              Hola <strong>${sup?.name || 'Líder de Zona'}</strong>,
+            </p>
+            <p style="font-size: 13px; color: #475569;">
+              Se ha radicado una nueva solicitud de cambio de horario o novedad que requiere tu revisión y autorización:
+            </p>
+
+            <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; margin: 20px 0;">
+              <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                <tr>
+                  <td style="padding: 6px 0; color: #64748b; width: 140px;"><strong>👤 Colaborador:</strong></td>
+                  <td style="padding: 6px 0; color: #0f172a; font-weight: 700;">${employeeName} <span style="font-weight: 400; color: #64748b;">(${docText})</span></td>
+                </tr>
+                <tr>
+                  <td style="padding: 6px 0; color: #64748b;"><strong>🏬 Tienda / PDV:</strong></td>
+                  <td style="padding: 6px 0; color: #0f172a; font-weight: 600;">${storeName}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 6px 0; color: #64748b;"><strong>📅 Fecha solicitada:</strong></td>
+                  <td style="padding: 6px 0; color: #0f172a; font-weight: 700;">${dateText}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 6px 0; color: #64748b;"><strong>⏰ Horario / Tipo:</strong></td>
+                  <td style="padding: 6px 0; color: #2563eb; font-weight: 700;">${shiftText}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 6px 0; color: #64748b;"><strong>🏷️ Área:</strong></td>
+                  <td style="padding: 6px 0; color: #0f172a;">${permData.assignedArea || 'Líder de Zona'}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0 0 0; color: #64748b; vertical-align: top;"><strong>📝 Justificación:</strong></td>
+                  <td style="padding: 8px 0 0 0; color: #0f172a; font-style: italic; background-color: #f1f5f9; padding: 10px; border-radius: 8px;">
+                    "${permData.reason || 'Sin observación adicional'}"
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+            <div style="text-align: center; margin: 28px 0 16px 0;">
+              <a href="https://control-turnos-pdv.vercel.app" 
+                 target="_blank" 
+                 style="background-color: #2563eb; color: #ffffff; text-decoration: none; padding: 12px 28px; font-size: 13px; font-weight: 700; border-radius: 12px; display: inline-block; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.4);">
+                Ingresar al Portal para Autorizar / Rechazar →
+              </a>
+            </div>
+
+            <p style="font-size: 11px; color: #94a3b8; text-align: center; margin-top: 24px; border-top: 1px solid #f1f5f9; padding-top: 16px;">
+              Notificación automática generada por el Sistema de Turnos PDV • NCS BRANDS Colombia
+            </p>
+          </div>
+        </div>
+      `;
+
+      await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: recipientEmail,
+          bcc: 'notificaciones.turnos.quest@gmail.com',
+          subject,
+          html
+        })
+      });
+    } catch (e) {
+      console.warn('Aviso: Error despachando correo:', e);
+    }
   },
 
   updatePermissionStatus: async (permId, status, supervisorNotes = '', reviewerId = null) => {
