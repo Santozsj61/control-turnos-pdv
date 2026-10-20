@@ -172,13 +172,14 @@ export default function PermissionsView({ currentUser, pdvs, supervisors, onRefr
     }
 
     const targetEmployee = pdvEmployees.find(emp => emp.id === selectedEmpId) || currentUser;
+    const cleanEmpName = String(targetEmployee.fullName || targetEmployee.name || 'Colaborador').replace(/\s*\(Retirado\)/gi, '').trim();
 
     setSubmitting(true);
     setFormMsg(null);
     try {
       await api.createPermission({
         userId: targetEmployee.id,
-        employeeName: targetEmployee.fullName || targetEmployee.name || 'Colaborador',
+        employeeName: cleanEmpName,
         documentId: targetEmployee.documentId || '',
         position: targetEmployee.position || 'ASESOR(A) DE IMAGEN',
         pdvId: targetEmployee.pdvId || currentUser.pdvId || 'pdv-1',
@@ -376,7 +377,7 @@ export default function PermissionsView({ currentUser, pdvs, supervisors, onRefr
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="font-extrabold text-sm text-slate-900 truncate">
-                          {perm.employeeName || perm.userName || 'Colaborador'}
+                          {String(perm.employeeName || perm.userName || 'Colaborador').replace(/\s*\(Retirado\)/gi, '').trim()}
                         </div>
                         <div className="text-[11px] text-slate-500 font-medium">
                           {perm.position || 'ASESOR(A) DE IMAGEN'} {(perm.documentId || perm.userDocument) ? `| CC: ${perm.documentId || perm.userDocument}` : ''}

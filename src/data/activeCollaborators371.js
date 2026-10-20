@@ -2,6 +2,7 @@
 // Extraída de Sem 28.xlsx (Plantilla Oficial Vigente)
 
 export const ACTIVE_371_DOCUMENTS = new Set([
+  "1016010865", // Santiago Ramos
   "1144163678",
   "1118312125",
   "1109115019",
