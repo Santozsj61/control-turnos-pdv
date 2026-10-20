@@ -153,7 +153,7 @@ export default function WeeklyJustificationView({ currentUser, pdvs = [], superv
         pdvName: pdvObj?.name || 'Punto de Venta',
         weekStart: formWeek,
         month: formWeek.substring(0, 7),
-        reasonCategory: formCategory,
+        reasonCategory: formCategory || 'Excedente de Horas PDV',
         detailedReason: formReason.trim(),
         createdBy: currentUser?.fullName || 'Administrador PDV',
         supervisorId: targetSupId,
@@ -977,21 +977,6 @@ export default function WeeklyJustificationView({ currentUser, pdvs = [], superv
                 </select>
               </div>
 
-              {/* Categoría del Motivo (8 áreas) */}
-              <div className="space-y-1">
-                <label className="block font-bold text-slate-700">Área / Motivo del Cambio *</label>
-                <select
-                  value={formCategory}
-                  onChange={(e) => setFormCategory(e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-bold text-slate-800 focus:ring-2 focus:ring-amber-500 focus:outline-hidden"
-                >
-                  {REASON_CATEGORIES.map(cat => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
-              </div>
 
               {/* Horas Suplementarias */}
               <div className="space-y-1">
