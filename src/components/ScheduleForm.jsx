@@ -47,6 +47,51 @@ export const STANDARD_SHIFT_PRESETS = [
   { label: '13:58 - 20:28 (6.5h Netas | Sin Almuerzo)', start: '13:58', end: '20:28' }
 ];
 
+const EXCLUSIONS_KEY = 'control_turnos_weekly_exclusions';
+
+function getWeeklyExclusions(weekStart, pdvId) {
+  try {
+    const raw = localStorage.getItem(EXCLUSIONS_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    const key = `${weekStart}_${pdvId || 'ALL'}`;
+    const keyGlobal = `${weekStart}_ALL`;
+    const set = new Set([...(Array.isArray(parsed[key]) ? parsed[key] : []), ...(Array.isArray(parsed[keyGlobal]) ? parsed[keyGlobal] : [])]);
+    return Array.from(set);
+  } catch (e) {
+    return [];
+  }
+}
+
+function addWeeklyExclusion(weekStart, pdvId, empId, documentId) {
+  try {
+    const raw = localStorage.getItem(EXCLUSIONS_KEY);
+    const parsed = raw ? JSON.parse(raw) : {};
+    const key = `${weekStart}_${pdvId || 'ALL'}`;
+    const list = Array.isArray(parsed[key]) ? parsed[key] : [];
+    if (empId && !list.includes(String(empId))) list.push(String(empId));
+    if (documentId && !list.includes(String(documentId))) list.push(String(documentId));
+    parsed[key] = list;
+    localStorage.setItem(EXCLUSIONS_KEY, JSON.stringify(parsed));
+  } catch (e) {}
+}
+
+function removeWeeklyExclusion(weekStart, pdvId, empId, documentId) {
+  try {
+    const raw = localStorage.getItem(EXCLUSIONS_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    Object.keys(parsed).forEach(k => {
+      if (k.startsWith(weekStart)) {
+        if (Array.isArray(parsed[k])) {
+          parsed[k] = parsed[k].filter(id => id !== String(empId) && id !== String(documentId));
+        }
+      }
+    });
+    localStorage.setItem(EXCLUSIONS_KEY, JSON.stringify(parsed));
+  } catch (e) {}
+}
+
 export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPermissionTab, onReloadUsers }) {
   const isSupervisor = currentUser?.role === 'SUPERVISOR';
   const isAdmin = currentUser?.role === 'ADMIN';
@@ -152,6 +197,9 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
   // Modal de colaboradores con turnos pendientes por programar
   const [isUnprogrammedModalOpen, setIsUnprogrammedModalOpen] = useState(false);
   const [unprogrammedSearchTerm, setUnprogrammedSearchTerm] = useState('');
+
+  // Modal para confirmar eliminación / desvinculación de colaborador
+  const [employeeToDelete, setEmployeeToDelete] = useState(null);
 
   const activePdvPersonnel = useMemo(() => {
     const currentTargetId = selectedPdvId !== 'ALL' ? selectedPdvId : (currentUser?.pdvId || activeSinglePdv?.id);
@@ -355,17 +403,24 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
       // - Si un colaborador tiene programación registrada para esta semana en un PDV, pertenece a ese PDV esa semana.
       // - Si no tiene programación en otro PDV, pertenece a su PDV de origen.
       const targetPdv = (selectedPdvId && selectedPdvId !== 'ALL') ? selectedPdvId : (currentUser?.role === 'PDV' ? (currentUser.pdvId || activeSinglePdv?.id) : null);
+      const weeklyExclusions = getWeeklyExclusions(selectedWeekStart, targetPdv);
 
       let filteredEmps = emps;
       if (targetPdv) {
         filteredEmps = emps.filter(e => {
           const empSched = existingScheds.find(s => s.userId === e.id || (e.documentId && s.user?.document_id && String(s.user.document_id) === String(e.documentId)));
+          const isExcluded = !empSched && (weeklyExclusions.includes(String(e.id)) || (e.documentId && weeklyExclusions.includes(String(e.documentId))));
+          if (isExcluded) return false;
+
           const activePdv = empSched ? empSched.pdvId : (e.pdvId || e.pdv_id);
           return activePdv === targetPdv;
         });
       } else if (isSupervisor) {
         filteredEmps = emps.filter(e => {
           const empSched = existingScheds.find(s => s.userId === e.id || (e.documentId && s.user?.document_id && String(e.documentId) === String(s.user.document_id)));
+          const isExcluded = !empSched && (weeklyExclusions.includes(String(e.id)) || (e.documentId && weeklyExclusions.includes(String(e.documentId))));
+          if (isExcluded) return false;
+
           const activePdvId = empSched ? empSched.pdvId : (e.pdvId || e.pdv_id);
           return allowedPdvs.some(ap => ap.id === activePdvId || ap.code === activePdvId);
         });
@@ -1116,7 +1171,7 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
   }
 
   // Remove / delete employee line from schedule before saving & locking (Disabled for Supervisor & HR Admin)
-  async function handleRemoveEmployeeLine(emp) {
+  function handleRemoveEmployeeLine(emp) {
     if (isSupervisor || isHrAdmin) {
       setMessage({ type: 'error', text: 'Acceso Denegado: En el perfil actual no está permitido eliminar colaboradores de la programación.' });
       return;
@@ -1126,13 +1181,22 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
       setMessage({ type: 'error', text: 'La programación ya está bloqueada oficialmente. No se pueden eliminar líneas.' });
       return;
     }
+    setEmployeeToDelete(emp);
+  }
 
-    const confirmed = window.confirm(`¿Estás seguro de quitar la línea de "${emp.fullName}" de la programación de esta semana antes de guardar y bloquear?`);
-    if (!confirmed) return;
+  // Execute actual removal or disassociation
+  async function handleExecuteRemoveEmployee(emp, mode) {
+    if (isSupervisor || isHrAdmin) {
+      setMessage({ type: 'error', text: 'Acceso Denegado: En el perfil actual no está permitido modificar colaboradores de la programación.' });
+      setEmployeeToDelete(null);
+      return;
+    }
+    const targetPdvId = (selectedPdvId && selectedPdvId !== 'ALL') ? selectedPdvId : (allowedPdvs[0]?.id || 'pdv-1');
+
+    setEmployeeToDelete(null);
 
     // 1. Remove from all employees states
     setAllEmployees(prev => prev.filter(e => e.id !== emp.id && (!emp.documentId || String(e.documentId) !== String(emp.documentId))));
-    setAllHistoricalEmployees(prev => prev.filter(e => e.id !== emp.id && (!emp.documentId || String(e.documentId) !== String(emp.documentId))));
 
     // 2. Remove from matrix and update localStorage immediately
     setScheduleMatrix(prev => {
@@ -1161,23 +1225,62 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
       }
     } catch (e) {}
 
-    // 4. Remote Supabase and server deletion
-    try {
-      if (api.isConfigured && supabase) {
-        await supabase.from('schedules').delete().eq('user_id', emp.id).eq('week_start', selectedWeekStart);
-      }
-      const targetPdvId = selectedPdvId !== 'ALL' ? selectedPdvId : (allowedPdvs[0]?.id || 'pdv-1');
-      await fetch(`/api/users/${emp.id}/pdv-member?pdvId=${targetPdvId}&weekStart=${selectedWeekStart}`, {
-        method: 'DELETE'
-      }).catch(() => {});
-    } catch (err) {
-      console.warn('Error deleting schedule row in cloud:', err);
-    }
+    // 4. Mark weekly exclusion so loadScheduleData doesn't auto-generate blank row for this week
+    addWeeklyExclusion(selectedWeekStart, targetPdvId, emp.id, emp.documentId);
 
-    setMessage({
-      type: 'success',
-      text: `✓ Línea de "${emp.fullName}" eliminada correctamente de la programación semanal.`
-    });
+    // 5. Remote database sync
+    try {
+      if (mode === 'DISASSOCIATE_PDV') {
+        // Disassociate from PDV in Supabase and cloud
+        await api.removePdvMember(emp.id, targetPdvId, selectedWeekStart, emp.documentId);
+
+        // Also remove from historical list
+        setAllHistoricalEmployees(prev => prev.filter(e => e.id !== emp.id && (!emp.documentId || String(e.documentId) !== String(emp.documentId))));
+
+        recordAuditEvent({
+          userName: currentUser?.fullName || 'Usuario PDV',
+          userRole: currentUser?.role || 'PDV',
+          action: 'COLLABORATOR_REMOVE',
+          actionLabel: 'Desvinculación de Colaborador del PDV',
+          pdvName: (allowedPdvs.find(p => p.id === targetPdvId) || {}).name || 'Punto de Venta',
+          detail: `Desvinculó a ${emp.fullName} (CC: ${emp.documentId || emp.code}) de la dotación oficial de la tienda`
+        });
+
+        if (onReloadUsers) onReloadUsers();
+
+        setMessage({
+          type: 'success',
+          text: `✓ "${emp.fullName}" fue desvinculado de la dotación de la tienda exitosamente.`
+        });
+      } else {
+        // Mode EXCLUDE_WEEK: Only delete schedule for this week
+        if (api.isConfigured && supabase) {
+          let schedQuery = supabase.from('schedules').delete().eq('week_start', selectedWeekStart);
+          if (emp.documentId) {
+            schedQuery = schedQuery.or(`user_id.eq.${emp.id},user_id.eq.emp-${emp.documentId}`);
+          } else {
+            schedQuery = schedQuery.eq('user_id', emp.id);
+          }
+          await schedQuery;
+        }
+
+        recordAuditEvent({
+          userName: currentUser?.fullName || 'Usuario PDV',
+          userRole: currentUser?.role || 'PDV',
+          action: 'SCHEDULE_LINE_REMOVE',
+          actionLabel: 'Exclusión Semanal de Colaborador',
+          pdvName: (allowedPdvs.find(p => p.id === targetPdvId) || {}).name || 'Punto de Venta',
+          detail: `Retiró la línea de ${emp.fullName} (CC: ${emp.documentId || emp.code}) de la semana ${selectedWeekStart}`
+        });
+
+        setMessage({
+          type: 'success',
+          text: `✓ "${emp.fullName}" fue retirado de la programación de la semana ${selectedWeekStart}. Se mantiene en la dotación del PDV.`
+        });
+      }
+    } catch (err) {
+      console.warn('Error syncing collaborator removal with cloud:', err);
+    }
   }
 
   // Register a new employee to this PDV (Disabled for Supervisor & HR Admin)
@@ -1208,6 +1311,7 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
         setNewDocId('');
         setNewFullName('');
         setNewContractType('FIJO');
+        removeWeeklyExclusion(selectedWeekStart, targetPdvId, data.id, newDocId.trim());
 
         const newEmpObj = {
           id: data.id,
@@ -3397,6 +3501,106 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
           </div>
         </div>
       )}
+
+      {/* MODAL: OPCIONES PARA RETIRAR O DESVINCULAR COLABORADOR */}
+      {employeeToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-150">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full border border-slate-200 overflow-hidden">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-slate-900 to-slate-800 p-5 text-white flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400">
+                  <Trash2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-base leading-tight">Retirar o Desvincular Colaborador</h3>
+                  <p className="text-xs text-slate-300 mt-0.5">Elige cómo deseas gestionar a este colaborador</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEmployeeToDelete(null)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Target details */}
+            <div className="p-5 space-y-4">
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-700 font-black flex items-center justify-center text-sm shrink-0">
+                  {employeeToDelete.fullName?.charAt(0) || 'C'}
+                </div>
+                <div>
+                  <div className="font-black text-slate-900 text-sm">{employeeToDelete.fullName}</div>
+                  <div className="text-xs text-slate-500 font-semibold">
+                    Cédula: <span className="font-mono text-slate-700">{employeeToDelete.documentId || employeeToDelete.code || 'N/A'}</span>
+                    {' • '}
+                    {employeeToDelete.position || 'Colaborador'}
+                  </div>
+                </div>
+              </div>
+
+              {/* Action 1: Weekly exclusion */}
+              <button
+                type="button"
+                onClick={() => handleExecuteRemoveEmployee(employeeToDelete, 'EXCLUDE_WEEK')}
+                className="w-full text-left p-4 rounded-xl border border-amber-200 bg-amber-50/70 hover:bg-amber-100/80 hover:border-amber-300 transition group cursor-pointer"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-lg bg-amber-500/20 text-amber-800 font-bold mt-0.5 shrink-0">
+                    <Calendar className="w-5 h-5 text-amber-700" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-black text-slate-900 text-sm group-hover:text-amber-900 flex items-center justify-between">
+                      <span>1. Quitar solo de esta semana</span>
+                      <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-200 text-amber-900 px-2 py-0.5 rounded-md">Exclusión Semanal</span>
+                    </div>
+                    <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                      El colaborador <strong>no trabajará en la semana actual ({selectedWeekStart})</strong> por vacaciones, incapacidad o descanso. No aparecerá en la grilla con 0.0 hrs ni con alerta de <em>"Falta Turno"</em>, pero <strong>se mantendrá en la dotación de la tienda</strong> para próximas semanas.
+                    </p>
+                  </div>
+                </div>
+              </button>
+
+              {/* Action 2: Permanent disassociation */}
+              <button
+                type="button"
+                onClick={() => handleExecuteRemoveEmployee(employeeToDelete, 'DISASSOCIATE_PDV')}
+                className="w-full text-left p-4 rounded-xl border border-rose-200 bg-rose-50/70 hover:bg-rose-100/80 hover:border-rose-300 transition group cursor-pointer"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-lg bg-rose-500/20 text-rose-800 font-bold mt-0.5 shrink-0">
+                    <UserMinus className="w-5 h-5 text-rose-700" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-black text-slate-900 text-sm group-hover:text-rose-900 flex items-center justify-between">
+                      <span>2. Desvincular de la dotación de la tienda</span>
+                      <span className="text-[10px] font-bold uppercase tracking-wider bg-rose-200 text-rose-900 px-2 py-0.5 rounded-md">Quitar de la Tienda</span>
+                    </div>
+                    <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                      El colaborador <strong>ya no labora en este PDV</strong> (traslado de tienda, fin de contrato o retiro). Se eliminará de la base de datos de esta sede para que <strong>nunca más vuelva a aparecer</strong> en este punto de venta.
+                    </p>
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            {/* Footer */}
+            <div className="bg-slate-50 px-5 py-3 border-t border-slate-200 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setEmployeeToDelete(null)}
+                className="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-800 hover:bg-slate-200 rounded-xl transition cursor-pointer"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 9. MODAL: DIRECTORIO DE HORARIOS HABITUALES OFICIALES (101 PDVs) */}
       <HabitualSchedulesDirectoryModal
         isOpen={showDirectoryModal}

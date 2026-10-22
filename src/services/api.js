@@ -644,17 +644,30 @@ export const api = {
     };
   },
 
-  removePdvMember: async (userId, pdvId, weekStart) => {
+  removePdvMember: async (userId, pdvId, weekStart, documentId) => {
     memoryCache.users = null;
     memoryCache.clearSchedules();
     if (!isSupabaseConfigured) {
-      return fetchLocal(`/api/users/${userId}/pdv-member?pdvId=${pdvId || ''}&weekStart=${weekStart || ''}`, {
+      return fetchLocal(`/api/users/${userId}/pdv-member?pdvId=${pdvId || ''}&weekStart=${weekStart || ''}&documentId=${documentId || ''}`, {
         method: 'DELETE'
       });
     }
-    await supabase.from('users').update({ pdv_id: null }).eq('id', userId);
+    let userQuery = supabase.from('users').update({ pdv_id: null });
+    if (documentId) {
+      userQuery = userQuery.or(`id.eq.${userId},document_id.eq.${documentId}`);
+    } else {
+      userQuery = userQuery.eq('id', userId);
+    }
+    await userQuery;
+
     if (weekStart) {
-      await supabase.from('schedules').delete().eq('user_id', userId).eq('week_start', weekStart);
+      let schedQuery = supabase.from('schedules').delete().eq('week_start', weekStart);
+      if (documentId) {
+        schedQuery = schedQuery.or(`user_id.eq.${userId},user_id.eq.emp-${documentId}`);
+      } else {
+        schedQuery = schedQuery.eq('user_id', userId);
+      }
+      await schedQuery;
     }
     return { success: true };
   },
