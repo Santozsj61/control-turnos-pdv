@@ -29,14 +29,14 @@ export default function QrAntiFraudLabModal({ isOpen, onClose, pdvs = [] }) {
   const [copiedLink, setCopiedLink] = useState(false);
   const [showHostConfig, setShowHostConfig] = useState(false);
 
-  // Generate a dynamic cryptographic token every 10 seconds and encode actionable URL
+  // Generate a dynamic cryptographic token every 20 seconds and encode actionable URL
   function generateNewToken() {
     const timestamp = Date.now();
     const randomSalt = Math.random().toString(36).substring(2, 8).toUpperCase();
     const token = `SECURE-PUNCH-${selectedPdv.code || 'PDV'}-${timestamp}-${randomSalt}`;
     setQrToken(token);
     setTokenCreatedAt(timestamp);
-    setSecondsRemaining(10);
+    setSecondsRemaining(20);
 
     // Encode full actionable URL into QR
     const baseHost = (scanHost || window.location.origin || '').replace(/\/+$/, '');
@@ -55,7 +55,7 @@ export default function QrAntiFraudLabModal({ isOpen, onClose, pdvs = [] }) {
     }).catch(err => console.error('Error generating QR:', err));
   }
 
-  // Timer loop for rotating QR every 10 seconds
+  // Timer loop for rotating QR every 20 seconds
   useEffect(() => {
     if (!isOpen) return;
     generateNewToken();
@@ -64,7 +64,7 @@ export default function QrAntiFraudLabModal({ isOpen, onClose, pdvs = [] }) {
       setSecondsRemaining(prev => {
         if (prev <= 1) {
           generateNewToken();
-          return 10;
+          return 20;
         }
         return prev - 1;
       });
@@ -294,7 +294,7 @@ export default function QrAntiFraudLabModal({ isOpen, onClose, pdvs = [] }) {
               <div className="w-full bg-slate-800 rounded-full h-2 mt-4 overflow-hidden">
                 <div 
                   className={`h-full transition-all duration-1000 ${secondsRemaining <= 3 ? 'bg-rose-500' : 'bg-gradient-to-r from-amber-400 to-emerald-400'}`}
-                  style={{ width: `${(secondsRemaining / 10) * 100}%` }}
+                  style={{ width: `${(secondsRemaining / 20) * 100}%` }}
                 ></div>
               </div>
 
@@ -406,7 +406,7 @@ export default function QrAntiFraudLabModal({ isOpen, onClose, pdvs = [] }) {
                   Token: {qrToken.substring(0, 22)}...
                 </p>
                 <p className="text-[10px] text-slate-400">
-                  ⚡ Cada 10s este código se destruye y se genera uno nuevo.
+                  ⚡ Cada 20s este código se destruye y se genera uno nuevo.
                 </p>
               </div>
 

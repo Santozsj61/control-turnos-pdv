@@ -6,10 +6,12 @@ export default function MobilePunchScreen({ token, pdvId, ts, onBackToPortal }) 
   const [loading, setLoading] = useState(true);
   const [expired, setExpired] = useState(false);
   const [secondsElapsed, setSecondsElapsed] = useState(0);
+  const [secondsRemaining, setSecondsRemaining] = useState(45);
   const [gpsLocation, setGpsLocation] = useState(null);
   const [gpsError, setGpsError] = useState(null);
   const [calculatingGps, setCalculatingGps] = useState(false);
   const [distanceMeters, setDistanceMeters] = useState(null);
+  const [auditTestBypass, setAuditTestBypass] = useState(true); // Default true in VRX Lab for testing convenience
 
   // Form states
   const [documentId, setDocumentId] = useState('');
@@ -26,32 +28,45 @@ export default function MobilePunchScreen({ token, pdvId, ts, onBackToPortal }) 
     lng: -76.5320
   };
 
-  // 1. Time verification (Anti-Fraud Shield #1: 15s max tolerance for WhatsApp photos)
+  // 1. Time verification (Anti-Fraud Shield #1: 45s tolerance for mobile cellular network latency)
   useEffect(() => {
     const creationTime = Number(ts) || Date.now();
-    const elapsed = Math.round((Date.now() - creationTime) / 1000);
-    setSecondsElapsed(elapsed);
 
-    // If more than 15 seconds have passed, mark as EXPIRED
-    if (elapsed > 15) {
-      setExpired(true);
-      setLoading(false);
-      return;
+    function checkAge() {
+      const now = Date.now();
+      // Handle slight clock drift between PC and Phone
+      const elapsed = Math.max(0, Math.round((now - creationTime) / 1000));
+      setSecondsElapsed(elapsed);
+      const remaining = Math.max(0, 45 - elapsed);
+      setSecondsRemaining(remaining);
+
+      // If more than 45 seconds have passed, mark as EXPIRED (blocked photo re-transmission)
+      if (elapsed > 45) {
+        setExpired(true);
+        setLoading(false);
+      } else {
+        setExpired(false);
+        setLoading(false);
+      }
     }
 
-    setExpired(false);
-    setLoading(false);
+    checkAge();
     requestGpsLocation();
+
+    const timer = setInterval(checkAge, 1000);
+    return () => clearInterval(timer);
   }, [ts]);
 
   // 2. Request real GPS location from smartphone
   function requestGpsLocation() {
     if (!navigator.geolocation) {
-      setGpsError('Tu navegador móvil no soporta geolocalización.');
+      setGpsError('Tu navegador móvil no soporta geolocalización satelital.');
       return;
     }
 
     setCalculatingGps(true);
+    setGpsError(null);
+
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const coords = {
@@ -61,8 +76,9 @@ export default function MobilePunchScreen({ token, pdvId, ts, onBackToPortal }) 
         };
         setGpsLocation(coords);
         setCalculatingGps(false);
+        setGpsError(null);
 
-        // Calculate distance to PDV (Haversine formula approximation)
+        // Calculate distance to PDV (Haversine formula)
         const pdvLat = targetPdv.lat || 3.4516;
         const pdvLng = targetPdv.lng || -76.5320;
         const distM = calculateDistanceInMeters(coords.lat, coords.lng, pdvLat, pdvLng);
@@ -70,9 +86,17 @@ export default function MobilePunchScreen({ token, pdvId, ts, onBackToPortal }) 
       },
       (err) => {
         setCalculatingGps(false);
-        setGpsError('Para validar tu asistencia debes permitir el acceso a tu ubicación GPS.');
+        let msg = 'Permiso de ubicación GPS denegado por el usuario.';
+        if (err.code === 1) {
+          msg = 'Acceso a ubicación denegado. Para registrar tu asistencia debes permitir el GPS en tu navegador.';
+        } else if (err.code === 2) {
+          msg = 'No se pudo obtener señal satelital GPS. Verifica que la ubicación de tu móvil esté encendida.';
+        } else if (err.code === 3) {
+          msg = 'Tiempo de espera agotado al conectar con el chip GPS del teléfono.';
+        }
+        setGpsError(msg);
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
     );
   }
 
@@ -98,18 +122,30 @@ export default function MobilePunchScreen({ token, pdvId, ts, onBackToPortal }) 
       return;
     }
 
+    // MANDATORY GPS CHECK (Anti-Fraud Shield #2)
+    if (!gpsLocation) {
+      setErrorMessage('⛔ UBICACIÓN OBLIGATORIA: No puedes registrar asistencia sin activar y permitir el GPS.');
+      return;
+    }
+
+    // GEOFENCE DISTANCE CHECK
+    if (distanceMeters !== null && distanceMeters > 150 && !auditTestBypass) {
+      setErrorMessage(`⛔ Fuera del Perímetro: Tu celular está a ${distanceMeters > 1000 ? (distanceMeters/1000).toFixed(1) + ' km' : distanceMeters + ' m'} de la tienda. Máximo permitido: 100m.`);
+      return;
+    }
+
     setSubmitting(true);
     setErrorMessage(null);
 
-    // Verify token expiration at submission time as well
+    // Verify token expiration at submission time
     const elapsedNow = Math.round((Date.now() - Number(ts)) / 1000);
-    if (elapsedNow > 30) {
+    if (elapsedNow > 60) {
       setSubmitting(false);
       setExpired(true);
       return;
     }
 
-    // Verify if token was already used
+    // Verify if token was already used (Single-Use Token Shield #3)
     const usedKey = `qr_punch_used_${token}`;
     if (localStorage.getItem(usedKey)) {
       setSubmitting(false);
@@ -130,7 +166,8 @@ export default function MobilePunchScreen({ token, pdvId, ts, onBackToPortal }) 
         type: punchType === 'ENTRY' ? 'ENTRADA' : punchType === 'EXIT' ? 'SALIDA' : 'DESCANSO / ALMUERZO',
         time: new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
         date: new Date().toLocaleDateString('es-CO', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
-        locationVerified: distanceMeters !== null && distanceMeters <= 100 ? 'En Tienda (Validado)' : 'Ubicación Auditada',
+        locationVerified: distanceMeters !== null && distanceMeters <= 100 ? `En Tienda (${distanceMeters}m)` : `Auditado (${distanceMeters > 1000 ? (distanceMeters/1000).toFixed(1) + ' km' : distanceMeters + 'm'})`,
+        coords: gpsLocation ? `${gpsLocation.lat.toFixed(4)}, ${gpsLocation.lng.toFixed(4)}` : 'No GPS',
         tokenShort: token ? token.substring(0, 18) : 'TOKEN-VERIFICADO'
       });
     }, 1000);
@@ -283,41 +320,108 @@ export default function MobilePunchScreen({ token, pdvId, ts, onBackToPortal }) 
           <h1 className="text-xl sm:text-2xl font-black text-white">
             {targetPdv.name}
           </h1>
-          <p className="text-xs text-slate-400">
-            Código PDV: <span className="font-mono text-white font-bold">{targetPdv.code || 'PDV-001'}</span>
-          </p>
+          <div className="flex items-center justify-center gap-3 text-xs text-slate-400">
+            <span>Código: <strong className="text-white font-mono">{targetPdv.code || 'PDV-001'}</strong></span>
+            <span>•</span>
+            <span className={`font-mono font-bold flex items-center gap-1 ${secondsRemaining <= 10 ? 'text-rose-400' : 'text-amber-400'}`}>
+              <Clock className="w-3 h-3" />
+              Vence en: {secondsRemaining}s
+            </span>
+          </div>
         </div>
 
         {/* GPS Live Status Box */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 text-xs flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className={`p-2 rounded-xl ${gpsLocation ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}`}>
-              <MapPin className="w-4 h-4" />
+        {gpsError ? (
+          <div className="bg-rose-950/40 border border-rose-500/40 rounded-2xl p-4 text-xs space-y-2.5">
+            <div className="flex items-center justify-between">
+              <span className="font-black text-rose-300 flex items-center gap-1.5 text-sm">
+                <AlertTriangle className="w-4 h-4 text-rose-400" />
+                Permiso GPS No Autorizado
+              </span>
+              <span className="text-[10px] font-mono font-black text-rose-300 bg-rose-900/80 px-2 py-0.5 rounded border border-rose-700">
+                BLOQUEADO
+              </span>
             </div>
-            <div>
-              <div className="font-bold text-white flex items-center gap-1.5">
-                <span>Geolocalización GPS:</span>
-                {calculatingGps && <RefreshCw className="w-3 h-3 animate-spin text-amber-400" />}
-              </div>
-              <p className="text-[11px] text-slate-400">
-                {gpsLocation ? (
-                  distanceMeters !== null && distanceMeters <= 100 ? (
-                    <span className="text-emerald-400 font-bold">✓ En tienda (a {distanceMeters}m de la caja)</span>
-                  ) : (
-                    <span>GPS activo (Precisión: {gpsLocation.accuracy}m)</span>
-                  )
-                ) : (
-                  <span>Obteniendo coordenadas del móvil...</span>
-                )}
-              </p>
+            <p className="text-[11px] text-slate-300 leading-relaxed">
+              {gpsError}
+            </p>
+            <div className="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800 text-[10px] text-slate-400 space-y-1">
+              <p className="font-bold text-slate-200">¿Por qué es obligatorio activar el GPS?</p>
+              <p>Por seguridad laboral y auditoría VRX, el sistema no permite registrar turnos a ciegas. Debe certificar satelitalmente que estás físicamente dentro del local.</p>
             </div>
+            <button
+              type="button"
+              onClick={requestGpsLocation}
+              disabled={calculatingGps}
+              className="w-full py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-xl transition flex items-center justify-center gap-2 cursor-pointer shadow-md"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${calculatingGps ? 'animate-spin' : ''}`} />
+              <span>{calculatingGps ? 'Conectando con GPS...' : 'Autorizar / Reintentar GPS Ahora'}</span>
+            </button>
           </div>
-          {gpsLocation && (
-            <span className="bg-emerald-500/20 text-emerald-300 text-[10px] font-black px-2 py-0.5 rounded-full border border-emerald-400/30">
-              GPS OK
-            </span>
-          )}
-        </div>
+        ) : (
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3.5 text-xs flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className={`p-2 rounded-xl ${gpsLocation ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}`}>
+                <MapPin className="w-4 h-4" />
+              </div>
+              <div>
+                <div className="font-bold text-white flex items-center gap-1.5">
+                  <span>Geolocalización GPS:</span>
+                  {calculatingGps && <RefreshCw className="w-3 h-3 animate-spin text-amber-400" />}
+                </div>
+                <p className="text-[11px] text-slate-400">
+                  {gpsLocation ? (
+                    distanceMeters !== null && distanceMeters <= 100 ? (
+                      <span className="text-emerald-400 font-bold">✓ En tienda (a {distanceMeters}m de la caja)</span>
+                    ) : (
+                      <span className="text-amber-300">
+                        GPS Activo • A {distanceMeters > 1000 ? (distanceMeters/1000).toFixed(1) + ' km' : distanceMeters + ' m'} del PDV
+                      </span>
+                    )
+                  ) : (
+                    <span>Detectando coordenadas del móvil...</span>
+                  )}
+                </p>
+              </div>
+            </div>
+            {gpsLocation ? (
+              <span className="bg-emerald-500/20 text-emerald-300 text-[10px] font-black px-2 py-0.5 rounded-full border border-emerald-400/30">
+                GPS ACTIVO
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={requestGpsLocation}
+                className="text-[10px] text-amber-400 hover:text-amber-300 font-bold underline"
+              >
+                Activar
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* If GPS is active but outside of the 100m geofence */}
+        {gpsLocation && distanceMeters !== null && distanceMeters > 100 && (
+          <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-3 text-xs text-amber-200 space-y-2">
+            <div className="flex items-center gap-1.5 font-bold text-amber-300">
+              <AlertTriangle className="w-4 h-4 text-amber-400" />
+              <span>Detección de Geocerca (Modo Auditoría VRX)</span>
+            </div>
+            <p className="text-[10px] text-slate-300 leading-tight">
+              Tu celular está a <strong>{distanceMeters > 1000 ? (distanceMeters/1000).toFixed(1) + ' km' : distanceMeters + ' metros'}</strong> del PDV oficial. En tiendas reales se exige estar a menos de 100 metros.
+            </p>
+            <label className="flex items-center gap-2 pt-1 text-[11px] cursor-pointer text-slate-300">
+              <input
+                type="checkbox"
+                checked={auditTestBypass}
+                onChange={(e) => setAuditTestBypass(e.target.checked)}
+                className="rounded border-slate-700 text-amber-500 focus:ring-amber-400"
+              />
+              <span>Permitir marcación para prueba de laboratorio (Registrar con Novedad VRX)</span>
+            </label>
+          </div>
+        )}
 
         {/* Punch Form */}
         <form onSubmit={handleSubmitPunch} className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4 shadow-xl">
@@ -383,21 +487,30 @@ export default function MobilePunchScreen({ token, pdvId, ts, onBackToPortal }) 
           </div>
 
           {errorMessage && (
-            <div className="p-3 bg-rose-500/20 border border-rose-500/40 rounded-xl text-xs text-rose-300 font-bold">
-              {errorMessage}
+            <div className="p-3 bg-rose-500/20 border border-rose-500/40 rounded-xl text-xs text-rose-300 font-bold space-y-1">
+              <p>{errorMessage}</p>
             </div>
           )}
 
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={submitting}
-            className="w-full py-3.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 font-black text-sm rounded-xl transition shadow-lg shadow-orange-500/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+            disabled={submitting || (!gpsLocation && !gpsError)}
+            className={`w-full py-3.5 font-black text-sm rounded-xl transition shadow-lg flex items-center justify-center gap-2 cursor-pointer ${
+              !gpsLocation
+                ? 'bg-slate-800 text-slate-400 border border-slate-700 cursor-not-allowed'
+                : 'bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-slate-950 shadow-orange-500/20'
+            }`}
           >
             {submitting ? (
               <>
                 <RefreshCw className="w-4 h-4 animate-spin text-slate-950" />
                 <span>Registrando Asistencia...</span>
+              </>
+            ) : !gpsLocation ? (
+              <>
+                <MapPin className="w-4 h-4 text-amber-400" />
+                <span>GPS REQUERIDO PARA MARCAR</span>
               </>
             ) : (
               <>
