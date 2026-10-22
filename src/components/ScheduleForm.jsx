@@ -308,23 +308,23 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
       existingScheds.forEach(es => {
         const u = es.user || {};
         const doc = u.document_id || (es.userId?.startsWith('emp-') ? es.userId.replace('emp-', '') : '');
-        const isRet = u.is_active === false || (doc && !ACTIVE_371_DOCUMENTS.has(doc));
-        const rawName = u.full_name || `COLABORADOR ${doc || es.userId}`;
-        const finalName = isRet && !rawName.includes('(Retirado)') ? `${rawName} (Retirado)` : rawName;
+        // Regla: si el colaborador tiene programación, es ACTIVO y NUNCA aparece como Retirado
+        const rawName = String(u.full_name || `COLABORADOR ${doc || es.userId}`).replace(/\s*\(Retirado\)/gi, '').trim();
 
         const existingEmp = emps.find(e => e.id === es.userId || (doc && String(e.documentId) === String(doc)));
         if (!existingEmp) {
           const newEmp = {
             id: es.userId.startsWith('emp-') ? es.userId : (doc ? `emp-${doc}` : es.userId),
-            fullName: finalName,
+            fullName: rawName,
+            originalFullName: rawName,
             documentId: doc || '1000000000',
             position: u.position || 'ASESOR(A) DE IMAGEN',
             role: 'EMPLOYEE',
             pdvId: es.pdvId || u.pdv_id || 'pdv-1',
             pdv_id: es.pdvId || u.pdv_id || 'pdv-1',
             contractType: u.contract_type || 'FIJO',
-            isRetired: isRet,
-            statusLabel: isRet ? 'Retirado' : 'Activo'
+            isRetired: false,
+            statusLabel: 'Activo'
           };
           emps.push(newEmp);
         } else {
@@ -333,15 +333,21 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
             existingEmp.pdvId = es.pdvId;
             existingEmp.pdv_id = es.pdvId;
           }
-          if (isRet) {
-            existingEmp.isRetired = true;
-            existingEmp.statusLabel = 'Retirado';
-            if (!existingEmp.fullName.includes('(Retirado)')) {
-              existingEmp.fullName = `${existingEmp.fullName} (Retirado)`;
-            }
-          }
+          existingEmp.isRetired = false;
+          existingEmp.statusLabel = 'Activo';
+          existingEmp.fullName = String(existingEmp.fullName || rawName).replace(/\s*\(Retirado\)/gi, '').trim();
+          existingEmp.originalFullName = String(existingEmp.originalFullName || rawName).replace(/\s*\(Retirado\)/gi, '').trim();
         }
       });
+
+      // Limpieza global garantizada: remover cualquier vestigio de '(Retirado)' en toda la lista activa
+      emps.forEach(e => {
+        if (e.fullName) e.fullName = String(e.fullName).replace(/\s*\(Retirado\)/gi, '').trim();
+        if (e.originalFullName) e.originalFullName = String(e.originalFullName).replace(/\s*\(Retirado\)/gi, '').trim();
+        e.isRetired = false;
+        e.statusLabel = 'Activo';
+      });
+
       setAllHistoricalEmployees([...emps]);
 
       // 4. Resolve active employees for this specific week and scope
@@ -841,33 +847,28 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
               allowedPdvs[0] || 
               { id: 'pdv-1', name: 'PDV Principal' };
 
-            const targetDoc = docVal || emp?.documentId;
-            const isActive = isCollaboratorActive(targetDoc);
-            const isRetired = !isActive;
-            if (isRetired) retiredUploadedCount++;
+            const cleanName = String(nameVal || emp?.fullName || `COLABORADOR ${docVal || emp?.documentId}`).replace(/\s*\(Retirado\)/gi, '').trim();
 
             // If not found in loaded scope, create standardized employee object without duplicates
             if (!emp && (docVal || nameVal)) {
-              const { displayName } = tagCollaboratorStatus(docVal, nameVal || `COLABORADOR ${docVal}`);
               emp = {
                 id: `emp-${docVal || Date.now()}`,
-                fullName: displayName,
-                originalFullName: nameVal || `COLABORADOR ${docVal}`,
+                fullName: cleanName,
+                originalFullName: cleanName,
                 documentId: docVal || '1000000000',
                 position: 'ASESOR(A) DE IMAGEN',
                 role: 'EMPLOYEE',
                 pdvId: matchedPdv.id,
                 contractType: 'FIJO',
-                isRetired,
-                statusLabel: isActive ? 'Activo' : 'Retirado'
+                isRetired: false,
+                statusLabel: 'Activo'
               };
               updatedEmployees.push(emp);
-            } else if (emp && isRetired) {
-              emp.isRetired = true;
-              emp.statusLabel = 'Retirado';
-              if (!emp.fullName.includes('(Retirado)')) {
-                emp.fullName = `${emp.fullName} (Retirado)`;
-              }
+            } else if (emp) {
+              emp.isRetired = false;
+              emp.statusLabel = 'Activo';
+              emp.fullName = String(emp.fullName || cleanName).replace(/\s*\(Retirado\)/gi, '').trim();
+              emp.originalFullName = String(emp.originalFullName || cleanName).replace(/\s*\(Retirado\)/gi, '').trim();
             }
 
             if (!emp) continue;
@@ -1787,7 +1788,7 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
                       <td className="p-3 border-r border-slate-200 sticky left-0 bg-white z-10 shadow-xs">
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <span className="font-extrabold text-slate-900 leading-tight">{emp.fullName}</span>
-                          {(emp.isRetired || !isCollaboratorActive(emp.documentId)) && (
+                          {emp.isRetired && (
                             <span className="text-[9px] font-black px-1.5 py-0.2 rounded border bg-rose-100 text-rose-800 border-rose-300">
                               Retirado
                             </span>
@@ -2603,14 +2604,11 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
                 className="w-full bg-white border border-blue-300 rounded-lg p-2 font-bold text-slate-900 focus:ring-2 focus:ring-blue-500 cursor-pointer"
               >
                 <option value="">-- Seleccionar Colaborador Previo para Reincorporar con 1 Clic --</option>
-                {allHistoricalEmployees.map(u => {
-                  const isRet = !isCollaboratorActive(u.documentId);
-                  return (
-                    <option key={u.id} value={u.documentId || u.id}>
-                      {u.fullName}{isRet ? ' (Retirado)' : ''} - CC: {u.documentId} ({u.position || 'Asesor'}) [{u.contractType || 'Fijo'}]
-                    </option>
-                  );
-                })}
+                {allHistoricalEmployees.map(u => (
+                  <option key={u.id} value={u.documentId || u.id}>
+                    {u.fullName} - CC: {u.documentId} ({u.position || 'Asesor'}) [{u.contractType || 'Fijo'}]
+                  </option>
+                ))}
               </select>
               <span className="text-[10px] text-blue-700 mt-1 block font-medium">
                 Al seleccionar un colaborador previo, sus datos se autocompletarán inmediatamente.
@@ -3326,7 +3324,7 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
                           <td className="p-3 font-bold text-slate-900">
                             <div className="flex items-center gap-1.5 flex-wrap">
                               <span>{emp.fullName}</span>
-                              {(emp.isRetired || !isCollaboratorActive(emp.documentId)) && (
+                              {emp.isRetired && (
                                 <span className="text-[9px] font-black px-1.5 py-0.2 rounded border bg-rose-100 text-rose-800 border-rose-300">
                                   Retirado
                                 </span>

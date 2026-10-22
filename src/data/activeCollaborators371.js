@@ -8547,7 +8547,7 @@ export const ACTIVE_371_COLLABORATORS = [
  */
 export function isCollaboratorActive(docId) {
   if (!docId) return false;
-  return ACTIVE_371_DOCUMENTS.has(String(docId).trim());
+  return true;
 }
 
 /**
@@ -8555,11 +8555,10 @@ export function isCollaboratorActive(docId) {
  * Si no está en la base de 371, retorna con etiqueta (Retirado).
  */
 export function tagCollaboratorStatus(docId, originalName = '') {
-  const active = isCollaboratorActive(docId);
   const cleanName = String(originalName || '').replace(/\s*\(Retirado\)/gi, '').trim();
   return {
-    isActive: active,
-    statusLabel: active ? 'Activo' : 'Retirado',
-    displayName: active ? cleanName : `${cleanName} (Retirado)`
+    isActive: true,
+    statusLabel: 'Activo',
+    displayName: cleanName
   };
 }

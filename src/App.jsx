@@ -91,7 +91,7 @@ export default function App() {
 
       // Limpieza automática única de cachés locales antiguas (turnos, marcaciones, novedades)
       if (typeof window !== 'undefined' && window.localStorage) {
-        const PURGE_KEY = 'control_turnos_purged_371_v3';
+        const PURGE_KEY = 'control_turnos_purged_active_clean_v4';
         if (!localStorage.getItem(PURGE_KEY)) {
           const keysToRemove = Object.keys(localStorage).filter(k => 
             k.startsWith('control_turnos_schedules_') ||

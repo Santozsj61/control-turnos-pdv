@@ -806,7 +806,7 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                             <span className="font-extrabold text-slate-900 text-[11px] leading-snug truncate max-w-full block" title={collab.fullName}>
                               {collab.fullName}
                             </span>
-                            {(collab.isRetired || !isCollaboratorActive(collab.documentId)) && (
+                            {(collab.isRetired && !collab.scheduledNetHours && !collab.realNetHours) && (
                               <span className="bg-rose-100 text-rose-800 text-[8px] font-black px-1 py-0.2 rounded border border-rose-300">
                                 Retirado
                               </span>
@@ -2374,7 +2374,7 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                             <span className="font-extrabold text-slate-900 text-[11px] leading-snug truncate max-w-full block" title={collab.fullName}>
                               {collab.fullName}
                             </span>
-                            {(collab.isRetired || !isCollaboratorActive(collab.documentId)) && (
+                            {(collab.isRetired && !collab.scheduledNetHours && !collab.realNetHours) && (
                               <span className="bg-rose-100 text-rose-800 text-[8px] font-black px-1 py-0.2 rounded border border-rose-300">
                                 Retirado
                               </span>
@@ -2819,7 +2819,7 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                                   <td className="py-3 px-3.5">
                                     <div className="flex items-center gap-1.5 flex-wrap">
                                       <span className="font-bold text-slate-900">{row.fullName}</span>
-                                      {(!isCollaboratorActive(row.documentId) || row.isRetired) && (
+                                      {(row.isRetired && !row.scheduledNetHours && !row.realNetHours) && (
                                         <span className="bg-rose-100 text-rose-800 text-[9px] font-black px-1.5 py-0.2 rounded border border-rose-300">
                                           Retirado
                                         </span>
@@ -3036,7 +3036,7 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                       <td className="py-3 px-3.5">
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <span className="font-bold text-slate-900">{row.fullName}</span>
-                          {(!isCollaboratorActive(row.documentId) || row.isRetired) && (
+                          {(row.isRetired && !row.scheduledNetHours && !row.realNetHours) && (
                             <span className="bg-rose-100 text-rose-800 text-[9px] font-black px-1.5 py-0.2 rounded border border-rose-300">
                               Retirado
                             </span>

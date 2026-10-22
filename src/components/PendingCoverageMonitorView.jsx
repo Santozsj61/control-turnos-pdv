@@ -192,12 +192,13 @@ export default function PendingCoverageMonitorView({ currentUser, pdvs, supervis
     const baseDocSet = new Set(baseCollabs.map(c => String(c.documentId).trim()));
     (users || []).forEach(u => {
       const doc = String(u.document_id || u.documentId || '').trim();
-      const isRetired = u.is_active === false || (u.full_name && u.full_name.includes('(Retirado)'));
+      const cleanName = String(u.full_name || u.fullName || '').replace(/\s*\(Retirado\)/gi, '').trim();
+      const isRetired = u.is_active === false;
       if (doc && !baseDocSet.has(doc) && (u.role === 'EMPLOYEE' || !u.role) && !isRetired) {
         baseDocSet.add(doc);
         baseCollabs.push({
           id: u.id || `emp-${doc}`,
-          fullName: u.full_name || u.fullName,
+          fullName: cleanName,
           documentId: doc,
           role: u.role || 'EMPLOYEE',
           pdvId: u.pdv_id || u.pdvId,
@@ -458,8 +459,8 @@ export default function PendingCoverageMonitorView({ currentUser, pdvs, supervis
             'Zona': p.zone,
             'Líder Regional': p.supervisorName,
             'Documento Colaborador': c.documentId,
-            'Nombre Colaborador': isAct ? c.fullName : `${String(c.fullName || '').replace(/\s*\(Retirado\)/gi, '')} (Retirado)`,
-            'Estado': isAct ? 'Activo' : 'Retirado',
+            'Nombre Colaborador': String(c.fullName || '').replace(/\s*\(Retirado\)/gi, '').trim(),
+            'Estado': 'Activo',
             'Cargo': c.position,
             'Pendiente Turno Programado': c.isPendingProgram ? 'SÍ' : 'NO',
             'Pendiente Marcación': c.isPendingPunch ? 'SÍ' : 'NO',
