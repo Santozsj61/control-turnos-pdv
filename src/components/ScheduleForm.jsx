@@ -23,6 +23,7 @@ import { supabase } from '../services/supabaseClient.js';
 import { isCollaboratorActive, tagCollaboratorStatus, ACTIVE_371_DOCUMENTS } from '../data/activeCollaborators371.js';
 import { getHabitualScheduleForPdv, getHabitualDaySchedule, checkOutsideHabitualHours } from '../data/habitualSchedules.js';
 import HabitualSchedulesDirectoryModal from './HabitualSchedulesDirectoryModal.jsx';
+import ScheduleExportModal from './ScheduleExportModal.jsx';
 import { recordAuditEvent } from '../services/auditService.js';
 
 const DAYS_NAME = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
@@ -97,6 +98,7 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
   const [uploadingPunches, setUploadingPunches] = useState(false);
   const [uploadingSchedule, setUploadingSchedule] = useState(false);
   const [message, setMessage] = useState(null);
+  const [showExportRangeModal, setShowExportRangeModal] = useState(false);
   const [, setWeeksRevision] = useState(0);
 
   useEffect(() => {
@@ -2521,16 +2523,16 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
               </label>
             )}
 
-            {/* BOTÓN DESCARGAR EXCEL (Exclusivo Talento Humano, Administrador & Auditor VRX en vista global) */}
-            {(isHrAdmin || isAdmin || isAuditorVrx) && !isPdv && selectedPdvId === 'ALL' && (
+            {/* BOTÓN DESCARGAR EXCEL POR LAPSOS (Talento Humano, Administrador, Auditor VRX & Supervisor) */}
+            {(isHrAdmin || isAdmin || isAuditorVrx || isSupervisor) && !isPdv && (
               <button
                 type="button"
-                onClick={handleExportScheduleExcel}
-                className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2 rounded-xl transition shadow-md shadow-emerald-600/20"
-                title="Descargar toda la información de horarios de los colaboradores a Excel"
+                onClick={() => setShowExportRangeModal(true)}
+                className="flex items-center gap-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs px-4 py-2 rounded-xl transition shadow-md shadow-emerald-600/20 cursor-pointer"
+                title="Descargar la programación de horarios en cualquier lapso de tiempo (semanas, quincenas, meses o rango de fechas)"
               >
                 <FileSpreadsheet className="w-4 h-4" />
-                <span>Descargar Excel Horarios</span>
+                <span>Descargar Excel (Por Lapsos)</span>
               </button>
             )}
 
@@ -3402,6 +3404,20 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
         isOpen={showDirectoryModal}
         onClose={() => setShowDirectoryModal(false)}
         currentPdv={currentHabitualPdv}
+      />
+
+      {/* 10. MODAL: EXPORTACIÓN DE HORARIOS POR LAPSOS DE TIEMPO PERSONALIZADOS */}
+      <ScheduleExportModal
+        isOpen={showExportRangeModal}
+        onClose={() => setShowExportRangeModal(false)}
+        pdvs={pdvs}
+        supervisors={supervisors}
+        currentUser={currentUser}
+        selectedPdvId={selectedPdvId}
+        activeSinglePdv={activeSinglePdv}
+        selectedWeekStart={selectedWeekStart}
+        allHistoricalEmployees={allHistoricalEmployees}
+        currentScheduleMatrix={scheduleMatrix}
       />
     </div>
   );
