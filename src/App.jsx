@@ -20,6 +20,21 @@ import { recordAuditEvent } from './services/auditService.js';
 import { api } from './services/api.js';
 import { initialSupervisors, initialPDVs, initialUsers } from './data/seedData.js';
 
+function isTalentoHumanoUser(u) {
+  if (!u) return false;
+  return (
+    u.role === 'HR_ADMIN' ||
+    u.role === 'HR' ||
+    u.role === 'TALENTO_HUMANO' ||
+    u.role === 'TALENTO HUMANO' ||
+    u.id === 'user-th' ||
+    u.id === 'user-thumano' ||
+    u.username?.toLowerCase() === 'th' ||
+    u.username?.toLowerCase() === 'thumano' ||
+    u.fullName?.toLowerCase().includes('talento humano')
+  );
+}
+
 export default function App() {
   const [users, setUsers] = useState(initialUsers);
   const [pdvs, setPdvs] = useState(initialPDVs);
@@ -84,6 +99,10 @@ export default function App() {
         setShowHomeScreen(false);
         if (matched.role === 'MAINTENANCE_APPROVER') {
           setActiveTab('permissions');
+        } else if (isTalentoHumanoUser(matched)) {
+          setActiveTab('reconciliation');
+        } else if (matched.role === 'AUDITOR_VRX') {
+          setActiveTab('audit_logs');
         }
       } else {
         setCurrentUser(null);
@@ -150,10 +169,21 @@ export default function App() {
       setActiveTab('permissions');
     } else if (newUser.role === 'AUDITOR_VRX') {
       setActiveTab('audit_logs');
+    } else if (isTalentoHumanoUser(newUser)) {
+      setActiveTab('reconciliation');
     } else {
       setActiveTab('schedule');
     }
   }
+
+  // Ensure activeTab is always valid for Talento Humano
+  useEffect(() => {
+    if (isTalentoHumanoUser(currentUser)) {
+      if (activeTab !== 'reconciliation' && activeTab !== 'analytics') {
+        setActiveTab('reconciliation');
+      }
+    }
+  }, [currentUser, activeTab]);
 
   if (loading && !currentUser) {
     return (

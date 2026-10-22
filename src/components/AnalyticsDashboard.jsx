@@ -181,7 +181,16 @@ const ALL_AVAILABLE_WEEKS = [
 
 export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
   const isAdmin = currentUser?.role === 'ADMIN';
-  const isHrAdmin = currentUser?.role === 'HR_ADMIN';
+  const isHrAdmin = 
+    currentUser?.role === 'HR_ADMIN' || 
+    currentUser?.role === 'HR' || 
+    currentUser?.role === 'TALENTO_HUMANO' || 
+    currentUser?.role === 'TALENTO HUMANO' ||
+    currentUser?.id === 'user-th' ||
+    currentUser?.id === 'user-thumano' ||
+    currentUser?.username?.toLowerCase() === 'th' ||
+    currentUser?.username?.toLowerCase() === 'thumano' ||
+    currentUser?.fullName?.toLowerCase().includes('talento humano');
   const isAuditorVrx = currentUser?.role === 'AUDITOR_VRX';
   const isSupervisor = currentUser?.role === 'SUPERVISOR';
   
@@ -216,6 +225,12 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
       if (saved) setPayrollData(saved);
     }).catch(err => console.error('Error loading payroll liquidation:', err));
   }, [selectedPayrollWeek]);
+
+  useEffect(() => {
+    if (activeView === 'ZONES') {
+      setActiveView('MOM_OVERVIEW');
+    }
+  }, [activeView]);
 
   const handlePayrollUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -1004,26 +1019,31 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
               </select>
             </div>
 
-            <button
-              onClick={exportAnalyticsReport}
-              className="flex items-center gap-1.5 bg-purple-600 hover:bg-purple-500 text-white font-black text-xs px-4 py-2.5 rounded-xl transition shadow-md shadow-purple-500/20 cursor-pointer"
-            >
-              <FileSpreadsheet className="w-4 h-4" />
-              <span>Exportar Reporte (.xlsx)</span>
-            </button>
+            {/* Botones de acción: Ocultos para Talento Humano (isHrAdmin) y Líder de Zona (isSupervisor) */}
+            {!isHrAdmin && !isSupervisor && (
+              <>
+                <button
+                  onClick={exportAnalyticsReport}
+                  className="flex items-center gap-1.5 bg-purple-600 hover:bg-purple-500 text-white font-black text-xs px-4 py-2.5 rounded-xl transition shadow-md shadow-purple-500/20 cursor-pointer"
+                >
+                  <FileSpreadsheet className="w-4 h-4" />
+                  <span>Exportar Reporte (.xlsx)</span>
+                </button>
 
-            {/* Botón Cargar Liquidación Oficial de Nómina (HS) */}
-            <label className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs px-4 py-2.5 rounded-xl transition shadow-md shadow-emerald-500/20 cursor-pointer">
-              <Upload className={`w-4 h-4 ${uploadingPayroll ? 'animate-bounce' : ''}`} />
-              <span>{uploadingPayroll ? 'Procesando Nómina...' : 'Cargar Liquidación Nómina (HS)'}</span>
-              <input
-                type="file"
-                accept=".xlsx,.xls"
-                onChange={handlePayrollUpload}
-                disabled={uploadingPayroll}
-                className="hidden"
-              />
-            </label>
+                {/* Botón Cargar Liquidación Oficial de Nómina (HS) */}
+                <label className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs px-4 py-2.5 rounded-xl transition shadow-md shadow-emerald-500/20 cursor-pointer">
+                  <Upload className={`w-4 h-4 ${uploadingPayroll ? 'animate-bounce' : ''}`} />
+                  <span>{uploadingPayroll ? 'Procesando Nómina...' : 'Cargar Liquidación Nómina (HS)'}</span>
+                  <input
+                    type="file"
+                    accept=".xlsx,.xls"
+                    onChange={handlePayrollUpload}
+                    disabled={uploadingPayroll}
+                    className="hidden"
+                  />
+                </label>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -1476,18 +1496,6 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
         >
           <Store className="w-4 h-4" />
           <span>Ranking de PDVs ({topPdvsSpecial.length})</span>
-        </button>
-
-        <button
-          onClick={() => setActiveView('ZONES')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl transition ${
-            activeView === 'ZONES'
-              ? 'bg-purple-600 text-white shadow-xs'
-              : 'text-slate-600 hover:bg-slate-100'
-          }`}
-        >
-          <Building2 className="w-4 h-4" />
-          <span>Consolidado por 15 Zonas</span>
         </button>
 
         <button

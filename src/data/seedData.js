@@ -16704,7 +16704,7 @@ export const initialUsers = [
     "username": "th",
     "password": "200102",
     "fullName": "DIRECCIÓN DE TALENTO HUMANO",
-    "role": "HR",
+    "role": "HR_ADMIN",
     "position": "ANALISTA DE NÓMINA Y ASISTENCIA",
     "area": "GESTIÓN HUMANA"
   },

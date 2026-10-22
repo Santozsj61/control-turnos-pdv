@@ -5,7 +5,16 @@ import ConnectionStatusBadge from './ConnectionStatusBadge.jsx';
 export default function Header({ activeTab, setActiveTab, currentUser, onOpenUserSwitcher, onGoToHome, onLogout, pendingPermissionsCount }) {
   const isSupervisor = currentUser?.role === 'SUPERVISOR';
   const isAdmin = currentUser?.role === 'ADMIN';
-  const isHrAdmin = currentUser?.role === 'HR_ADMIN';
+  const isHrAdmin = 
+    currentUser?.role === 'HR_ADMIN' || 
+    currentUser?.role === 'HR' || 
+    currentUser?.role === 'TALENTO_HUMANO' || 
+    currentUser?.role === 'TALENTO HUMANO' ||
+    currentUser?.id === 'user-th' ||
+    currentUser?.id === 'user-thumano' ||
+    currentUser?.username?.toLowerCase() === 'th' ||
+    currentUser?.username?.toLowerCase() === 'thumano' ||
+    currentUser?.fullName?.toLowerCase().includes('talento humano');
   const isAuditorVrx = currentUser?.role === 'AUDITOR_VRX';
   const isEmployee = currentUser?.role === 'EMPLOYEE' || currentUser?.role === 'PDV';
   const isPdv = isEmployee;
@@ -16,7 +25,7 @@ export default function Header({ activeTab, setActiveTab, currentUser, onOpenUse
   const canAccessNetwork = isSantiago || isAuditorVrx || isAdmin;
 
   const navItems = [
-    { id: 'schedule', label: isEmployee ? 'Mi Cronograma Semanal' : 'Programación de Horarios', icon: Calendar, show: !isMaintenanceApprover },
+    { id: 'schedule', label: isEmployee ? 'Mi Cronograma Semanal' : 'Programación de Horarios', icon: Calendar, show: !isMaintenanceApprover && !isHrAdmin },
     { 
       id: 'permissions', 
       label: isMaintenanceApprover ? 'Aprobaciones Locativas/Mantenimiento' : isSupervisor ? 'Aprobación de Permisos' : 'Permisos y Novedades', 
@@ -25,15 +34,20 @@ export default function Header({ activeTab, setActiveTab, currentUser, onOpenUse
       show: !isHrAdmin 
     },
     { id: 'reconciliation', label: 'Conciliación de Marcaciones', icon: BarChart3, show: !isMaintenanceApprover },
-    { id: 'weekly_justification', label: 'Justificación Semanal', icon: FileText, show: !isMaintenanceApprover },
-    { id: 'analytics', label: isAdmin || isHrAdmin || isAuditorVrx ? 'Dashboard Analítica Nacional' : 'Analítica & Alertas Zona', icon: TrendingUp, show: isAdmin || isHrAdmin || isAuditorVrx || isSupervisor },
-    { id: 'pending_coverage', label: isAuditorVrx ? '⚠️ Faltantes por Programar' : 'Control Cobertura PDV', icon: ShieldAlert, show: !isMaintenanceApprover && (!isPdv || isAuditorVrx) },
-    { id: 'habitual_schedules', label: isEmployee ? 'Horario Habitual PDV' : 'Horarios Habituales (101 PDVs)', icon: Clock, show: !isMaintenanceApprover && !isSupervisor && !isPdv },
+    { id: 'weekly_justification', label: 'Justificación Semanal', icon: FileText, show: !isMaintenanceApprover && !isHrAdmin },
+    { 
+      id: 'analytics', 
+      label: isHrAdmin ? 'Dashboard Analítica' : (isAdmin || isAuditorVrx ? 'Dashboard Analítica Nacional' : 'Analítica & Alertas Zona'), 
+      icon: TrendingUp, 
+      show: isAdmin || isHrAdmin || isAuditorVrx || isSupervisor 
+    },
+    { id: 'pending_coverage', label: isAuditorVrx ? '⚠️ Faltantes por Programar' : 'Control Cobertura PDV', icon: ShieldAlert, show: !isMaintenanceApprover && !isHrAdmin && (!isPdv || isAuditorVrx) },
+    { id: 'habitual_schedules', label: isEmployee ? 'Horario Habitual PDV' : 'Horarios Habituales (101 PDVs)', icon: Clock, show: !isMaintenanceApprover && !isSupervisor && !isPdv && !isHrAdmin },
     { id: 'tracking', label: isEmployee ? 'Mi Expediente & Historial' : 'Seguimiento & Hoja de Vida', icon: FileText, show: !isPdv && !isSupervisor && !isHrAdmin && !isEmployee && (isAdmin || isAuditorVrx) },
-    { id: 'pdvs', label: isEmployee ? 'Mi Punto de Venta' : 'Directorio PDVs & Zonas', icon: Store, show: !isPdv && !isSupervisor && !isEmployee && (isAdmin || isHrAdmin || isAuditorVrx) },
+    { id: 'pdvs', label: isEmployee ? 'Mi Punto de Venta' : 'Directorio PDVs & Zonas', icon: Store, show: !isPdv && !isSupervisor && !isEmployee && !isHrAdmin && (isAdmin || isAuditorVrx) },
     { id: 'audit_logs', label: '🕵️ Bitácora de Auditoría', icon: ShieldCheck, show: isAuditorVrx },
     { id: 'network_monitor', label: '📡 Monitor de Red & Nube', icon: Activity, show: canAccessNetwork },
-    { id: 'config', label: 'Reglas y Parámetros', icon: Settings, show: isAdmin || isHrAdmin || isAuditorVrx }
+    { id: 'config', label: 'Reglas y Parámetros', icon: Settings, show: (isAdmin || isAuditorVrx) && !isHrAdmin }
   ];
 
   return (
