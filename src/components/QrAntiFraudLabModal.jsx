@@ -15,7 +15,21 @@ export default function QrAntiFraudLabModal({ isOpen, onClose, pdvs = [] }) {
   const [simulationResult, setSimulationResult] = useState(null);
   const [simulatedPhotoToken, setSimulatedPhotoToken] = useState(null);
 
-  // Generate a dynamic cryptographic token every 10 seconds
+  // Real Mobile Scanning URL State & Host selection
+  const [scanHost, setScanHost] = useState(() => {
+    if (typeof window !== 'undefined') {
+      if (window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1')) {
+        return 'https://control-turnos-pdv.vercel.app';
+      }
+      return window.location.origin;
+    }
+    return 'https://control-turnos-pdv.vercel.app';
+  });
+  const [realScanUrl, setRealScanUrl] = useState('');
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [showHostConfig, setShowHostConfig] = useState(false);
+
+  // Generate a dynamic cryptographic token every 10 seconds and encode actionable URL
   function generateNewToken() {
     const timestamp = Date.now();
     const randomSalt = Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -24,17 +38,13 @@ export default function QrAntiFraudLabModal({ isOpen, onClose, pdvs = [] }) {
     setTokenCreatedAt(timestamp);
     setSecondsRemaining(10);
 
-    // Encode payload into QR
-    const payload = JSON.stringify({
-      pdvId: selectedPdv.id,
-      pdvCode: selectedPdv.code,
-      token,
-      ts: timestamp,
-      ttl: 10 // 10 seconds valid
-    });
+    // Encode full actionable URL into QR
+    const baseHost = (scanHost || window.location.origin || '').replace(/\/+$/, '');
+    const punchUrl = `${baseHost}/?punchToken=${encodeURIComponent(token)}&pdv=${encodeURIComponent(selectedPdv.id)}&ts=${timestamp}`;
+    setRealScanUrl(punchUrl);
 
-    QRCode.toDataURL(payload, {
-      width: 240,
+    QRCode.toDataURL(punchUrl, {
+      width: 260,
       margin: 2,
       color: {
         dark: '#0f172a',
@@ -61,7 +71,7 @@ export default function QrAntiFraudLabModal({ isOpen, onClose, pdvs = [] }) {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isOpen, selectedPdv]);
+  }, [isOpen, selectedPdv, scanHost]);
 
   // TEST 1: Simulate taking a photo and sending via WhatsApp to friend
   function runWhatsAppFraudSimulation() {
@@ -288,9 +298,112 @@ export default function QrAntiFraudLabModal({ isOpen, onClose, pdvs = [] }) {
                 ></div>
               </div>
 
-              <div className="text-[11px] text-slate-400 space-y-1">
-                <p className="font-mono truncate max-w-xs text-slate-500">
-                  Token: {qrToken.substring(0, 24)}...
+              {/* Real Smartphone Scan Notice */}
+              <div className="w-full bg-slate-900 border border-emerald-500/30 rounded-xl p-3 text-left space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-black text-emerald-400 flex items-center gap-1.5">
+                    <Smartphone className="w-3.5 h-3.5" />
+                    ¡Prueba Real desde tu Celular!
+                  </span>
+                  <span className="text-[9px] font-mono text-emerald-300 bg-emerald-950/80 px-1.5 py-0.5 rounded border border-emerald-800">
+                    URL Activa
+                  </span>
+                </div>
+                <p className="text-[10px] text-slate-300 leading-tight">
+                  Apunta con la cámara de tu smartphone a este QR. Tu celular abrirá automáticamente la pantalla móvil de marcación en vivo.
+                </p>
+
+                {/* Direct quick action buttons */}
+                <div className="flex items-center gap-1.5 pt-1">
+                  <a
+                    href={realScanUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex-1 py-1.5 px-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10px] rounded-lg transition flex items-center justify-center gap-1 text-center cursor-pointer shadow-sm"
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                    <span>Abrir en Pestaña</span>
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (realScanUrl) {
+                        navigator.clipboard.writeText(realScanUrl);
+                        setCopiedLink(true);
+                        setTimeout(() => setCopiedLink(false), 2000);
+                      }
+                    }}
+                    className="py-1.5 px-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-semibold text-[10px] rounded-lg border border-slate-700 transition flex items-center gap-1 cursor-pointer"
+                    title="Copiar URL para probar en otro navegador"
+                  >
+                    {copiedLink ? <CheckCircle2 className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                    <span>{copiedLink ? 'Copiado' : 'Copiar'}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Host / Domain selector toggle */}
+              <div className="w-full text-left space-y-1">
+                <div className="flex items-center justify-between text-[10px]">
+                  <span className="text-slate-400 flex items-center gap-1">
+                    <Globe className="w-3 h-3 text-slate-500" />
+                    Dominio destino:
+                  </span>
+                  <button
+                    onClick={() => setShowHostConfig(!showHostConfig)}
+                    className="text-amber-400 hover:text-amber-300 text-[10px] font-semibold underline cursor-pointer"
+                  >
+                    {showHostConfig ? 'Ocultar' : 'Cambiar'}
+                  </button>
+                </div>
+
+                {!showHostConfig ? (
+                  <p className="font-mono text-[9px] text-slate-400 truncate bg-slate-900/80 px-2 py-1 rounded border border-slate-800">
+                    {scanHost}
+                  </p>
+                ) : (
+                  <div className="p-2 bg-slate-900 rounded-lg border border-slate-700 space-y-2 mt-1">
+                    <p className="text-[9px] text-slate-400">
+                      Selecciona hacia dónde apuntará el QR cuando lo leas con tu teléfono:
+                    </p>
+                    <div className="grid grid-cols-2 gap-1 text-[9px]">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setScanHost('https://control-turnos-pdv.vercel.app');
+                          setShowHostConfig(false);
+                        }}
+                        className={`p-1.5 rounded text-left border ${scanHost.includes('vercel.app') ? 'bg-amber-500/20 border-amber-500 text-amber-200' : 'bg-slate-800 border-slate-700 text-slate-300'}`}
+                      >
+                        <div className="font-bold">🌐 Vercel (Producción)</div>
+                        <div className="text-[8px] text-slate-400">Para celular con 4G / Wi-Fi</div>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setScanHost('http://172.21.144.167:3001');
+                          setShowHostConfig(false);
+                        }}
+                        className={`p-1.5 rounded text-left border ${scanHost.includes('172.21.144.167') ? 'bg-amber-500/20 border-amber-500 text-amber-200' : 'bg-slate-800 border-slate-700 text-slate-300'}`}
+                      >
+                        <div className="font-bold">📡 Wi-Fi Local (PC)</div>
+                        <div className="text-[8px] text-slate-400">172.21.144.167:3001</div>
+                      </button>
+                    </div>
+                    <input
+                      type="text"
+                      value={scanHost}
+                      onChange={(e) => setScanHost(e.target.value)}
+                      placeholder="https://tu-dominio.com"
+                      className="w-full px-2 py-1 bg-slate-950 border border-slate-700 rounded text-[10px] text-white font-mono"
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="text-[11px] text-slate-400 space-y-0.5 pt-1">
+                <p className="font-mono truncate max-w-xs text-slate-500 text-[10px]">
+                  Token: {qrToken.substring(0, 22)}...
                 </p>
                 <p className="text-[10px] text-slate-400">
                   ⚡ Cada 10s este código se destruye y se genera uno nuevo.
@@ -299,7 +412,7 @@ export default function QrAntiFraudLabModal({ isOpen, onClose, pdvs = [] }) {
 
               <button
                 onClick={generateNewToken}
-                className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition pt-1"
+                className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition pt-0.5 cursor-pointer"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
                 <span>Forzar regeneración manual</span>

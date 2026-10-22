@@ -16,6 +16,7 @@ import WeeklyJustificationView from './components/WeeklyJustificationView.jsx';
 import PendingCoverageMonitorView from './components/PendingCoverageMonitorView.jsx';
 import VrxAuditLogView from './components/VrxAuditLogView.jsx';
 import QrAntiFraudLabModal from './components/QrAntiFraudLabModal.jsx';
+import MobilePunchScreen from './components/MobilePunchScreen.jsx';
 import { recordAuditEvent } from './services/auditService.js';
 
 import { api } from './services/api.js';
@@ -37,6 +38,25 @@ function isTalentoHumanoUser(u) {
 }
 
 export default function App() {
+  // Mobile QR Punch Scanner mode (when a smartphone scans the rotating QR code)
+  const punchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+  const punchToken = punchParams?.get('punchToken');
+  const punchPdv = punchParams?.get('pdv');
+  const punchTs = punchParams?.get('ts');
+
+  if (punchToken) {
+    return (
+      <MobilePunchScreen
+        token={punchToken}
+        pdvId={punchPdv}
+        ts={punchTs}
+        onBackToPortal={() => {
+          window.location.href = window.location.pathname;
+        }}
+      />
+    );
+  }
+
   const [users, setUsers] = useState(initialUsers);
   const [pdvs, setPdvs] = useState(initialPDVs);
   const [supervisors, setSupervisors] = useState(initialSupervisors);
