@@ -210,6 +210,9 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
   const [permissions, setPermissions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [uploadingPayroll, setUploadingPayroll] = useState(false);
+  const [uploadingPunches, setUploadingPunches] = useState(false);
+  const [uploadingNovelties, setUploadingNovelties] = useState(false);
+  const [uploadFeedback, setUploadFeedback] = useState(null);
   const [selectedPayrollWeek, setSelectedPayrollWeek] = useState('28');
   const [monthFilter, setMonthFilter] = useState('ALL'); // 'ALL' | 'Junio' | 'Julio' | 'Agosto'
   const [payrollData, setPayrollData] = useState(null);
@@ -255,6 +258,59 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
       });
     } finally {
       setUploadingPayroll(false);
+      e.target.value = '';
+    }
+  };
+
+  const handlePunchUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingPunches(true);
+    setUploadFeedback(null);
+    try {
+      const res = await api.uploadPunchFile(file);
+      const retiredMsg = res.retiredCount > 0 
+        ? ` ⚠️ Se detectaron ${res.retiredCount} marcaciones de colaboradores retirados/anteriores marcadas como (Retirado).` 
+        : '';
+      setUploadFeedback({
+        type: 'success',
+        text: `¡Marcaciones procesadas exitosamente! ${res.recordCount} registros cargados al sistema.${retiredMsg}`
+      });
+      fetchAnalytics();
+    } catch (err) {
+      setUploadFeedback({
+        type: 'error',
+        text: err.message || 'Error de conexión durante la carga de marcaciones'
+      });
+    } finally {
+      setUploadingPunches(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleNoveltiesUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingNovelties(true);
+    setUploadFeedback(null);
+    try {
+      const res = await api.uploadNoveltiesFile(file);
+      const retiredCount = (res.novelties || []).filter(n => n.isRetired).length;
+      const retiredMsg = retiredCount > 0 
+        ? ` ⚠️ Se detectaron ${retiredCount} novedades de personal retirado/anterior marcadas como (Retirado).` 
+        : '';
+      setUploadFeedback({
+        type: 'success',
+        text: `¡Reporte de Novedades procesado con éxito! ${res.count} novedades asociadas a programaciones (7 horas de ley reconocidas automáticamente).${retiredMsg}`
+      });
+      fetchAnalytics();
+    } catch (err) {
+      setUploadFeedback({
+        type: 'error',
+        text: err.message || 'Error al procesar el archivo de novedades'
+      });
+    } finally {
+      setUploadingNovelties(false);
       e.target.value = '';
     }
   };
@@ -1019,7 +1075,36 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
               </select>
             </div>
 
-            {/* Botones de acción: Ocultos para Talento Humano (isHrAdmin) y Líder de Zona (isSupervisor) */}
+            {/* Botones para Talento Humano: Subir Archivo Excel y Subir Reporte Novedades */}
+            {isHrAdmin && (
+              <>
+                <label className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2.5 rounded-xl cursor-pointer transition shadow-xs border border-slate-700" title="Cargar archivo Excel con las marcaciones semanales (reloj biométrico)">
+                  <Upload className={`w-4 h-4 text-amber-400 ${uploadingPunches ? 'animate-bounce' : ''}`} />
+                  <span>{uploadingPunches ? 'Procesando Marcaciones...' : 'Subir Archivo Excel'}</span>
+                  <input
+                    type="file"
+                    accept=".xlsx,.xls,.csv"
+                    disabled={uploadingPunches}
+                    onChange={handlePunchUpload}
+                    className="hidden"
+                  />
+                </label>
+
+                <label className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-4 py-2.5 rounded-xl cursor-pointer transition shadow-xs" title="Cargar reporte de novedades (Vacaciones, Incapacidades, Licencias, etc.) para asociar 7h a colaboradores por cédula">
+                  <FileSpreadsheet className={`w-4 h-4 text-amber-300 ${uploadingNovelties ? 'animate-bounce' : ''}`} />
+                  <span>{uploadingNovelties ? 'Cargando Novedades...' : 'Subir Reporte Novedades'}</span>
+                  <input
+                    type="file"
+                    accept=".xlsx,.xls,.csv"
+                    disabled={uploadingNovelties}
+                    onChange={handleNoveltiesUpload}
+                    className="hidden"
+                  />
+                </label>
+              </>
+            )}
+
+            {/* Para Administrador y Auditor VRX: Exportar Reporte y Cargar Liquidación Nómina */}
             {!isHrAdmin && !isSupervisor && (
               <>
                 <button
@@ -1046,6 +1131,15 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
             )}
           </div>
         </div>
+
+        {uploadFeedback && (
+          <div className={`p-3 rounded-xl text-xs font-bold flex items-center justify-between gap-2 ${
+            uploadFeedback.type === 'success' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/30' : 'bg-rose-500/20 text-rose-300 border border-rose-400/30'
+          }`}>
+            <span>{uploadFeedback.text}</span>
+            <button onClick={() => setUploadFeedback(null)} className="text-slate-400 hover:text-white font-bold ml-2">✕</button>
+          </div>
+        )}
       </div>
 
       {/* 1.1 Barra Principal de Selección Semanal Separada (solo en modo Por Semana) */}

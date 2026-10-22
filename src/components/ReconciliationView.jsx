@@ -11,7 +11,16 @@ import VrxPunchEditor from './VrxPunchEditor.jsx';
 
 export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
   const isAdmin = currentUser?.role === 'ADMIN';
-  const isHrAdmin = currentUser?.role === 'HR_ADMIN';
+  const isHrAdmin = 
+    currentUser?.role === 'HR_ADMIN' || 
+    currentUser?.role === 'HR' || 
+    currentUser?.role === 'TALENTO_HUMANO' || 
+    currentUser?.role === 'TALENTO HUMANO' ||
+    currentUser?.id === 'user-th' ||
+    currentUser?.id === 'user-thumano' ||
+    currentUser?.username?.toLowerCase() === 'th' ||
+    currentUser?.username?.toLowerCase() === 'thumano' ||
+    currentUser?.fullName?.toLowerCase().includes('talento humano');
   const isAuditorVrx = currentUser?.role === 'AUDITOR_VRX';
   const isSupervisor = currentUser?.role === 'SUPERVISOR';
   const isPdv = currentUser?.role === 'PDV' || currentUser?.role === 'EMPLOYEE' || (!isAdmin && !isHrAdmin && !isAuditorVrx && !isSupervisor);
