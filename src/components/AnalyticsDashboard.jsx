@@ -230,10 +230,10 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
   }, [selectedPayrollWeek]);
 
   useEffect(() => {
-    if (activeView === 'ZONES') {
+    if (activeView === 'ZONES' && !isAdmin && !isAuditorVrx) {
       setActiveView('MOM_OVERVIEW');
     }
-  }, [activeView]);
+  }, [activeView, isAdmin, isAuditorVrx]);
 
   const handlePayrollUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -1104,8 +1104,8 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
               </>
             )}
 
-            {/* Para Administrador y Auditor VRX: Exportar Reporte y Cargar Liquidación Nómina */}
-            {!isHrAdmin && !isSupervisor && (
+            {/* Para Perfil Maestro VRX y Administrador: Exportar Reporte y Cargar Liquidación Nómina */}
+            {(isAdmin || isAuditorVrx || (!isHrAdmin && !isSupervisor)) && (
               <>
                 <button
                   onClick={exportAnalyticsReport}
@@ -1591,6 +1591,21 @@ export default function AnalyticsDashboard({ currentUser, pdvs, supervisors }) {
           <Store className="w-4 h-4" />
           <span>Ranking de PDVs ({topPdvsSpecial.length})</span>
         </button>
+
+        {/* Consolidado por 15 Zonas: Habilitado para Perfil Maestro VRX y Administrador */}
+        {(isAdmin || isAuditorVrx) && (
+          <button
+            onClick={() => setActiveView('ZONES')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl transition ${
+              activeView === 'ZONES'
+                ? 'bg-purple-600 text-white shadow-xs'
+                : 'text-slate-600 hover:bg-slate-100'
+            }`}
+          >
+            <Building2 className="w-4 h-4" />
+            <span>Consolidado por 15 Zonas</span>
+          </button>
+        )}
 
         <button
           onClick={() => setActiveView('ALERTS')}
