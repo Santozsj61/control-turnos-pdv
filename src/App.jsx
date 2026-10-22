@@ -15,6 +15,7 @@ import NetworkMonitorView from './components/NetworkMonitorView.jsx';
 import WeeklyJustificationView from './components/WeeklyJustificationView.jsx';
 import PendingCoverageMonitorView from './components/PendingCoverageMonitorView.jsx';
 import VrxAuditLogView from './components/VrxAuditLogView.jsx';
+import QrAntiFraudLabModal from './components/QrAntiFraudLabModal.jsx';
 import { recordAuditEvent } from './services/auditService.js';
 
 import { api } from './services/api.js';
@@ -43,6 +44,7 @@ export default function App() {
   const [showHomeScreen, setShowHomeScreen] = useState(false);
   const [activeTab, setActiveTab] = useState('schedule');
   const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
+  const [isQrLabOpen, setIsQrLabOpen] = useState(false);
   const [pendingPermissionsCount, setPendingPermissionsCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [initError, setInitError] = useState(null);
@@ -237,6 +239,7 @@ export default function App() {
         setActiveTab={setActiveTab}
         currentUser={currentUser}
         onOpenUserSwitcher={() => setIsSwitcherOpen(true)}
+        onOpenQrLab={() => setIsQrLabOpen(true)}
         onGoToHome={() => setShowHomeScreen(true)}
         onLogout={() => {
           if (currentUser) {
@@ -366,6 +369,13 @@ export default function App() {
           />
         )}
       </main>
+
+      {/* QR Anti-Fraud Testing Lab Modal */}
+      <QrAntiFraudLabModal
+        isOpen={isQrLabOpen}
+        onClose={() => setIsQrLabOpen(false)}
+        pdvs={pdvs}
+      />
 
       {/* Role / User Switcher Modal */}
       <RoleSwitcherModal

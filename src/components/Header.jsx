@@ -1,8 +1,8 @@
 import React from 'react';
-import { Clock, Users, Calendar, CheckSquare, BarChart3, Store, Settings, UserCheck, ShieldAlert, ShieldCheck, ArrowRightLeft, TrendingUp, FileText, Wrench, Home, LogOut, Activity } from 'lucide-react';
+import { Clock, Users, Calendar, CheckSquare, BarChart3, Store, Settings, UserCheck, ShieldAlert, ShieldCheck, ArrowRightLeft, TrendingUp, FileText, Wrench, Home, LogOut, Activity, QrCode } from 'lucide-react';
 import ConnectionStatusBadge from './ConnectionStatusBadge.jsx';
 
-export default function Header({ activeTab, setActiveTab, currentUser, onOpenUserSwitcher, onGoToHome, onLogout, pendingPermissionsCount }) {
+export default function Header({ activeTab, setActiveTab, currentUser, onOpenUserSwitcher, onOpenQrLab, onGoToHome, onLogout, pendingPermissionsCount }) {
   const isSupervisor = currentUser?.role === 'SUPERVISOR';
   const isAdmin = currentUser?.role === 'ADMIN';
   const isHrAdmin = 
@@ -96,6 +96,18 @@ export default function Header({ activeTab, setActiveTab, currentUser, onOpenUse
                 {isAdmin ? '👑 Admin General' : isHrAdmin ? '👥 Talento Humano' : isAuditorVrx ? '🛡️ Auditor VRX' : isSupervisor ? '👔 Líder de Zona' : isMaintenanceApprover ? '🛠️ Mantenimiento' : '🏬 Punto de Venta'}
               </span>
             </div>
+
+            {onOpenQrLab && (
+              <button
+                onClick={onOpenQrLab}
+                className="flex items-center gap-1.5 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition shadow-md shadow-orange-600/20 border border-orange-500/40"
+                title="Laboratorio de Prueba: QR Anti-Fraude (Rotación de 10s + Geocerca GPS)"
+              >
+                <QrCode className="w-3.5 h-3.5 text-white animate-pulse" />
+                <span className="hidden sm:inline">Lab QR Anti-Fraude</span>
+                <span className="sm:hidden">QR Lab</span>
+              </button>
+            )}
 
             <button
               onClick={onGoToHome}
