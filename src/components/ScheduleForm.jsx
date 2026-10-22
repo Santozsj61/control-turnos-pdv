@@ -3009,6 +3009,7 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
         const emp = empRow?.employee || allEmployees.find(e => e.id === editingCell.userId) || {};
         const shift = empRow?.shifts?.[editingCell.dayIndex] || {};
         const wd = weekDates[editingCell.dayIndex] || {};
+        const modalDayIndex = editingCell.dayIndex;
         const shiftType = shift.shiftType || 'NO_PROGRAMADO';
         const empPdv = empRow?.pdv || pdvs.find(p => p.id === emp.pdvId) || activeSinglePdv || currentHabitualPdv;
         const modalOutsideCheck = (shiftType === 'ORDINARIO' && shift.startTime && shift.endTime && !shift.isDayOff)
@@ -3185,7 +3186,13 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
               {/* Footer */}
               <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
                 <span className="text-xs text-slate-500 font-medium">
-                  {shiftType === 'ORDINARIO' ? `${shift.netHours || 0} hrs netas computadas` : (shiftType === 'DESCANSO' && modalDayIndex === 6) ? '0.0 hrs computadas (Domingo)' : '7.0 hrs computadas'}
+                  {shiftType === 'ORDINARIO'
+                    ? `${shift.netHours || 0} hrs netas computadas`
+                    : shiftType === 'NO_PROGRAMADO'
+                    ? '0.0 hrs computadas'
+                    : (shiftType === 'DESCANSO' && modalDayIndex === 6)
+                    ? '0.0 hrs computadas (Domingo)'
+                    : '7.0 hrs computadas'}
                 </span>
                 <button
                   type="button"
