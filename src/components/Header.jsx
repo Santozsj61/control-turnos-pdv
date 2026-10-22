@@ -97,7 +97,7 @@ export default function Header({ activeTab, setActiveTab, currentUser, onOpenUse
               </span>
             </div>
 
-            {onOpenQrLab && (
+            {isAuditorVrx && onOpenQrLab && (
               <button
                 onClick={onOpenQrLab}
                 className="flex items-center gap-1.5 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition shadow-md shadow-orange-600/20 border border-orange-500/40"

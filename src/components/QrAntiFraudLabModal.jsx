@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, ShieldAlert, ShieldCheck, QrCode, Smartphone, Clock, MapPin, AlertTriangle, RefreshCw, Send, CheckCircle2, Flame, Copy, ExternalLink, Zap } from 'lucide-react';
+import { X, ShieldAlert, ShieldCheck, QrCode, Smartphone, Clock, MapPin, AlertTriangle, RefreshCw, Send, CheckCircle2, Flame, Copy, ExternalLink, Zap, Globe } from 'lucide-react';
 import QRCode from 'qrcode';
 
 export default function QrAntiFraudLabModal({ isOpen, onClose, pdvs = [] }) {
@@ -176,6 +176,30 @@ export default function QrAntiFraudLabModal({ isOpen, onClose, pdvs = [] }) {
         explanation: 'El colaborador está físicamente en la tienda, escaneó la pantalla directamente y su marca fue pre-liquidada de inmediato en el sistema.'
       });
     }, 1200);
+  }
+
+  // TEST 5: Simulate VPN / Proxy Attack
+  function runVpnFraudSimulation() {
+    setSimulationState('running');
+    setSimulationResult(null);
+
+    setTimeout(() => {
+      setSimulationState('result');
+      setSimulationResult({
+        testType: 'VPN_PROXY_DETECTED',
+        success: false,
+        title: '⛔ INTENTO CON VPN: GPS REAL DETECTADO',
+        errorCode: 'ERR_VPN_IP_DETECTED_GPS_MISMATCH',
+        badge: 'ESCUDO 4: INDEPENDENCIA DE IP & HARDWARE GPS',
+        details: [
+          `Dirección IP reportada: 185.220.101.5 (Servidor VPN NordVPN / Datacenter)`,
+          `Ubicación simulada por VPN: Miami, FL / Bogotá Datacenter`,
+          `Coordenadas satelitales físicas del teléfono: Lat 3.3921, Lng -76.5410 (Casa a 6.8 km)`,
+          `Resultado: La VPN NO altera el chip GPS satelital del teléfono.`
+        ],
+        explanation: 'Una VPN solo cambia la dirección IP en internet, pero es incapaz de alterar el chip GPS físico del smartphone (que se conecta a satélites GPS/GLONASS y antenas de telefonía). Además, el servidor detecta que la IP es de un datacenter/VPN y genera una alerta roja inmediata en la bitácora de VRX.'
+      });
+    }, 1500);
   }
 
   if (!isOpen) return null;
@@ -367,6 +391,26 @@ export default function QrAntiFraudLabModal({ isOpen, onClose, pdvs = [] }) {
                   <h4 className="font-bold text-xs text-white">4. Marcación Real en Tienda</h4>
                   <p className="text-[11px] text-slate-400 leading-snug">
                     Colaborador en físico frente a la pantalla dentro del rango de 10s.
+                  </p>
+                </button>
+
+                {/* Botón Prueba 5: Ataque con VPN */}
+                <button
+                  onClick={runVpnFraudSimulation}
+                  disabled={simulationState === 'running'}
+                  className="sm:col-span-2 p-3.5 bg-slate-800 hover:bg-slate-750 border border-slate-750 hover:border-cyan-500/50 rounded-2xl text-left transition space-y-1.5 group cursor-pointer"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="p-1.5 bg-cyan-500/20 text-cyan-300 rounded-lg group-hover:scale-110 transition">
+                      <Globe className="w-4 h-4" />
+                    </span>
+                    <span className="text-[10px] font-bold text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded-full border border-cyan-800/40">
+                      Pregunta Clave: ¿Y si usa VPN?
+                    </span>
+                  </div>
+                  <h4 className="font-bold text-xs text-white">5. ¿Qué pasa si el empleado usa una VPN para falsear su ubicación?</h4>
+                  <p className="text-[11px] text-slate-400 leading-snug">
+                    Prueba qué ocurre si el colaborador enciende NordVPN o ExpressVPN en su celular para fingir que está en otro lugar.
                   </p>
                 </button>
               </div>
