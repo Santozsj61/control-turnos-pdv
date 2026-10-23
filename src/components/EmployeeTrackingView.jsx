@@ -18,6 +18,7 @@ import {
   History
 } from 'lucide-react';
 import { api } from '../services/api.js';
+import { formatTo12Hour } from '../utils/weeks.js';
 
 export default function EmployeeTrackingView({ currentUser, pdvs = [], supervisors = [], users = [] }) {
   const isAdmin = currentUser?.role === 'ADMIN';
@@ -411,14 +412,14 @@ export default function EmployeeTrackingView({ currentUser, pdvs = [], superviso
                         <tr key={pIdx} className="hover:bg-slate-50 transition">
                           <td className="py-2.5 px-4 font-semibold text-slate-800">{p.entryDate || '-'}</td>
                           <td className="py-2.5 px-4 font-mono text-emerald-700 font-bold">
-                            {p.entryTime || (p.autoFilledEntry ? `${p.scheduledStartTime}* (Prog)` : '-')}
+                            {formatTo12Hour(p.entryTime) || (p.autoFilledEntry ? `${formatTo12Hour(p.scheduledStartTime)}* (Prog)` : '-')}
                           </td>
                           <td className="py-2.5 px-4 font-mono">
                             {hasExit ? (
-                              <span className="text-slate-800 font-bold">{p.exitTime}</span>
+                              <span className="text-slate-800 font-bold">{formatTo12Hour(p.exitTime)}</span>
                             ) : p.autoFilledExit ? (
                               <span className="text-indigo-700 font-bold underline decoration-indigo-400" title="Salida no registrada en biométrico; autocompletada con horario de programación">
-                                {p.scheduledEndTime}* (Prog)
+                                {formatTo12Hour(p.scheduledEndTime)}* (Prog)
                               </span>
                             ) : (
                               <span className="text-rose-600 font-bold bg-rose-50 px-2 py-0.5 rounded text-[10px]">Sin Marcación</span>

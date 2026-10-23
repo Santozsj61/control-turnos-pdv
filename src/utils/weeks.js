@@ -200,6 +200,65 @@ export function formatExcelTime(val) {
 }
 
 /**
+ * Convierte una hora en formato "HH:MM" o "HH:MM:SS" (24h) a formato amigable de 12 horas: "hh:mm AM/PM".
+ * Si ya viene en formato 12h o es inválido, retorna el valor limpio.
+ * Ejemplos:
+ * "10:00" -> "10:00 AM"
+ * "13:00" -> "01:00 PM"
+ * "20:30" -> "08:30 PM"
+ * "00:00" -> "12:00 AM"
+ * "12:00" -> "12:00 PM"
+ */
+export function formatTo12Hour(val, includeSeconds = false) {
+  if (val === undefined || val === null || val === '') return '';
+  const str = String(val).trim();
+  if (!str || str === '-' || str === '--:--') return str;
+
+  // Si ya tiene AM o PM
+  if (/am|pm/i.test(str)) return str;
+
+  // Si es un rango de horas (ej: "10:00 - 20:30" o "10:00-20:30")
+  if (str.includes('-') && str.includes(':')) {
+    const parts = str.split('-').map(p => p.trim());
+    if (parts.length === 2 && parts[0].includes(':') && parts[1].includes(':')) {
+      return `${formatTo12Hour(parts[0], includeSeconds)} - ${formatTo12Hour(parts[1], includeSeconds)}`;
+    }
+  }
+
+  // Detectar formato HH:MM o HH:MM:SS
+  const match = str.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+  if (!match) return str;
+
+  let h = parseInt(match[1], 10);
+  const m = match[2];
+  const s = match[3];
+
+  if (isNaN(h)) return str;
+
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  h = h % 12;
+  if (h === 0) h = 12;
+
+  const hStr = String(h).padStart(2, '0');
+  if (includeSeconds && s !== undefined) {
+    return `${hStr}:${m}:${s} ${ampm}`;
+  }
+  return `${hStr}:${m} ${ampm}`;
+}
+
+/**
+ * Convierte un rango de inicio y fin a formato 12h: "10:00 AM - 08:30 PM"
+ */
+export function formatTimeRange12h(startTime, endTime) {
+  const s = formatExcelTime(startTime);
+  const e = formatExcelTime(endTime);
+  if (!s && !e) return '';
+  if (!e) return formatTo12Hour(s);
+  if (!s) return formatTo12Hour(e);
+  return `${formatTo12Hour(s)} - ${formatTo12Hour(e)}`;
+}
+
+/**
  * Detecta automáticamente a qué semana del año pertenece un archivo Excel/CSV
  * inspeccionando los encabezados de columnas (ej: "Lunes 29 Junio", "21 Septiembre", etc.)
  */

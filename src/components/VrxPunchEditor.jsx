@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Clock, Calendar, CheckCircle2, AlertCircle, Edit3, Sparkles, Trash2, ShieldAlert } from 'lucide-react';
 import { api } from '../services/api.js';
 import { recordAuditEvent } from '../services/auditService.js';
+import { formatTo12Hour } from '../utils/weeks.js';
 
 /**
  * Panel de edición maestra de marcación biométrica y programación horaria.
@@ -170,7 +171,9 @@ export default function VrxPunchEditor({ row, currentUser, onSaved }) {
 
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">Entrada Real</label>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">
+                  Entrada Real {entry && <span className="text-blue-600 font-extrabold ml-1">({formatTo12Hour(entry)})</span>}
+                </label>
                 <input 
                   type="time" 
                   value={entry} 
@@ -179,7 +182,9 @@ export default function VrxPunchEditor({ row, currentUser, onSaved }) {
                 />
               </div>
               <div>
-                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">Salida Real</label>
+                <label className="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">
+                  Salida Real {exit && <span className="text-blue-600 font-extrabold ml-1">({formatTo12Hour(exit)})</span>}
+                </label>
                 <input 
                   type="time" 
                   value={exit} 
@@ -265,7 +270,9 @@ export default function VrxPunchEditor({ row, currentUser, onSaved }) {
             ) : (
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">Inicio Turno</label>
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">
+                    Inicio Turno {schedStart && <span className="text-amber-700 font-extrabold ml-1">({formatTo12Hour(schedStart)})</span>}
+                  </label>
                   <input 
                     type="time" 
                     value={schedStart} 
@@ -274,7 +281,9 @@ export default function VrxPunchEditor({ row, currentUser, onSaved }) {
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">Fin Turno</label>
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase mb-0.5">
+                    Fin Turno {schedEnd && <span className="text-amber-700 font-extrabold ml-1">({formatTo12Hour(schedEnd)})</span>}
+                  </label>
                   <input 
                     type="time" 
                     value={schedEnd} 

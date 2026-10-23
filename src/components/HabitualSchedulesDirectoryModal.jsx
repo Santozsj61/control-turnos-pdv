@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Clock, Search, X, Store, Building2, MapPin, CheckCircle2, Lock, Filter, ExternalLink } from 'lucide-react';
 import { ALL_HABITUAL_SCHEDULES, getHabitualDaySchedule } from '../data/habitualSchedules.js';
+import { formatTimeRange12h } from '../utils/weeks.js';
 
 export default function HabitualSchedulesDirectoryModal({ isOpen, onClose, onSelectPdv, currentPdvId, currentPdv }) {
   const [searchTerm, setSearchTerm] = useState('');
@@ -190,7 +191,7 @@ export default function HabitualSchedulesDirectoryModal({ isOpen, onClose, onSel
                         const dayData = store.days?.[dKey] || store.byDayIndex?.[dIdx];
                         return (
                           <td key={dKey} className="py-2 px-1 text-center font-bold text-slate-800 text-[10.5px]">
-                            {dayData?.label || '-'}
+                            {formatTimeRange12h(dayData?.label) || '-'}
                           </td>
                         );
                       })}
@@ -203,7 +204,7 @@ export default function HabitualSchedulesDirectoryModal({ isOpen, onClose, onSel
                           </span>
                         ) : (
                           <span className="text-purple-900 font-black">
-                            {domSched?.label || '-'}
+                            {formatTimeRange12h(domSched?.label) || '-'}
                           </span>
                         )}
                       </td>

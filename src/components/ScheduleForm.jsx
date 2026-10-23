@@ -13,6 +13,8 @@ import {
   CURRENT_WEEK_START, 
   CURRENT_WEEK_NUMBER, 
   formatExcelTime, 
+  formatTo12Hour,
+  formatTimeRange12h,
   detectWeekFromHeaders, 
   cleanNormalizeStr,
   findPdvByCodeOrName 
@@ -38,13 +40,13 @@ export const SHIFT_TYPES = [
 ];
 
 export const STANDARD_SHIFT_PRESETS = [
-  { label: '10:00 - 20:30 (9.0h Netas | Almuerzo 1.5h)', start: '10:00', end: '20:30' },
-  { label: '10:00 - 18:00 (6.5h Netas | Almuerzo 1.5h)', start: '10:00', end: '18:00' },
-  { label: '11:00 - 19:00 (6.5h Netas | Almuerzo 1.5h)', start: '11:00', end: '19:00' },
-  { label: '12:00 - 20:30 (7.0h Netas | Almuerzo 1.5h)', start: '12:00', end: '20:30' },
-  { label: '14:00 - 20:30 (6.5h Netas | Sin Almuerzo)', start: '14:00', end: '20:30' },
-  { label: '10:00 - 17:00 (5.5h Netas | Almuerzo 1.5h)', start: '10:00', end: '17:00' },
-  { label: '13:58 - 20:28 (6.5h Netas | Sin Almuerzo)', start: '13:58', end: '20:28' }
+  { label: '10:00 AM - 08:30 PM (9.0h Netas | Almuerzo 1.5h)', start: '10:00', end: '20:30' },
+  { label: '10:00 AM - 06:00 PM (6.5h Netas | Almuerzo 1.5h)', start: '10:00', end: '18:00' },
+  { label: '11:00 AM - 07:00 PM (6.5h Netas | Almuerzo 1.5h)', start: '11:00', end: '19:00' },
+  { label: '12:00 PM - 08:30 PM (7.0h Netas | Almuerzo 1.5h)', start: '12:00', end: '20:30' },
+  { label: '02:00 PM - 08:30 PM (6.5h Netas | Sin Almuerzo)', start: '14:00', end: '20:30' },
+  { label: '10:00 AM - 05:00 PM (5.5h Netas | Almuerzo 1.5h)', start: '10:00', end: '17:00' },
+  { label: '01:58 PM - 08:28 PM (6.5h Netas | Sin Almuerzo)', start: '13:58', end: '20:28' }
 ];
 
 const EXCLUSIONS_KEY = 'control_turnos_weekly_exclusions';
@@ -571,7 +573,7 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
         const shift = userRow.shifts?.[idx] || {};
         const shiftType = shift.shiftType || (shift.isDayOff ? 'DESCANSO' : 'ORDINARIO');
         if (shiftType === 'ORDINARIO') {
-          rowObj[`${wd.dayOfWeek} (${wd.formattedDate})`] = `${shift.startTime || '10:00'} - ${shift.endTime || '20:30'} (${shift.netHours || 0}h netas)`;
+          rowObj[`${wd.dayOfWeek} (${wd.formattedDate})`] = `${formatTimeRange12h(shift.startTime || '10:00', shift.endTime || '20:30')} (${shift.netHours || 0}h netas)`;
         } else {
           rowObj[`${wd.dayOfWeek} (${wd.formattedDate})`] = `${shiftType} (${shiftType === 'NO_PROGRAMADO' ? '0.0h' : '7.0h'})`;
         }
@@ -2002,7 +2004,7 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
                               {shiftType === 'ORDINARIO' ? (
                                 <>
                                   <div className="font-extrabold text-[11px] leading-tight text-slate-900">
-                                    {formatExcelTime(shift.startTime) || '--:--'} - {formatExcelTime(shift.endTime) || '--:--'}
+                                    {formatTimeRange12h(shift.startTime, shift.endTime) || '--:--'}
                                   </div>
                                   <div className="text-[9px] font-bold text-slate-500 flex items-center gap-1">
                                     <span>{shift.netHours || 0} hrs</span>
@@ -3088,7 +3090,7 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
                       </span>
                     </div>
                     <p className="text-xs text-red-900 font-extrabold mt-1 leading-snug">
-                      El horario asignado ({formatExcelTime(shift.startTime)} - {formatExcelTime(shift.endTime)}) sobrepasa el horario habitual oficial de la tienda ({modalOutsideCheck.habitualRange}).
+                      El horario asignado ({formatTimeRange12h(shift.startTime, shift.endTime)}) sobrepasa el horario habitual oficial de la tienda ({formatTimeRange12h(modalOutsideCheck.habitualRange)}).
                     </p>
                     <p className="text-[11px] text-red-700 mt-1 font-semibold">
                       Motivo: {modalOutsideCheck.reason}. En el perfil de Punto de Venta (PDV) se recomienda programar dentro de la franja oficial de apertura y cierre.
@@ -3129,7 +3131,7 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
                           >
                             <div>
                               <div className="font-extrabold text-xs flex items-center gap-1.5">
-                                <span>{p.start} - {p.end}</span>
+                                <span>{formatTimeRange12h(p.start, p.end)}</span>
                                 {p.isRepetitive && (
                                   <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-bold ${
                                     isCurrent ? 'bg-blue-800 text-blue-100' : 'bg-amber-200 text-amber-900 border border-amber-300'
@@ -3160,7 +3162,9 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
                     </label>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="text-[10px] font-bold text-slate-500 block mb-0.5">Hora Entrada</label>
+                        <label className="text-[10px] font-bold text-slate-500 block mb-0.5">
+                          Hora Entrada <span className="text-blue-600 font-extrabold ml-1">({formatTo12Hour(shift.startTime) || '10:00 AM'})</span>
+                        </label>
                         <input
                           type="time"
                           value={formatExcelTime(shift.startTime) || '10:00'}
@@ -3169,7 +3173,9 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] font-bold text-slate-500 block mb-0.5">Hora Salida</label>
+                        <label className="text-[10px] font-bold text-slate-500 block mb-0.5">
+                          Hora Salida <span className="text-blue-600 font-extrabold ml-1">({formatTo12Hour(shift.endTime) || '08:30 PM'})</span>
+                        </label>
                         <input
                           type="time"
                           value={formatExcelTime(shift.endTime) || '20:30'}

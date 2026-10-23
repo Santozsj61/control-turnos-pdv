@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Upload, FileSpreadsheet, BarChart3, Filter, CheckCircle2, AlertTriangle, AlertCircle, Clock, Download, RefreshCw, Eye, Sparkles, UserCheck, ShieldAlert, ArrowUpDown, ChevronRight, ChevronDown, Store, Building2, Edit3, CheckSquare, Square, X, Send, Lock, HelpCircle, Activity, TrendingUp, Calendar, Zap, Users } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid, Cell } from 'recharts';
 import * as XLSX from 'xlsx';
-import { ALL_WEEKS_2026, CURRENT_WEEK_START, isWeekInMonth } from '../utils/weeks.js';
+import { ALL_WEEKS_2026, CURRENT_WEEK_START, isWeekInMonth, formatTo12Hour, formatTimeRange12h } from '../utils/weeks.js';
 import { api } from '../services/api.js';
 import { isCollaboratorActive } from '../data/activeCollaborators371.js';
 import { getHabitualScheduleForPdv, getHabitualDaySchedule, checkOutsideHabitualHours } from '../data/habitualSchedules.js';
@@ -908,9 +908,9 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                                   </div>
                                 )}
                                 <div className="flex items-center justify-between gap-0.5 text-[9px] leading-tight">
-                                  <span className="font-semibold text-slate-600 truncate flex items-center gap-0.5" title={dayRow.isNovelty7h ? `${dayRow.scheduleTypeLabel} (7h Ley)` : (dayRow.isScheduled ? `${dayRow.scheduledStart}-${dayRow.scheduledEnd}` : (dayRow.isDescanso || dayRow.status === 'DAY_OFF' || dayRow.scheduleTypeLabel === 'Descanso') ? 'Descanso Programado' : (isNoShow ? 'Sin Programar' : 'Sin Turno'))}>
+                                  <span className="font-semibold text-slate-600 truncate flex items-center gap-0.5" title={dayRow.isNovelty7h ? `${dayRow.scheduleTypeLabel} (7h Ley)` : (dayRow.isScheduled ? formatTimeRange12h(dayRow.scheduledStart, dayRow.scheduledEnd) : (dayRow.isDescanso || dayRow.status === 'DAY_OFF' || dayRow.scheduleTypeLabel === 'Descanso') ? 'Descanso Programado' : (isNoShow ? 'Sin Programar' : 'Sin Turno'))}>
                                     <Calendar className="w-2.5 h-2.5 text-blue-500 shrink-0" />
-                                    {dayRow.isNovelty7h ? dayRow.scheduleTypeLabel : (dayRow.isScheduled ? `${dayRow.scheduledStart}-${dayRow.scheduledEnd}` : (dayRow.isDescanso || dayRow.status === 'DAY_OFF' || dayRow.scheduleTypeLabel === 'Descanso') ? 'Descanso' : (isNoShow ? 'Sin Programar' : 'Sin Turno'))}
+                                    {dayRow.isNovelty7h ? dayRow.scheduleTypeLabel : (dayRow.isScheduled ? formatTimeRange12h(dayRow.scheduledStart, dayRow.scheduledEnd) : (dayRow.isDescanso || dayRow.status === 'DAY_OFF' || dayRow.scheduleTypeLabel === 'Descanso') ? 'Descanso' : (isNoShow ? 'Sin Programar' : 'Sin Turno'))}
                                   </span>
                                   <span className="font-bold text-slate-500 shrink-0">{dayRow.scheduledNetHours || 0}h</span>
                                 </div>
@@ -939,11 +939,11 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                                     {dayRow.hasPunch ? (
                                       <span className="truncate">
                                         <span className={dayRow.autoFilledEntry ? 'text-indigo-700 font-black underline decoration-indigo-400' : ''}>
-                                          {dayRow.autoFilledEntry ? `*${dayRow.realStart}` : (dayRow.realStart || '--:--')}
+                                          {dayRow.autoFilledEntry ? `*${formatTo12Hour(dayRow.realStart)}` : (formatTo12Hour(dayRow.realStart) || '--:--')}
                                         </span>
                                         <span className="text-slate-300 mx-0.5">-</span>
                                         <span className={dayRow.autoFilledExit ? 'text-indigo-700 font-black underline decoration-indigo-400' : ''}>
-                                          {dayRow.autoFilledExit ? `${dayRow.realEnd}*` : (dayRow.realEnd || '--:--')}
+                                          {dayRow.autoFilledExit ? `${formatTo12Hour(dayRow.realEnd)}*` : (formatTo12Hour(dayRow.realEnd) || '--:--')}
                                         </span>
                                       </span>
                                     ) : isNoShow ? (
@@ -2343,7 +2343,7 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                               ) : (
                                 <div className="bg-white border border-blue-200/90 shadow-2xs rounded py-1 px-0.5 text-center">
                                   <span className="text-[10px] font-black text-slate-900 block leading-tight tracking-tight">
-                                    {daySched?.label || '10:00 - 20:00'}
+                                    {formatTimeRange12h(daySched?.label) || '10:00 AM - 08:00 PM'}
                                   </span>
                                   <span className="text-[7.5px] font-extrabold text-blue-600 uppercase tracking-wider block mt-0.5">
                                     Habitual
@@ -2468,9 +2468,9 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                               >
                                 {/* Cronograma Programado */}
                                 <div className="flex items-center justify-between gap-0.5 text-[9px] leading-tight">
-                                  <span className="font-semibold text-slate-600 truncate flex items-center gap-0.5" title={dayRow.isNovelty7h ? `${dayRow.scheduleTypeLabel} (7h Ley)` : (dayRow.isScheduled ? `${dayRow.scheduledStart}-${dayRow.scheduledEnd}` : (dayRow.isDescanso || dayRow.status === 'DAY_OFF' || dayRow.scheduleTypeLabel === 'Descanso') ? 'Descanso Programado' : (isNoShow ? 'Sin Programar' : 'Sin Turno'))}>
+                                  <span className="font-semibold text-slate-600 truncate flex items-center gap-0.5" title={dayRow.isNovelty7h ? `${dayRow.scheduleTypeLabel} (7h Ley)` : (dayRow.isScheduled ? formatTimeRange12h(dayRow.scheduledStart, dayRow.scheduledEnd) : (dayRow.isDescanso || dayRow.status === 'DAY_OFF' || dayRow.scheduleTypeLabel === 'Descanso') ? 'Descanso Programado' : (isNoShow ? 'Sin Programar' : 'Sin Turno'))}>
                                     <Calendar className="w-2.5 h-2.5 text-blue-500 shrink-0" />
-                                    {dayRow.isNovelty7h ? dayRow.scheduleTypeLabel : (dayRow.isScheduled ? `${dayRow.scheduledStart}-${dayRow.scheduledEnd}` : (dayRow.isDescanso || dayRow.status === 'DAY_OFF' || dayRow.scheduleTypeLabel === 'Descanso') ? 'Descanso' : (isNoShow ? 'Sin Programar' : 'Sin Turno'))}
+                                    {dayRow.isNovelty7h ? dayRow.scheduleTypeLabel : (dayRow.isScheduled ? formatTimeRange12h(dayRow.scheduledStart, dayRow.scheduledEnd) : (dayRow.isDescanso || dayRow.status === 'DAY_OFF' || dayRow.scheduleTypeLabel === 'Descanso') ? 'Descanso' : (isNoShow ? 'Sin Programar' : 'Sin Turno'))}
                                   </span>
                                   <span className="font-bold text-slate-500 shrink-0">{dayRow.scheduledNetHours || 0}h</span>
                                 </div>
@@ -2494,11 +2494,11 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                                     {dayRow.hasPunch ? (
                                       <span className="truncate">
                                         <span className={dayRow.autoFilledEntry ? 'text-indigo-700 font-black underline decoration-indigo-400' : ''}>
-                                          {dayRow.autoFilledEntry ? `*${dayRow.realStart}` : (dayRow.realStart || '--:--')}
+                                          {dayRow.autoFilledEntry ? `*${formatTo12Hour(dayRow.realStart)}` : (formatTo12Hour(dayRow.realStart) || '--:--')}
                                         </span>
                                         <span className="text-slate-300 mx-0.5">-</span>
                                         <span className={dayRow.autoFilledExit ? 'text-indigo-700 font-black underline decoration-indigo-400' : ''}>
-                                          {dayRow.autoFilledExit ? `${dayRow.realEnd}*` : (dayRow.realEnd || '--:--')}
+                                          {dayRow.autoFilledExit ? `${formatTo12Hour(dayRow.realEnd)}*` : (formatTo12Hour(dayRow.realEnd) || '--:--')}
                                         </span>
                                       </span>
                                     ) : isNoShow ? (
@@ -3220,7 +3220,7 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                   {selectedRowDetail.isNovelty7h 
                     ? `${selectedRowDetail.scheduleTypeLabel} (7.0h de Ley)` 
                     : selectedRowDetail.isScheduled 
-                    ? `${selectedRowDetail.scheduledStart} - ${selectedRowDetail.scheduledEnd}` 
+                    ? formatTimeRange12h(selectedRowDetail.scheduledStart, selectedRowDetail.scheduledEnd) 
                     : (selectedRowDetail.isDescanso || selectedRowDetail.status === 'DAY_OFF' || selectedRowDetail.scheduleTypeLabel === 'Descanso')
                     ? 'Día de Descanso (Programado)'
                     : 'Sin Turno Programado'}
@@ -3245,20 +3245,20 @@ export default function ReconciliationView({ currentUser, pdvs, supervisors }) {
                   <strong>Entrada:</strong>{' '}
                   {selectedRowDetail.autoFilledEntry ? (
                     <span className="text-indigo-700 font-bold bg-indigo-100/80 px-1 rounded">
-                      *{selectedRowDetail.realStart} (Prog)
+                      *{formatTo12Hour(selectedRowDetail.realStart)} (Prog)
                     </span>
                   ) : (
-                    selectedRowDetail.realStart || 'Sin Marcación'
+                    formatTo12Hour(selectedRowDetail.realStart) || 'Sin Marcación'
                   )}
                 </div>
                 <div>
                   <strong>Salida:</strong>{' '}
                   {selectedRowDetail.autoFilledExit ? (
                     <span className="text-indigo-700 font-bold bg-indigo-100/80 px-1 rounded">
-                      {selectedRowDetail.realEnd}* (Prog)
+                      {formatTo12Hour(selectedRowDetail.realEnd)}* (Prog)
                     </span>
                   ) : (
-                    selectedRowDetail.realEnd || 'Sin Marcación'
+                    formatTo12Hour(selectedRowDetail.realEnd) || 'Sin Marcación'
                   )}
                 </div>
                 <div><strong>Horas Netas Reales:</strong> {selectedRowDetail.realNetHours} hrs</div>

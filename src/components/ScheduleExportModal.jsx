@@ -8,7 +8,9 @@ import * as XLSX from 'xlsx';
 import { 
   ALL_WEEKS_2026, 
   CURRENT_WEEK_START, 
-  KNOWN_WEEKS_WITH_DATA 
+  KNOWN_WEEKS_WITH_DATA,
+  formatTo12Hour,
+  formatTimeRange12h
 } from '../utils/weeks.js';
 import { calculateShiftHours, calculateMonSatHours, countMonthlySundays } from '../utils/calculator.js';
 import { api } from '../services/api.js';
@@ -363,8 +365,8 @@ export default function ScheduleExportModal({
                 'Ciudad': empPdv.city || '-',
                 'Zona Regional': empPdv.zoneName || sup?.zoneName || sup?.name || '-',
                 'Tipo de Turno': sh.shiftType,
-                'Hora Entrada': sh.startTime || '-',
-                'Hora Salida': sh.endTime || '-',
+                'Hora Entrada': formatTo12Hour(sh.startTime) || '-',
+                'Hora Salida': formatTo12Hour(sh.endTime) || '-',
                 'Horas Netas': sh.netHours || 0,
                 'Almuerzo (hrs)': sh.lunchHours || 0,
                 'Horas Diurnas': sh.dayHours || 0,
@@ -390,7 +392,7 @@ export default function ScheduleExportModal({
 
             filteredShifts.forEach(sh => {
               if (sh.shiftType === 'ORDINARIO') {
-                matrixRow[`${sh.dayOfWeek} (${sh.date})`] = `${sh.startTime || '10:00'} - ${sh.endTime || '20:30'} (${sh.netHours || 0}h)`;
+                matrixRow[`${sh.dayOfWeek} (${sh.date})`] = `${formatTimeRange12h(sh.startTime || '10:00', sh.endTime || '20:30')} (${sh.netHours || 0}h)`;
               } else {
                 matrixRow[`${sh.dayOfWeek} (${sh.date})`] = `${sh.shiftType} (${sh.shiftType === 'NO_PROGRAMADO' ? '0h' : '7h'})`;
               }
