@@ -78,13 +78,16 @@ export default function PendingCoverageMonitorView({ currentUser, pdvs, supervis
         }
       });
 
-      const schedPromises = allWeeksToFetch.map(w => api.getSchedules({ weekStart: w.start }).catch(() => []));
-      const punchPromises = allWeeksToFetch.map(w => api.getPunchRecords({ weekStart: w.start }).catch(() => []));
-
-      const [schedResults, punchResults] = await Promise.all([
-        Promise.all(schedPromises),
-        Promise.all(punchPromises)
-      ]);
+      const schedResults = [];
+      for (const w of allWeeksToFetch) {
+        const s = await api.getSchedules({ weekStart: w.start }).catch(() => []);
+        schedResults.push(s);
+      }
+      const punchResults = [];
+      for (const w of allWeeksToFetch) {
+        const p = await api.getPunchRecords({ weekStart: w.start }).catch(() => []);
+        punchResults.push(p);
+      }
 
       const flatScheds = schedResults.flat();
       const flatPunches = punchResults.flat();

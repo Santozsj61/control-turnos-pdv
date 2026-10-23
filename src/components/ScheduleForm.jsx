@@ -277,21 +277,19 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
 
       // 1. Fetch Users for Active Scope
       let emps = [];
-      try {
-        const resUsers = await fetch(usersUrl);
-        const jsonUsers = await resUsers.json();
-        if (jsonUsers.success && Array.isArray(jsonUsers.data)) {
-          emps = jsonUsers.data.filter(u => u.role === 'EMPLOYEE');
-        }
-      } catch (e) {
-        // Fallback on Vercel client-side
-      }
-
-      if (emps.length === 0) {
+      if (api.isConfigured) {
         try {
-          const fallbackUsers = await api.getUsers();
-          if (Array.isArray(fallbackUsers)) {
-            emps = fallbackUsers.filter(u => u.role === 'EMPLOYEE');
+          const loadedUsers = await api.getUsers();
+          if (Array.isArray(loadedUsers)) {
+            emps = loadedUsers.filter(u => u.role === 'EMPLOYEE');
+          }
+        } catch (e) {}
+      } else {
+        try {
+          const resUsers = await fetch(usersUrl);
+          const jsonUsers = await resUsers.json();
+          if (jsonUsers.success && Array.isArray(jsonUsers.data)) {
+            emps = jsonUsers.data.filter(u => u.role === 'EMPLOYEE');
           }
         } catch (e) {}
       }
@@ -315,19 +313,20 @@ export default function ScheduleForm({ currentUser, pdvs, supervisors, onOpenPer
 
       // 2. Fetch Schedules (Supabase cloud first, then local fallback)
       let existingScheds = [];
-      try {
-        if (api.isConfigured) {
+      if (api.isConfigured) {
+        try {
           const filters = { weekStart: selectedWeekStart };
+          if (selectedPdvId && selectedPdvId !== 'ALL') {
+            filters.pdvId = selectedPdvId;
+          }
           const supScheds = await api.getSchedules(filters);
           if (Array.isArray(supScheds) && supScheds.length > 0) {
             existingScheds = supScheds;
           }
+        } catch (e) {
+          console.warn('Supabase schedules fetch notice:', e);
         }
-      } catch (e) {
-        console.warn('Supabase schedules fetch notice:', e);
-      }
-
-      if (existingScheds.length === 0) {
+      } else {
         try {
           const resSched = await fetch(schedUrl);
           const jsonSched = await resSched.json();

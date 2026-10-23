@@ -540,7 +540,8 @@ export const api = {
         if (!allUsers) allUsers = initialUsers;
       } else {
         try {
-          const { data, error } = await supabase.from('users').select('*').eq('is_active', true).order('full_name');
+          const userCols = 'id, username, full_name, document_id, code, role, position, area, contract_type, pdv_id, supervisor_id, weekly_max_hours';
+          const { data, error } = await supabase.from('users').select(userCols).eq('is_active', true).order('full_name');
           if (error || !data || data.length === 0) {
             allUsers = initialUsers;
           } else {
@@ -681,19 +682,35 @@ export const api = {
       return fetchLocal(`/api/schedules${q ? '?' + q : ''}`);
     }
 
-    const mapSchedule = s => ({
-      id: s.id,
-      userId: s.user_id,
-      pdvId: s.pdv_id,
-      weekStart: s.week_start,
-      weekEnd: s.week_end,
-      isSubmitted: s.is_submitted,
-      shifts: s.shifts || [],
-      totalNetHours: Number(s.total_net_hours || 0),
-      totalLunchHours: Number(s.total_lunch_hours || 0),
-      notes: s.notes,
-      user: s.users || null
-    });
+    const cachedUsers = memoryCache.users || [];
+    const userMap = new Map(cachedUsers.map(u => [u.id, u]));
+
+    const mapSchedule = s => {
+      const u = s.users || userMap.get(s.user_id) || null;
+      return {
+        id: s.id,
+        userId: s.user_id,
+        pdvId: s.pdv_id,
+        weekStart: s.week_start,
+        weekEnd: s.week_end,
+        isSubmitted: s.is_submitted,
+        shifts: s.shifts || [],
+        totalNetHours: Number(s.total_net_hours || 0),
+        totalLunchHours: Number(s.total_lunch_hours || 0),
+        notes: s.notes,
+        user: u ? {
+          id: u.id,
+          username: u.username,
+          full_name: u.fullName || u.full_name,
+          document_id: u.documentId || u.document_id,
+          code: u.code,
+          role: u.role,
+          position: u.position,
+          contract_type: u.contractType || u.contract_type,
+          pdv_id: u.pdvId || u.pdv_id
+        } : null
+      };
+    };
 
     const isCacheableSched = (filters.weekStart || filters.month) && !filters.userId;
     const schedCacheKey = isCacheableSched ? `sched_${filters.weekStart || filters.month}_${filters.pdvId || 'ALL'}` : null;
@@ -706,7 +723,7 @@ export const api = {
       let from = 0;
       const step = 1000;
       while (true) {
-        const { data, error } = await supabase.from('schedules').select('*, users(*)').range(from, from + step - 1);
+        const { data, error } = await supabase.from('schedules').select('*').range(from, from + step - 1);
         if (error || !data || data.length === 0) break;
         allData.push(...data);
         if (data.length < step) break;
@@ -719,7 +736,7 @@ export const api = {
     let from = 0;
     const step = 1000;
     while (true) {
-      let query = supabase.from('schedules').select('*, users(*)').range(from, from + step - 1);
+      let query = supabase.from('schedules').select('*').range(from, from + step - 1);
       if (filters.userId) query = query.eq('user_id', filters.userId);
       if (filters.weekStart) {
         query = query.eq('week_start', filters.weekStart);
@@ -1260,6 +1277,16 @@ export const api = {
     if (cacheKey && memoryCache.punchesByWeek.has(cacheKey)) {
       return memoryCache.punchesByWeek.get(cacheKey);
     }
+    if (cacheKey && typeof window !== 'undefined' && window.sessionStorage) {
+      try {
+        const stored = sessionStorage.getItem(cacheKey);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          memoryCache.punchesByWeek.set(cacheKey, parsed);
+          return parsed;
+        }
+      } catch (e) {}
+    }
 
     if (!isSupabaseConfigured) {
       const q = new URLSearchParams(filters).toString();
@@ -1270,8 +1297,9 @@ export const api = {
     let allData = [];
     let page = 0;
     const pageSize = 1000;
+    const punchCols = 'id, batch_id, document_id, code, full_name, position, pdv_name, supervisor_name, entry_date, entry_time, exit_date, exit_time, real_calculations';
     while (true) {
-      let query = supabase.from('punch_records').select('*').range(page * pageSize, (page + 1) * pageSize - 1);
+      let query = supabase.from('punch_records').select(punchCols).range(page * pageSize, (page + 1) * pageSize - 1);
       if (filters.batchId) query = query.eq('batch_id', filters.batchId);
       if (filters.documentId) query = query.eq('document_id', filters.documentId);
       if (filters.date) query = query.eq('entry_date', filters.date);
@@ -1322,6 +1350,11 @@ export const api = {
 
     if (cacheKey) {
       memoryCache.punchesByWeek.set(cacheKey, mapped);
+      if (typeof window !== 'undefined' && window.sessionStorage) {
+        try {
+          sessionStorage.setItem(cacheKey, JSON.stringify(mapped));
+        } catch (e) {}
+      }
     }
     return mapped;
   },
